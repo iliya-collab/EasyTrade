@@ -26,11 +26,11 @@ public:
     void subscribe(const QString& symbol);
 
     bool loadAllTradePairFromRepository(Tools::MarketType type);
-    bool loadKlinesFromRepository(Tools::MarketType type, const QString& symbol, const QString& interval, qint64 start, qint64 end);
+    bool loadKlinesFromRepository(const Tools::KlinesRequest& req);
     void loadPublicTradesFromRepository(Tools::MarketType type, const QString& symbol);
 
     void loadTradePairsFromNetwork(Tools::MarketType type);
-    void loadKlinesFromNetwork(Tools::MarketType type, const QString& symbol, const QString& interval, qint64 start, qint64 end);
+    void loadKlinesFromNetwork(const Tools::KlinesRequest& req);
 
     void init(bool isTestnet);
 

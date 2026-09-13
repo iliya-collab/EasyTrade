@@ -1,13 +1,13 @@
-#include "TradeModel.hpp"
+#include "PublicTradesModel.hpp"
 
 namespace Core::Tools {
 
-    int TradeModel::rowCount(const QModelIndex &parent) const
+    int PublicTradesModel::rowCount(const QModelIndex &parent) const
     {
         return m_trades.size();
     }
 
-    QVariant TradeModel::data(const QModelIndex &index, int role) const
+    QVariant PublicTradesModel::data(const QModelIndex &index, int role) const
     {
 
         if (!index.isValid() || index.row() >= m_trades.size())
@@ -32,7 +32,7 @@ namespace Core::Tools {
 
     }
 
-    QHash<int, QByteArray> TradeModel::roleNames() const
+    QHash<int, QByteArray> PublicTradesModel::roleNames() const
     {
         return {
             {TimeRole, "tradeTime"},
@@ -43,7 +43,7 @@ namespace Core::Tools {
         };
     }
 
-    void TradeModel::addTrade(const PublicTradeItem &item)
+    void PublicTradesModel::addTrade(const PublicTradeItem &item)
     {
         beginInsertRows(QModelIndex(), 0, 0);
         m_trades.prepend(item);
@@ -56,7 +56,7 @@ namespace Core::Tools {
         }
     }
 
-    void TradeModel::addTradeBatch(const QList<PublicTradeItem>& items)
+    void PublicTradesModel::addTradeBatch(const PublicTrades& items)
     {
         if (items.isEmpty())
             return;

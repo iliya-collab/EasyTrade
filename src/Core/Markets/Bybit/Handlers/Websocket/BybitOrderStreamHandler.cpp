@@ -46,12 +46,12 @@ void Core::Markets::BybitOrderStreamHandler::handle(const QJsonObject &data, IPr
         else
             order.m_status = Tools::OrderStatus::Unknown;
 
-        order.m_price        = dataObj["price"].toString().toDouble();
-        order.m_qty          = dataObj["qty"].toString().toDouble();
-        order.m_leavesQty    = dataObj["leavesQty"].toString().toDouble();
-        order.m_cumExecQty   = dataObj["cumExecQty"].toString().toDouble();
-        order.m_cumExecValue = dataObj["cumExecValue"].toString().toDouble();
-        order.m_cumExecFee   = dataObj["cumExecFee"].toString().toDouble();
+        order.m_price        = dataObj["price"].toString();
+        order.m_qty          = dataObj["qty"].toString();
+        order.m_leavesQty    = dataObj["leavesQty"].toString();
+        order.m_cumExecQty   = dataObj["cumExecQty"].toString();
+        order.m_cumExecValue = dataObj["cumExecValue"].toString();
+        order.m_cumExecFee   = dataObj["cumExecFee"].toString();
 
         order.m_rejectReason = dataObj["rejectReason"].toString();
         order.m_createdTime  = dataObj["createdTime"].toString().toLongLong();

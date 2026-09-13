@@ -5,7 +5,7 @@
 
 namespace Core::Tools {
 
-    class TradeModel : public QAbstractListModel {
+    class PublicTradesModel : public QAbstractListModel {
         Q_OBJECT
         QML_ELEMENT
 
@@ -19,7 +19,7 @@ namespace Core::Tools {
             SideRole
         };
 
-        explicit TradeModel(QObject* parent = nullptr) : QAbstractListModel(parent) {};
+        explicit PublicTradesModel(QObject* parent = nullptr) : QAbstractListModel(parent) {};
 
         int rowCount(const QModelIndex &parent = QModelIndex()) const override;
         QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -30,7 +30,7 @@ namespace Core::Tools {
 
     private:
 
-        QList<PublicTradeItem> m_trades;
+        PublicTrades m_trades;
         int m_nTrades = 50;
 
     };

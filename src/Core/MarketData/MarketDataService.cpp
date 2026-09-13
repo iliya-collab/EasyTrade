@@ -1,4 +1,5 @@
 #include "MarketDataService.hpp"
+#include "Tools/RequestBuilders.hpp"
 
 namespace Core
 {
@@ -95,27 +96,14 @@ namespace Core
             m_mediator->loadTradePairsFromNetwork(type);
     }
 
-    void MarketDataService::loadKlines(Core::Tools::MarketType type, const QString &symbol, const QString &interval, qint64 start, qint64 end)
+    void MarketDataService::loadKlines(const QVariantMap& params)
     {
-        if (!m_mediator->loadKlinesFromRepository(type, symbol, interval, start, end))
-            m_mediator->loadKlinesFromNetwork(type, symbol, interval, start, end);
+        validateAndSend(params, Tools::buildKlinesRequest, [this](const Tools::KlinesRequest& req)
+        {
+            if (!m_mediator->loadKlinesFromRepository(req))
+                m_mediator->loadKlinesFromNetwork(req);
+        });
     }
-
-    // void MarketDataService::loadAccountBalance()
-    // {
-    //     m_mediator->loadAccountBalance();
-    // }
-
-    // void MarketDataService::loadInfoAboutApi()
-    // {
-    //     m_mediator->loadInfoAboutApi();
-    // }
-
-    // void MarketDataService::setApi(const Tools::Api &api)
-    // {
-    //     m_mediator->setApi(api);
-    //     m_mediator->loadAccountBalance();
-    // }
 
     void MarketDataService::onErrorOccurredWithId(const QString& id, const QString &error)
     {

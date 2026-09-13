@@ -1,5 +1,6 @@
 #pragma once
 #include "Tools/StdTypes.hpp"
+#include "Tools/QueryStructures.hpp"
 
 namespace Core::Markets
 {
@@ -15,7 +16,7 @@ namespace Core::Markets
         // Запрос пар
         virtual void requestTradePairs(Tools::MarketType category) = 0;
         // Запрос свеч
-        virtual void requestKlines(Tools::MarketType category, const QString& symbol, const QString& interval, qint64 start, qint64 end) = 0;
+        virtual void requestKlines(const Tools::KlinesRequest& req) = 0;
 
     signals:
 

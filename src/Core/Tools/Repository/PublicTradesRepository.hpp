@@ -3,11 +3,11 @@
 
 namespace Core::Tools {
 
-    class TradeRepository : public BaseRepository {
+    class PublicTradesRepository : public BasePublicTradesRepository {
     public:
 
-        TradeRepository(const QString& dbPath, IDatabaseManager& manager);
-        ~TradeRepository() = default;
+        PublicTradesRepository(const QString& dbPath, IDatabaseManager& manager);
+        ~PublicTradesRepository() = default;
 
         bool init() override;
         bool open() override;

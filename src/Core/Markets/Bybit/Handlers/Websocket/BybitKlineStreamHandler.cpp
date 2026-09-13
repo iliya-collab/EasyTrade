@@ -25,7 +25,7 @@ void Core::Markets::BybitKlineStreamHandler::handle(const QJsonObject &obj, IMar
         kline.m_confirm = data["confirm"].toBool();
         kline.m_start = data["start"].toVariant().toLongLong();
         kline.m_end = data["end"].toVariant().toLongLong();
-        kline.m_interval = data["interval"].toString();
+        kline.m_interval = Tools::stringToInterval(data["interval"].toString());
         kline.m_volume = data["volume"].toString().toDouble();
         kline.m_turnover = data["turnover"].toString().toDouble();
     }

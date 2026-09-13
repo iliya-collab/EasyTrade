@@ -1,43 +1,50 @@
 #pragma once
 #include <QObject>
-#include "Tools/Repository/TradeRepository.hpp"
-#include "Tools/Repository/KlineRepository.hpp"
+#include "Tools/Repository/PublicTradesRepository.hpp"
+#include "Tools/Repository/KlinesRepository.hpp"
 #include "Tools/Repository/CryptoRepository.hpp"
 
-namespace Core::Markets {
+namespace Core::Markets
+{
 
-/*
- *  Класс для работы с локальным репозиторием
-*/
-    class MarketDataRepository : public QObject {
-        Q_OBJECT
-    private:
+class MarketDataRepository : public QObject
+{
+    Q_OBJECT
+private:
 
-        std::unique_ptr<Tools::CryptoRepository> m_cryptoRep;
-        std::unique_ptr<Tools::KlineRepository> m_klineRep;
-        std::unique_ptr<Tools::TradeRepository> m_tradeRep;
-        mutable QMutex m_mutex;
+    std::unique_ptr<Tools::CryptoRepository> m_cryptoRep;
+    std::unique_ptr<Tools::KlinesRepository> m_klinesRep;
+    std::unique_ptr<Tools::PublicTradesRepository> m_publicTradesRep;
+    mutable QMutex m_mutex;
 
-    public:
+public:
 
-        explicit MarketDataRepository(QObject* parent = nullptr);
+    explicit MarketDataRepository(QObject* parent = nullptr);
 
-        // Загрузка всех данных из крипторепозитория
-        QList<Tools::TradeInfo> loadAllFromCryptoRepository(Tools::MarketType type);
-        void clearCryptoRepository();
+    // Загрузка всех данных из крипторепозитория
+    QList<Tools::TradeInfo> loadFromCryptoRepository(Tools::MarketType type);
+    QList<Tools::Kline> loadFromKlinesRepository(Tools::MarketType type, const QString& symbol, Tools::Interval interval, std::optional<qint64> start, std::optional<qint64> end);
+    Tools::PublicTrades loadFromPublicTradesRepository(Tools::MarketType type, const QString& symbol);
 
-        // Сохранение данных в крипторепозитории
-        void saveToCryptoRepository(const QList<Tools::TradeInfo>& tradePairs);
-        void saveToKlineRepository(const Tools::Kline& newKline);
-        void saveToKlinesRepository(const QList<Tools::Kline>& newKlines);
+    void clearCryptoRepository();
+    void clearKlinesRepository();
+    void clearPublicTradesRepository();
 
-        QList<Tools::TradeInfo> getTradeList() { return m_cryptoRep->getSelectedData(); }
+    // Сохранение данных в крипторепозитории
+    void saveToCryptoRepository(const QList<Tools::TradeInfo>& tradePairs);
+    void saveToKlinesRepository(const Tools::Kline& newKline);
+    void saveToKlinesRepository(const QList<Tools::Kline>& newKlines);
+    void saveToPublicTradesRepository(const Tools::PublicTrades newTrades);
 
-    signals:
+    QList<Tools::TradeInfo> getTradeList() { return m_cryptoRep->getData(); }
+    QList<Tools::Kline> getKlines() { return m_klinesRep->getData(); }
+    Tools::PublicTrades getPublicTrades() { return m_publicTradesRep->getData(); }
 
-        void errorOccurred(const QString& error);
+signals:
 
-    };
+    void errorOccurred(const QString& error);
+
+};
 
 }
 

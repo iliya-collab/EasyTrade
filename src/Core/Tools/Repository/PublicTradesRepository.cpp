@@ -1,11 +1,11 @@
-#include "TradeRepository.hpp"
+#include "PublicTradesRepository.hpp"
 
 namespace Core::Tools {
 
-    TradeRepository::TradeRepository(const QString& dbPath, IDatabaseManager& manager) :
+    PublicTradesRepository::PublicTradesRepository(const QString& dbPath, IDatabaseManager& manager) :
         BaseRepository(dbPath, manager) {}
 
-    bool TradeRepository::init() {
+    bool PublicTradesRepository::init() {
 
         QString query = R"(
             CREATE TABLE IF NOT EXISTS trades (
@@ -22,19 +22,19 @@ namespace Core::Tools {
         return m_dbManager.executeQuery(m_dbPath, query);
     }
 
-    bool TradeRepository::open() {
+    bool PublicTradesRepository::open() {
         return m_dbManager.open(m_dbPath);
     }
 
-    void TradeRepository::close() {
+    void PublicTradesRepository::close() {
         m_dbManager.close(m_dbPath);
     }
 
-    QString TradeRepository::error() {
+    QString PublicTradesRepository::error() {
         return m_dbManager.error();
     }
 
-    bool TradeRepository::clear() {
+    bool PublicTradesRepository::clear() {
         if (!m_dbManager.beginTransaction(m_dbPath))
             return false;
 

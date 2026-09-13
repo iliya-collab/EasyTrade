@@ -34,17 +34,17 @@ void Core::Markets::BybitPositionStreamHandler::handle(const QJsonObject &data, 
             else
                 position.m_side = Tools::OrderSide::Unknown;
         }
-        position.m_size = dataObj["size"].toString().toDouble();
+        position.m_size = dataObj["size"].toString();
         position.m_positionIdx = dataObj["positionIdx"].toInt();
 
-        position.m_avgPrice          = dataObj["entryPrice"].toString().toDouble();
-        position.m_liqPrice          = dataObj["liqPrice"].toString().toDouble();
-        position.m_markPrice         = dataObj["markPrice"].toString().toDouble();
-        position.m_leverage          = dataObj["leverage"].toString().toDouble();
-        position.m_positionIM        = dataObj["positionIM"].toString().toDouble();
-        position.m_positionMM        = dataObj["positionMM"].toString().toDouble();
-        position.m_unrealisedPnl     = dataObj["unrealisedPnl"].toString().toDouble();
-        position.m_cumRealisedPnl    = dataObj["cumRealisedPnl"].toString().toDouble();
+        position.m_avgPrice          = dataObj["entryPrice"].toString();
+        position.m_liqPrice          = dataObj["liqPrice"].toString();
+        position.m_markPrice         = dataObj["markPrice"].toString();
+        position.m_leverage          = dataObj["leverage"].toString();
+        position.m_positionIM        = dataObj["positionIM"].toString();
+        position.m_positionMM        = dataObj["positionMM"].toString();
+        position.m_unrealisedPnl     = dataObj["unrealisedPnl"].toString();
+        position.m_cumRealisedPnl    = dataObj["cumRealisedPnl"].toString();
 
         position.m_adlRankIndicator  = dataObj["adlRankIndicator"].toInt();
 

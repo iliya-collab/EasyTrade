@@ -14,7 +14,7 @@ public:
     void init(bool isTestnet) override;
 
     void requestTradePairs(Tools::MarketType type) override;
-    void requestKlines(Tools::MarketType type, const QString& symbol, const QString& interval, qint64 start, qint64 end) override;
+    void requestKlines(const Tools::KlinesRequest& req) override;
 
 };
 

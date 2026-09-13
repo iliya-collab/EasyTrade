@@ -89,7 +89,7 @@ namespace Core {
     bool MarketDataMediator::loadAllTradePairFromRepository(Tools::MarketType type)
     {
         emit messageSent("Loading trade pairs from repository...");
-        auto pairs = m_repository->loadAllFromCryptoRepository(type);
+        auto pairs = m_repository->loadFromCryptoRepository(type);
 
         if (!pairs.isEmpty())
         {
@@ -101,7 +101,7 @@ namespace Core {
         return false;
     }
 
-    bool MarketDataMediator::loadKlinesFromRepository(Tools::MarketType type, const QString &symbol, const QString &interval, qint64 start, qint64 end)
+    bool MarketDataMediator::loadKlinesFromRepository(const Tools::KlinesRequest& req)
     {
         return false;
     }
@@ -117,9 +117,9 @@ namespace Core {
         m_service->requestTradePairs(type);
     }
 
-    void MarketDataMediator::loadKlinesFromNetwork(Tools::MarketType type, const QString &symbol, const QString &interval, qint64 start, qint64 end)
+    void MarketDataMediator::loadKlinesFromNetwork(const Tools::KlinesRequest& req)
     {
-        m_service->requestKlines(type, symbol, interval, start, end);
+        m_service->requestKlines(req);
     }
 
     void MarketDataMediator::init(bool isTestnet)
@@ -139,7 +139,7 @@ namespace Core {
     {
         if (kline.m_confirm)
         {
-            m_repository->saveToKlineRepository(kline);
+            m_repository->saveToKlinesRepository(kline);
         }
         emit klineUpdated(kline);
     }

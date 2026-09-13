@@ -9,7 +9,7 @@ namespace Core {
         m_klineSeries = std::make_shared<Tools::KlineModel>();
         m_asks = std::make_shared<Tools::OrderbookSideModel>(Core::Tools::OrderbookSideModel::Side::Ask);
         m_bids = std::make_shared<Tools::OrderbookSideModel>(Core::Tools::OrderbookSideModel::Side::Bid);
-        m_trades = std::make_shared<Tools::TradeModel>();
+        m_trades = std::make_shared<Tools::PublicTradesModel>();
     }
 
     void MarketDataState::updateTradePairs(const QList<Tools::TradeInfo>& pairs)
@@ -45,7 +45,7 @@ namespace Core {
 
     void MarketDataState::updateTrades(const Tools::PublicTrades& trades)
     {
-        m_trades->addTradeBatch(trades.m_items);
+        m_trades->addTradeBatch(trades);
         emit tradesChanged();
     }
 

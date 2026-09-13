@@ -4,31 +4,37 @@
 #include <type_traits>
 #include <memory>
 
-namespace Core::Tools {
+namespace Core::Tools
+{
 
-    class RepositoryCreater {
-    public:
+class RepositoryCreater
+{
+public:
 
-        static RepositoryCreater& instance();
+    static RepositoryCreater& instance();
 
-        template <class TRep>
-        std::unique_ptr<TRep> createRepository(const QString& dbPath, IDatabaseManager& dbManager) const {
-            static_assert(std::is_base_of<BaseRepository, TRep>::value, "TRep must inherit from BaseRepository!");
+    template <typename TRep>
+    std::unique_ptr<TRep> create(const QString& dbPath, IDatabaseManager& dbManager) const
+    {
+        using TRow = typename TRep::RowType;
 
-            auto rep = std::make_unique<TRep>(dbPath, dbManager);
+        static_assert(std::is_base_of<BaseRepository<TRow>, TRep>::value,
+                      "TRep must inherit from BaseRepository!");
 
-            if (!rep->init())
-                throw std::invalid_argument("Failed to initialize the repository");
+        auto rep = std::make_unique<TRep>(dbPath, dbManager);
 
-            return rep;
-        }
+        if (!rep->init())
+            throw std::invalid_argument("Failed to initialize the repository");
 
-    private:
+        return rep;
+    }
 
-        RepositoryCreater() = default;
-        RepositoryCreater(const RepositoryCreater&) = delete;
-        RepositoryCreater& operator=(const RepositoryCreater&) = delete;
+private:
 
-    };
+    RepositoryCreater() = default;
+    RepositoryCreater(const RepositoryCreater&) = delete;
+    RepositoryCreater& operator=(const RepositoryCreater&) = delete;
+
+};
 
 }

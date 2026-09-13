@@ -1,5 +1,5 @@
 #pragma once
-#include "StdTypes.hpp"
+#include "QueryStructures.hpp"
 #include <QVariantMap>
 #include <optional>
 #include <expected>
@@ -49,6 +49,38 @@ namespace Core::Tools
                    (orderLinkId.has_value() && !orderLinkId->isEmpty());
         }
 
+    }
+
+    inline std::expected<KlinesRequest, QString> buildKlinesRequest(const QVariantMap& params)
+    {
+        KlinesRequest req;
+
+        // Обязательные
+        req.m_category = stringToMarketType(detail::reqString(params, "category"));
+        req.m_symbol = detail::reqString(params, "symbol");
+        req.m_interval = stringToInterval(detail::reqString(params, "interval"));
+
+        // Опциональные
+        req.m_start = detail::optInt64(params, "start");
+        req.m_end = detail::optInt64(params, "end");
+        req.m_limit = detail::optInt64(params, "limit");
+
+        // Обработка
+        if (req.m_category == MarketType::Unknown)
+            return std::unexpected<QString>("requestKlines: Invalid \'category\' parameter");
+        if (req.m_symbol.isEmpty())
+            return std::unexpected<QString>("requestKlines: The \'symbol\' parameter must not be empty");
+        if (req.m_interval == Interval::Unknown)
+            return std::unexpected<QString>("requestKlines: Invalid \'interval\' parameter");
+        if (req.m_start.has_value() &&
+            req.m_end.has_value() &&
+            *req.m_start > *req.m_end)
+            return std::unexpected("requestKlines: \'start\' cannot be later than \'end\'");
+        if (req.m_limit.has_value() &&
+            ((*req.m_limit <= 0) || (*req.m_limit > 1000)))
+            return std::unexpected("requestKlines: \'limit\' cannot be later than 0 or more than 1000");
+
+        return req;
     }
 
     inline std::expected<OrderRequest, QString> buildOrderRequest(const QVariantMap& params)

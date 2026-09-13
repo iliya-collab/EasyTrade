@@ -2,7 +2,7 @@
 #include "Tools/DataModels/TradePairsModel.hpp"
 #include "Tools/DataModels/KlineModel.hpp"
 #include "Tools/DataModels/OrderbookSideModel.hpp"
-#include "Tools/DataModels/TradeModel.hpp"
+#include "Tools/DataModels/PublicTradesModel.hpp"
 #include "Tools/DataModels/ReversedProxyModel.hpp"
 #include "Tools/DataModels/TradePairsFilterProxyModel.hpp"
 #include <QObject>
@@ -19,7 +19,7 @@ namespace Core {
         Q_PROPERTY(Core::Tools::Ticker ticker READ getTicker NOTIFY tickerChanged FINAL)
         Q_PROPERTY(Core::Tools::OrderbookSideModel* asks READ getAsks NOTIFY asksChanged FINAL)
         Q_PROPERTY(Core::Tools::OrderbookSideModel* bids READ getBids NOTIFY bidsChanged FINAL)
-        Q_PROPERTY(Core::Tools::TradeModel* trades READ getTrades NOTIFY tradesChanged FINAL)
+        Q_PROPERTY(Core::Tools::PublicTradesModel* trades READ getTrades NOTIFY tradesChanged FINAL)
 
     private:
 
@@ -28,7 +28,7 @@ namespace Core {
         std::shared_ptr<Tools::KlineModel> m_klineSeries{};
         std::shared_ptr<Tools::OrderbookSideModel> m_asks{};
         std::shared_ptr<Tools::OrderbookSideModel> m_bids{};
-        std::shared_ptr<Tools::TradeModel> m_trades{};
+        std::shared_ptr<Tools::PublicTradesModel> m_trades{};
         // Прочее
         std::shared_ptr<Tools::TradePairsModel> m_tradePairs{};
         qint64 m_pingMs = 0;
@@ -51,7 +51,7 @@ namespace Core {
         Tools::Ticker getTicker() const { return m_ticker; }
         Tools::OrderbookSideModel* getAsks() const { return m_asks.get(); }
         Tools::OrderbookSideModel* getBids() const { return m_bids.get(); }
-        Tools::TradeModel* getTrades() const { return m_trades.get(); }
+        Tools::PublicTradesModel* getTrades() const { return m_trades.get(); }
         Tools::TradePairsModel* getTradePairs() const { return m_tradePairs.get(); }
         qint64 getPingMs() const { return m_pingMs; }
 

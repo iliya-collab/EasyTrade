@@ -20,15 +20,11 @@ namespace Core::Tools {
             return false;
         }
 
-        // if (!m_dbManager.executePrepared(m_dbPath, "UPDATE sqlite_sequence SET seq = 0 WHERE name = ?", {"crypto"})) {
-        //     m_dbManager.rollbackTransaction(m_dbPath);
-        //     return false;
-        // }
-
         return m_dbManager.commitTransaction(m_dbPath);
     }
 
-    bool CryptoRepository::init() {
+    bool CryptoRepository::init()
+    {
         QStringList queries;
 
         queries << R"(
@@ -53,10 +49,6 @@ namespace Core::Tools {
 
     void CryptoRepository::close() {
         m_dbManager.close(m_dbPath);
-    }
-
-    QList<TradeInfo> CryptoRepository::getSelectedData() {
-        return m_selectedData;
     }
 
     bool CryptoRepository::insertTrades(const QList<TradeInfo>& newTrades) {
@@ -88,12 +80,12 @@ namespace Core::Tools {
             item.m_symbol = query.value(1).toString();
             item.m_baseCoin = query.value(2).toString();
             item.m_quoteCoin = query.value(3).toString();
-            m_selectedData.push_back(item);
+            m_data.push_back(item);
         }
     }
 
     bool CryptoRepository::selectTrades(MarketType type) {
-        m_selectedData.clear();
+        m_data.clear();
         return m_dbManager.executePrepared(m_dbPath,
             R"(SELECT category, symbol, base_coin, quote_coin
                 FROM crypto WHERE category = ?)",
@@ -105,7 +97,7 @@ namespace Core::Tools {
     }
 
     bool CryptoRepository::selectTrades(MarketType type, const QString& quoteCoin) {
-        m_selectedData.clear();
+        m_data.clear();
         return m_dbManager.executePrepared(m_dbPath,
            R"(SELECT category, symbol, base_coin, quote_coin
                 FROM crypto WHERE category = ? AND quote_coin = ?)",

@@ -13,6 +13,18 @@ namespace Core {
         std::shared_ptr<MarketDataState> m_state;
         std::shared_ptr<MarketDataMediator> m_mediator;
 
+        template<typename BuiltFn, typename SendFn>
+        void validateAndSend(const QVariantMap& params, BuiltFn&& build, SendFn&& send)
+        {
+            auto res = build(params);
+            if (!res.has_value())
+            {
+                emit errorOccurred(res.error());
+                return;
+            }
+            send(res.value());
+        }
+
     public:
 
         explicit MarketDataService(std::shared_ptr<MarketDataState> state, std::shared_ptr<MarketDataMediator> mediator, QObject *parent = nullptr);
@@ -24,7 +36,7 @@ namespace Core {
         Q_INVOKABLE void subscribeSymbol(const QString& symbol);
 
         Q_INVOKABLE void loadTradePairs(Core::Tools::MarketType type);
-        Q_INVOKABLE void loadKlines(Core::Tools::MarketType type, const QString& symbol, const QString& interval, qint64 start, qint64 end);
+        Q_INVOKABLE void loadKlines(const QVariantMap& params);
 
     private slots:
 

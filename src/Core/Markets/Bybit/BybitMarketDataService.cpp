@@ -31,11 +31,11 @@ namespace Core::Markets
         requestGetImpl<GetBybitTradePairsHandler>(type);
     }
 
-    void BybitMarketDataService::requestKlines(Tools::MarketType type, const QString& symbol, const QString& interval, qint64 start, qint64 end)
+    void BybitMarketDataService::requestKlines(const Tools::KlinesRequest& req)
     {
         qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
 
-        requestGetImpl<GetBybitKlineHandler>(type, symbol, interval, start, end);
+        requestGetImpl<GetBybitKlineHandler>(req);
     }
 
 }

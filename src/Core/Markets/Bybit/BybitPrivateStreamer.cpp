@@ -1,5 +1,5 @@
 #include "BybitPrivateStreamer.hpp"
-#include "Tools/Network/Bybit/BybitWebSocket.hpp"
+#include "Tools/Network/Bybit/BybitWebSocketCreater.hpp"
 #include "Handlers/Websocket/BybitWalletStreamHandler.hpp"
 #include "Handlers/Websocket/BybitOrderStreamHandler.hpp"
 #include "Handlers/Websocket/BybitExecutionStreamHandler.hpp"
@@ -10,8 +10,10 @@ namespace Core::Markets
 {
 
     BybitPrivateStreamer::BybitPrivateStreamer(QObject* parent)
-        : BasePrivateStreamer(std::make_unique<Tools::BybitWebSocket>(
-                                        Tools::SocketType::Private, Tools::MarketType::Unknown, parent), parent)
+        : BasePrivateStreamer(
+          Tools::BybitWebSocketCreater::create(Tools::SocketType::Private, Tools::MarketType::Unknown, Tools::Api(), parent),
+          parent
+        )
     {
         qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
 

@@ -83,7 +83,7 @@ namespace Core::Tools
         auto it = m_keyToRow.find(key);
 
         // Позиция закрыта (size == 0) — убираем строку, если она была
-        if (position.m_size == 0.0)
+        if (position.m_size.toDouble() == 0.0)
         {
             if (it != m_keyToRow.end())
                 removeAt(it.value());
@@ -111,7 +111,7 @@ namespace Core::Tools
         beginResetModel();
         m_positions.clear();
         for (const auto& p : positions)
-            if (p.m_size != 0.0)
+            if (p.m_size.toDouble() != 0.0)
                 m_positions.append(p);
         rebuildIndex();
         endResetModel();

@@ -2,6 +2,8 @@
 #include "Tools/Network/Bybit/BybitRestAPI.hpp"
 #include "Handlers/RestAPI/GetBybitAccountBalanceHandler.hpp"
 #include "Handlers/RestAPI/GetBybitInfoAboutAPIHandler.hpp"
+#include "Handlers/RestAPI/GetBybitOpenOrdersHandler.hpp"
+#include "Handlers/RestAPI/GetBybitOrderHistoryHandler.hpp"
 #include "Handlers/RestAPI/PostBybitCreateOrderHandler.hpp"
 #include "Handlers/RestAPI/PostBybitAmendOrderHandler.hpp"
 #include "Handlers/RestAPI/PostBybitCancelOrderHandler.hpp"
@@ -12,6 +14,8 @@ Core::Markets::BybitPrivateService::BybitPrivateService(QObject *parent)
 {
     registerHandler<GetBybitInfoAboutAPIHandler>();
     registerHandler<GetBybitAccountBalanceHandler>();
+    registerHandler<GetBybitOpenOrdersHandler>();
+    registerHandler<GetBybitOrderHistoryHandler>();
     registerHandler<PostBybitCreateOrderHandler>();
     registerHandler<PostBybitAmendOrderHandler>();
     registerHandler<PostBybitCancelOrderHandler>();
@@ -88,6 +92,8 @@ void Core::Markets::BybitPrivateService::requestOpenOrders(const Tools::OpenOrde
 
     if (!m_currentApi)
         return;
+
+    send<GetBybitOpenOrdersHandler>(request);
 }
 
 void Core::Markets::BybitPrivateService::requestOrderHistory(const Tools::OrderHistoryRequest &request)
@@ -96,4 +102,6 @@ void Core::Markets::BybitPrivateService::requestOrderHistory(const Tools::OrderH
 
     if (!m_currentApi)
         return;
+
+    send<GetBybitOrderHistoryHandler>(request);
 }

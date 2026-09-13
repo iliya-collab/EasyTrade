@@ -37,7 +37,7 @@ namespace Core::Markets
             kline.m_volume = itemArr[5].toString().toDouble();
             kline.m_turnover = itemArr[6].toString().toDouble();
             kline.m_confirm = true;
-            kline.m_interval = interval;
+            kline.m_interval = Tools::stringToInterval(interval);
             klines.append(kline);
         }
     }

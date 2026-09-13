@@ -1,5 +1,5 @@
 #include "BybitMarketDataStreamer.hpp"
-#include "Tools/Network/Bybit/BybitWebSocket.hpp"
+#include "Tools/Network/Bybit/BybitWebSocketCreater.hpp"
 #include "Handlers/Websocket/BybitTickerStreamHandler.hpp"
 #include "Handlers/Websocket/BybitOrderbookStreamHandler.hpp"
 #include "Handlers/Websocket/BybitKlineStreamHandler.hpp"
@@ -10,8 +10,10 @@ namespace Core::Markets
 {
 
     BybitMarketDataStreamer::BybitMarketDataStreamer(Tools::MarketType type, QObject* parent)
-        : BaseMarketDataStreamer(std::make_unique<Tools::BybitWebSocket>(
-                                       Tools::SocketType::Public, type, parent), parent)
+        : BaseMarketDataStreamer(
+            Tools::BybitWebSocketCreater::create(Tools::SocketType::Public, type, Tools::Api(), parent),
+            parent
+        )
     {
         qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
 

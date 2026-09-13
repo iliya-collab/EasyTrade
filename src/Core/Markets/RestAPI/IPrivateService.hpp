@@ -1,5 +1,6 @@
 #pragma once
 #include "Tools/StdTypes.hpp"
+#include "Tools/QueryStructures.hpp"
 
 namespace Core::Markets
 {

@@ -45,10 +45,10 @@ void Core::Markets::BybitExecutionStreamHandler::handle(const QJsonObject &data,
         else
             exec.m_execType = Tools::ExecType::Unknown;
 
-        exec.m_execPrice   = dataObj["execPrice"].toString().toDouble();
-        exec.m_execQty     = dataObj["execQty"].toString().toDouble();
-        exec.m_execValue   = dataObj["execValue"].toString().toDouble();
-        exec.m_execFee     = dataObj["execFee"].toString().toDouble();
+        exec.m_execPrice   = dataObj["execPrice"].toString();
+        exec.m_execQty     = dataObj["execQty"].toString();
+        exec.m_execValue   = dataObj["execValue"].toString();
+        exec.m_execFee     = dataObj["execFee"].toString();
 
         exec.m_isMaker     = dataObj["isMaker"].toBool();
         exec.m_execTime    = dataObj["execTime"].toString().toLongLong();

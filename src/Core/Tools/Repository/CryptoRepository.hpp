@@ -5,10 +5,9 @@
 
 namespace Core::Tools {
 
-    class CryptoRepository : public BaseRepository {
+    class CryptoRepository : public BaseCryptoRepository
+    {
     private:
-
-        QList<TradeInfo> m_selectedData;
 
         void handleSelectedTrades(QSqlQuery& query);
 
@@ -26,8 +25,6 @@ namespace Core::Tools {
         bool insertTrades(const QList<TradeInfo>& newTrades);
         bool selectTrades(MarketType type);
         bool selectTrades(MarketType type, const QString& quoteCoin);
-
-        QList<TradeInfo> getSelectedData();
 
     };
 
