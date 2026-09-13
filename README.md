@@ -1,2 +1,7 @@
-# CryptoAnalyzer
-https://bybit-exchange.github.io/docs/v5/guide - Документация
+# Список задачь
+[Документация](https://bybit-exchange.github.io/docs/v5/guide "Документация по бирже Bybit")
+
+- [ ] Доработать **PublicTradesRepository**
+- [ ] Добавить недостающие каналы для рынков
+- [ ] Реализовать мультирыночность через конфиг приложения
+- [ ] Реализовать мультирыночность на уровне **MarketDataMediator**
