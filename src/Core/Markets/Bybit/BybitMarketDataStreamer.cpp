@@ -92,14 +92,18 @@ namespace Core::Markets
         return QString("tickers.%1").arg(symbol);
     }
 
-    QString BybitMarketDataStreamer::createOrderbookStream(const QString &symbol) const
+    QString BybitMarketDataStreamer::createOrderbookStream(const QString &symbol, int depth) const
     {
-        return QString("orderbook.50.%1").arg(symbol);
+        return QString("orderbook.%1.%2")
+            .arg(depth)
+            .arg(symbol);
     }
 
-    QString BybitMarketDataStreamer::createKlineStream(const QString &symbol) const
+    QString BybitMarketDataStreamer::createKlineStream(const QString &symbol, Tools::Interval interval) const
     {
-        return QString("kline.1.%1").arg(symbol);
+        return QString("kline.%1.%2")
+            .arg(Tools::intervalToString(interval))
+            .arg(symbol);
     }
 
     QString BybitMarketDataStreamer::createPublicTradeStream(const QString &symbol) const
@@ -113,11 +117,23 @@ namespace Core::Markets
         if (!m_lastPair.isEmpty())
         {
             subscribeSymbol(m_lastPair, {
-                                            Markets::PublicStreams::Ticker,
-                                            Markets::PublicStreams::Orderbook,
-                                            Markets::PublicStreams::Kline,
-                                            Markets::PublicStreams::PublicTrade
-                                        });
+                Markets::PublicStreams::Ticker,
+                Markets::PublicStreams::Orderbook50,
+                Markets::PublicStreams::Kline1m,
+                Markets::PublicStreams::Kline3m,
+                Markets::PublicStreams::Kline5m,
+                Markets::PublicStreams::Kline15m,
+                Markets::PublicStreams::Kline30m,
+                Markets::PublicStreams::Kline1h,
+                Markets::PublicStreams::Kline2h,
+                Markets::PublicStreams::Kline4h,
+                Markets::PublicStreams::Kline6h,
+                Markets::PublicStreams::Kline12h,
+                Markets::PublicStreams::Kline1D,
+                Markets::PublicStreams::Kline1W,
+                Markets::PublicStreams::Kline1M,
+                Markets::PublicStreams::PublicTrade
+            });
         }
         emit started(id());
     }

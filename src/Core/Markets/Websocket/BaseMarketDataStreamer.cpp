@@ -64,14 +64,16 @@ namespace Core::Markets
 
     QString BaseMarketDataStreamer::createStream(const QString& symbol, PublicStreams stream)
     {
+        if (isKlineStream(stream))
+            return createKlineStream(symbol, Markets::klineInterval(stream));
+
+        if (isOrderbookStream(stream))
+            return createOrderbookStream(symbol, Markets::orderbookDepth(stream));
+
         switch (stream)
         {
         case PublicStreams::Ticker:
             return createTickerStream(symbol);
-        case PublicStreams::Orderbook:
-            return createOrderbookStream(symbol);
-        case PublicStreams::Kline:
-            return createKlineStream(symbol);
         case PublicStreams::PublicTrade:
             return createPublicTradeStream(symbol);
         default:
@@ -92,6 +94,28 @@ namespace Core::Markets
             sendUnsubscriptionMessage(m_usedStreams.values());
             m_usedStreams.clear();
         }
+    }
+
+    void BaseMarketDataStreamer::onMessageReceived(const QJsonObject &message)
+    {
+        if (!message.contains("topic"))
+            return;
+
+        QString topic = message["topic"].toString();
+        bool success = false;
+
+        for (auto it = m_handlers.begin(); it != m_handlers.end(); ++it)
+        {
+            if (topic.startsWith(it->first))
+            {
+                it->second->handle(message, this);
+                success = true;
+                break;
+            }
+        }
+
+        if (!success)
+            emit errorOccurred(id(), "Unknown topic: " + topic);
     }
 
 }

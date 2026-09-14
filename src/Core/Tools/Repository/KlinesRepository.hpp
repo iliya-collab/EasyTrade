@@ -1,7 +1,7 @@
 #pragma once
 #include "BaseRepository.hpp"
-#include "../StdTypes.hpp"
-#include "../Database/IDatabaseManager.hpp"
+#include "Tools/StdTypes.hpp"
+#include "Tools/Database/IDatabaseManager.hpp"
 
 namespace Core::Tools {
 

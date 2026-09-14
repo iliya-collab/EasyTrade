@@ -80,8 +80,20 @@ namespace Core {
         qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
         m_publicStreamer->subscribeSymbol(symbol, {
             Markets::PublicStreams::Ticker,
-            Markets::PublicStreams::Orderbook,
-            Markets::PublicStreams::Kline,
+            Markets::PublicStreams::Orderbook50,
+            Markets::PublicStreams::Kline1m,
+            Markets::PublicStreams::Kline3m,
+            Markets::PublicStreams::Kline5m,
+            Markets::PublicStreams::Kline15m,
+            Markets::PublicStreams::Kline30m,
+            Markets::PublicStreams::Kline1h,
+            Markets::PublicStreams::Kline2h,
+            Markets::PublicStreams::Kline4h,
+            Markets::PublicStreams::Kline6h,
+            Markets::PublicStreams::Kline12h,
+            Markets::PublicStreams::Kline1D,
+            Markets::PublicStreams::Kline1W,
+            Markets::PublicStreams::Kline1M,
             Markets::PublicStreams::PublicTrade
         });
     }
@@ -103,6 +115,16 @@ namespace Core {
 
     bool MarketDataMediator::loadKlinesFromRepository(const Tools::KlinesRequest& req)
     {
+        emit messageSent("Loading klines from repository...");
+        auto klines = m_repository->loadFromKlinesRepository(req.m_category, req.m_symbol, req.m_interval, req.m_start, req.m_end);
+
+        if (!klines.isEmpty())
+        {
+            emit messageSent("Klines ready");
+            emit historicalKlinesReady(klines);
+            return true;
+        }
+
         return false;
     }
 
@@ -153,6 +175,7 @@ namespace Core {
 
     void MarketDataMediator::onTradesReady(const Tools::PublicTrades& trades)
     {
+        m_repository->saveToPublicTradesRepository(trades);
         emit tradesReady(trades);
     }
 
