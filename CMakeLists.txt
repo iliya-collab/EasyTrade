@@ -35,6 +35,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     WebSockets
     Sql
     Quick
+    Xml
 )
 
 qt_standard_project_setup()
@@ -74,6 +75,7 @@ target_link_libraries(EasyTradeCore PRIVATE
     Qt6::Network
     Qt6::WebSockets
     Qt6::Sql
+    Qt6::Xml
 )
 
 target_include_directories(EasyTradeCore PRIVATE
