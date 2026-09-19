@@ -1,5 +1,5 @@
 #include "BybitPrivateStreamer.hpp"
-#include "Tools/Network/Bybit/BybitWebSocketCreater.hpp"
+#include "Tools/Network/Bybit/BybitWebSocketCreator.hpp"
 #include "Handlers/Websocket/BybitWalletStreamHandler.hpp"
 #include "Handlers/Websocket/BybitOrderStreamHandler.hpp"
 #include "Handlers/Websocket/BybitExecutionStreamHandler.hpp"
@@ -11,7 +11,7 @@ namespace Core::Markets
 
     BybitPrivateStreamer::BybitPrivateStreamer(QObject* parent)
         : BasePrivateStreamer(
-          Tools::BybitWebSocketCreater::create(Tools::SocketType::Private, Tools::MarketType::Unknown, Tools::Api(), parent),
+          Tools::BybitWebSocketCreator::create(Tools::SocketType::Private, Tools::MarketType::Unknown, Tools::Api(), parent),
           parent
         )
     {

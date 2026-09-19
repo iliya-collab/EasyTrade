@@ -48,27 +48,27 @@ struct Ticker {
 
     Q_PROPERTY(Core::Tools::MarketType category MEMBER m_category FINAL)
     Q_PROPERTY(QString symbol MEMBER m_symbol FINAL)
-    Q_PROPERTY(double lastPrice MEMBER m_lastPrice FINAL)
-    Q_PROPERTY(double usdIndexPrice MEMBER m_usdIndexPrice FINAL)
-    Q_PROPERTY(double high24h MEMBER m_high24h FINAL)
-    Q_PROPERTY(double low24h MEMBER m_low24h FINAL)
-    Q_PROPERTY(double volCcy24h MEMBER m_volCcy24h FINAL)
-    Q_PROPERTY(double vol24h MEMBER m_vol24h FINAL)
-    Q_PROPERTY(double prevPrice24h MEMBER m_prevPrice24h FINAL)
-    Q_PROPERTY(double price24hPcnt MEMBER m_price24hPcnt FINAL)
+    Q_PROPERTY(QString lastPrice MEMBER m_lastPrice FINAL)
+    Q_PROPERTY(QString usdIndexPrice MEMBER m_usdIndexPrice FINAL)
+    Q_PROPERTY(QString high24h MEMBER m_high24h FINAL)
+    Q_PROPERTY(QString low24h MEMBER m_low24h FINAL)
+    Q_PROPERTY(QString volCcy24h MEMBER m_volCcy24h FINAL)
+    Q_PROPERTY(QString vol24h MEMBER m_vol24h FINAL)
+    Q_PROPERTY(QString prevPrice24h MEMBER m_prevPrice24h FINAL)
+    Q_PROPERTY(QString price24hPcnt MEMBER m_price24hPcnt FINAL)
 
 public:
 
     MarketType m_category = MarketType::Unknown;
     QString m_symbol = ""; // Название пары
-    double m_lastPrice = 0.0; // Последняя цена сделки
-    double m_usdIndexPrice = 0; // Индексная цена доллара США
-    double m_high24h = 0.0; // Максимальная цена за 24 часа
-    double m_low24h = 0.0; // Минимальная цена за 24 часа
-    double m_volCcy24h = 0.0; // Объем торгов в котируемой валюте за 24ч (USDT)
-    double m_vol24h = 0.0; // Объем торгов в базовой валюте за 24ч (BTC)
-    double m_prevPrice24h = 0.0; // Рыночная цена 24 часа назад
-    double m_price24hPcnt = 0.0; // Процентное изменение рыночной цены относительно 24 часов
+    QString m_lastPrice {}; // Последняя цена сделки
+    QString m_usdIndexPrice {}; // Индексная цена доллара США
+    QString m_high24h {}; // Максимальная цена за 24 часа
+    QString m_low24h {}; // Минимальная цена за 24 часа
+    QString m_volCcy24h {}; // Объем торгов в котируемой валюте за 24ч (USDT)
+    QString m_vol24h {}; // Объем торгов в базовой валюте за 24ч (BTC)
+    QString m_prevPrice24h {}; // Рыночная цена 24 часа назад
+    QString m_price24hPcnt {}; // Процентное изменение рыночной цены относительно 24 часов
 
 };
 
@@ -81,14 +81,14 @@ struct Kline {
     MarketType m_category = MarketType::Unknown;
     QString m_symbol = "";
     Interval m_interval = Interval::Unknown;
-    double m_open = 0;
-    double m_close = 0;
-    double m_high = 0;
-    double m_low = 0;
-    qint64 m_start = 0;
-    qint64 m_end = 0;
-    double m_volume = 0;
-    double m_turnover = 0;
+    QString m_open {};
+    QString m_close {};
+    QString m_high {};
+    QString m_low {};
+    qint64 m_start {};
+    qint64 m_end {};
+    QString m_volume {};
+    QString m_turnover {};
     bool m_confirm = false;
 
 };
@@ -102,9 +102,9 @@ struct PublicTradeItem {
     MarketType m_category = MarketType::Unknown;
     QString m_symbol = "";
     OrderSide m_side = OrderSide::Unknown;
-    double m_price = 0;
-    double m_volume = 0;
-    double m_turnover = 0;
+    QString m_price {};
+    QString m_volume {};
+    QString m_turnover {};
     qint64 m_tradeTime = 0;
 
 };

@@ -13,12 +13,12 @@ namespace Core::Tools
             k.m_interval = Tools::stringToInterval(query.value(2).toString());
             k.m_start    = query.value(3).toLongLong();
             k.m_end      = query.value(4).toLongLong();
-            k.m_open     = query.value(5).toDouble();
-            k.m_close    = query.value(6).toDouble();
-            k.m_high     = query.value(7).toDouble();
-            k.m_low      = query.value(8).toDouble();
-            k.m_volume   = query.value(9).toDouble();
-            k.m_turnover = query.value(10).toDouble();
+            k.m_open     = query.value(5).toString();
+            k.m_close    = query.value(6).toString();
+            k.m_high     = query.value(7).toString();
+            k.m_low      = query.value(8).toString();
+            k.m_volume   = query.value(9).toString();
+            k.m_turnover = query.value(10).toString();
             m_data.append(k);
         }
     }

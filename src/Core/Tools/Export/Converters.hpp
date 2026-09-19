@@ -7,11 +7,18 @@ namespace Core::Tools::Exporter::Converters
 {
 
 // --- PublicTradeItem ---
-inline QJsonObject toJson(const PublicTradeItem& t);
-inline QList<QPair<QString, QString>> toXmlFields(const PublicTradeItem& t);
+inline QList<QPair<QString, QVariant>> toField(const PublicTradeItem& t);
 
 // --- Kline ---
-inline QJsonObject toJson(const Kline& k);
-inline QList<QPair<QString, QString>> toXmlFields(const Kline& k);
+inline QList<QPair<QString, QVariant>> toField(const Kline& k);
+
+// --- OrderInfo ---
+inline QList<QPair<QString, QVariant>> toField(const OrderInfo& o);
+
+// --- ExecutionInfo ---
+inline QList<QPair<QString, QVariant>> toField(const ExecutionInfo& e);
+
+// --- PositionInfo ---
+inline QList<QPair<QString, QVariant>> toField(const PositionInfo& p);
 
 }

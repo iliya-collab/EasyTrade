@@ -1,5 +1,5 @@
 #include "BybitMarketDataStreamer.hpp"
-#include "Tools/Network/Bybit/BybitWebSocketCreater.hpp"
+#include "Tools/Network/Bybit/BybitWebSocketCreator.hpp"
 #include "Handlers/Websocket/BybitTickerStreamHandler.hpp"
 #include "Handlers/Websocket/BybitOrderbookStreamHandler.hpp"
 #include "Handlers/Websocket/BybitKlineStreamHandler.hpp"
@@ -11,7 +11,7 @@ namespace Core::Markets
 
     BybitMarketDataStreamer::BybitMarketDataStreamer(Tools::MarketType type, QObject* parent)
         : BaseMarketDataStreamer(
-            Tools::BybitWebSocketCreater::create(Tools::SocketType::Public, type, Tools::Api(), parent),
+            Tools::BybitWebSocketCreator::create(Tools::SocketType::Public, type, Tools::Api(), parent),
             parent
         )
     {

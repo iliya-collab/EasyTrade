@@ -1,6 +1,6 @@
 #include "MarketDataRepository.hpp"
 #include "Tools/Database/SqliteDatabaseManager.hpp"
-#include "Tools/Repository/RepositoryCreater.hpp"
+#include "Tools/Repository/RepositoryCreator.hpp"
 
 namespace Core::Markets
 {
@@ -18,9 +18,9 @@ MarketDataRepository::MarketDataRepository(QObject* parent) : QObject(parent)
 
     try
     {
-        m_cryptoRep = std::move(Tools::RepositoryCreater::instance().create<Tools::CryptoRepository>(dbFile, manager));
-        m_klinesRep = std::move(Tools::RepositoryCreater::instance().create<Tools::KlinesRepository>(dbFile, manager));
-        m_publicTradesRep = std::move(Tools::RepositoryCreater::instance().create<Tools::PublicTradesRepository>(dbFile, manager));
+        m_cryptoRep = std::move(Tools::RepositoryCreator::instance().create<Tools::CryptoRepository>(dbFile, manager));
+        m_klinesRep = std::move(Tools::RepositoryCreator::instance().create<Tools::KlinesRepository>(dbFile, manager));
+        m_publicTradesRep = std::move(Tools::RepositoryCreator::instance().create<Tools::PublicTradesRepository>(dbFile, manager));
     }
     catch (const std::exception& e)
     {

@@ -16,7 +16,7 @@ QString Core::Tools::Exporter::XmlExporter<TRow>::exportData(const QList<TRow> &
         for (const auto& [key, value] : m_conv(row))
         {
             QDomElement field = doc.createElement(key);
-            field.appendChild(doc.createTextNode(value));
+            field.appendChild(doc.createTextNode(value.toString()));
             rowEl.appendChild(field);
         }
         root.appendChild(rowEl);
@@ -26,4 +26,8 @@ QString Core::Tools::Exporter::XmlExporter<TRow>::exportData(const QList<TRow> &
 }
 
 template<typename TRow>
-QString Core::Tools::Exporter::XmlExporter<TRow>::fileExtension() const { return "xml"; }
+QString Core::Tools::Exporter::XmlExporter<TRow>::fileExtension() const { return exportFormatToString(format()); }
+
+template<typename TRow>
+Core::Tools::Exporter::ExportFormat Core::Tools::Exporter::XmlExporter<TRow>::format() const noexcept
+{ return ExportFormat::Xml; }

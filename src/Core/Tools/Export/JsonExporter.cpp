@@ -5,7 +5,13 @@ QString Core::Tools::Exporter::JsonExporter<TRow>::exportData(const QList<TRow> 
 {
     QJsonArray arr;
     for (const auto& row : data)
-        arr.append(m_conv(row));
+    {
+        QJsonObject obj;
+        for (const auto& [key, value] : m_conv(row))
+            obj[key] = QJsonValue::fromVariant(value);
+        arr.append(obj);
+
+    }
 
     QJsonDocument doc;
     if (m_rootName.isEmpty())
@@ -22,4 +28,8 @@ QString Core::Tools::Exporter::JsonExporter<TRow>::exportData(const QList<TRow> 
 }
 
 template<typename TRow>
-QString Core::Tools::Exporter::JsonExporter<TRow>::fileExtention() const { return "json"; }
+QString Core::Tools::Exporter::JsonExporter<TRow>::fileExtension() const { return exportFormatToString(format()); }
+
+template<typename TRow>
+Core::Tools::Exporter::ExportFormat Core::Tools::Exporter::JsonExporter<TRow>::format() const noexcept
+{ return ExportFormat::Json; }

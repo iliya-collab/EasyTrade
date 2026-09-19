@@ -7,13 +7,13 @@ void PublicTradesRepository::handleSelectedPublicTrades(QSqlQuery &query)
     while (query.next())
     {
         Tools::PublicTradeItem t;
-        t.m_category = Tools::stringToMarketType(query.value(0).toString());
-        t.m_symbol   = query.value(1).toString();
-        t.m_side = Tools::stringToOrderSide(query.value(2).toString());
-        t.m_price     = query.value(3).toDouble();
-        t.m_volume   = query.value(4).toDouble();
-        t.m_tradeTime      = query.value(5).toLongLong();
-        t.m_turnover = t.m_price * t.m_volume;
+        t.m_category        = Tools::stringToMarketType(query.value(0).toString());
+        t.m_symbol          = query.value(1).toString();
+        t.m_side            = Tools::stringToOrderSide(query.value(2).toString());
+        t.m_price           = query.value(3).toString();
+        t.m_volume          = query.value(4).toString();
+        t.m_tradeTime       = query.value(5).toLongLong();
+        t.m_turnover        = QString::number(t.m_price.toDouble() * t.m_volume.toDouble());
         m_data.append(t);
     }
 }

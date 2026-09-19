@@ -22,9 +22,9 @@ void Core::Markets::BybitPublicTradeStreamHandler::handle(const QJsonObject &obj
         publicTradeItem.m_category = category;
         publicTradeItem.m_symbol = symbol;
         publicTradeItem.m_side = Tools::stringToOrderSide(itemData["S"].toString());
-        publicTradeItem.m_price = itemData["p"].toString().toDouble();
-        publicTradeItem.m_volume = itemData["v"].toString().toDouble();
-        publicTradeItem.m_turnover = publicTradeItem.m_price * publicTradeItem.m_volume;
+        publicTradeItem.m_price = itemData["p"].toString();
+        publicTradeItem.m_volume = itemData["v"].toString();
+        publicTradeItem.m_turnover = QString::number(publicTradeItem.m_price.toDouble() * publicTradeItem.m_volume.toDouble());
         publicTradeItem.m_tradeTime = itemData["T"].toVariant().toLongLong();
 
         publicTrades.append(publicTradeItem);

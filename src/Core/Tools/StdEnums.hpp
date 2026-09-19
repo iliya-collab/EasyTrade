@@ -1,4 +1,5 @@
 #pragma once
+#include "Export/ExportFormats.hpp"
 #include <QString>
 #include <qobject.h>
 

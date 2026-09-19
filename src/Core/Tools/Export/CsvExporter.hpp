@@ -1,21 +1,20 @@
 #pragma once
 #include "IRepositoryExporter.hpp"
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
+#include <QChar>
+#include <QStringList>
 
 namespace Core::Tools::Exporter
 {
 
 template<typename TRow>
-class JsonExporter : public IRepositoryExporter<TRow>
+class CsvExporter : public IRepositoryExporter<TRow>
 {
 public:
 
     using Converter = std::function<QList<QPair<QString, QVariant>>(const TRow&)>;
 
-    explicit JsonExporter(Converter conv, bool pretty = true, QString rootName = {})
-        : m_conv(std::move(conv)), m_pretty(pretty), m_rootName(std::move(rootName))
+    explicit CsvExporter(Converter conv, QChar delimiter = ',', bool withHeader = true)
+        : m_conv(std::move(conv)), m_delimiter(delimiter), m_withHeader(withHeader)
     {}
 
     QString exportData(const QList<TRow>& data) const override;
@@ -27,8 +26,10 @@ public:
 private:
 
     Converter m_conv;
-    bool m_pretty;
-    QString m_rootName;
+    QChar     m_delimiter;
+    bool      m_withHeader;
+
+    static QString escapeField(const QString& field, QChar delimiter);
 
 };
 
