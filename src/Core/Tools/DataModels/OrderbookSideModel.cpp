@@ -60,17 +60,17 @@ namespace Core::Tools {
         emit sideChanged();
     }
 
-    void OrderbookSideModel::update(const QMap<double, double>& data) {
+    void OrderbookSideModel::update(const QMap<QString, QString>& data) {
         QVector<Level> new_levels;
         new_levels.reserve(data.size());
 
         if (m_side == Ask) {
             for (auto it = data.constBegin(); it != data.constEnd(); ++it)
-                new_levels.push_back({it.key(), it.value(), 0.0});
+                new_levels.push_back({it.key().toDouble(), it.value().toDouble(), 0.0});
         } else {
             for (auto it = data.constEnd(); it != data.constBegin(); ) {
                 --it;
-                new_levels.push_back({it.key(), it.value(), 0.0});
+                new_levels.push_back({it.key().toDouble(), it.value().toDouble(), 0.0});
             }
         }
 

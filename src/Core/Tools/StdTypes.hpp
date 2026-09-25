@@ -19,7 +19,7 @@ struct AccountBalance
 public:
 
     double m_totalWalletBalance = 0; // Общий баланс кошелька аккаунта в USD
-    std::vector<std::tuple<QString, double, double>> m_assets{}; // активы (монета, кол-во, стоимость)
+    std::vector<std::tuple<QString, QString, QString>> m_assets{}; // активы (монета, кол-во, стоимость)
 
 };
 
@@ -27,7 +27,7 @@ public:
 //  Стакан заявок
 // ==========================================================================================
 
-using OrderbookSide = QMap<double, double>; // уровни (цена, объем)
+using OrderbookSide = QMap<QString, QString>; // уровни (цена, объем)
 
 struct Orderbook {
 

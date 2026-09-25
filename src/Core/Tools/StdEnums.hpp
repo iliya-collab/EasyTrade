@@ -2,10 +2,13 @@
 #include "Export/ExportFormats.hpp"
 #include <QString>
 #include <qobject.h>
+#include <QtQml>
 
 namespace Core::Tools
 {
 Q_NAMESPACE
+QML_ELEMENT
+Q_CLASSINFO("RegisterEnumClassesUnscoped", "false")
 
 enum class Interval
 {
@@ -95,6 +98,27 @@ enum class TimeInForce
 Q_ENUM_NS(TimeInForce)
 
 // ---- Конвертация enum <-> строка для REST-запросов и парсинга ответов ----
+
+inline qint64 intervalToMs(Tools::Interval interval)
+{
+    switch (interval)
+    {
+    case Tools::Interval::Min1:  return 60'000LL;
+    case Tools::Interval::Min3:  return 3 * 60'000LL;
+    case Tools::Interval::Min5:  return 5 * 60'000LL;
+    case Tools::Interval::Min15: return 15 * 60'000LL;
+    case Tools::Interval::Min30: return 30 * 60'000LL;
+    case Tools::Interval::Hour1: return 60 * 60'000LL;
+    case Tools::Interval::Hour2: return 2 * 60 * 60'000LL;
+    case Tools::Interval::Hour4: return 4 * 60 * 60'000LL;
+    case Tools::Interval::Hour6: return 6 * 60 * 60'000LL;
+    case Tools::Interval::Hour12: return 12 * 60 * 60'000LL;
+    case Tools::Interval::Day:  return 24 * 60 * 60'000LL;
+    case Tools::Interval::Week: return 7 * 24 * 60 * 60'000LL;
+    case Tools::Interval::Month: return 30LL * 24 * 60 * 60'000LL;
+    default: return 60'000LL;
+    }
+}
 
 inline QString intervalToString(Interval interval)
 {
@@ -197,7 +221,7 @@ inline OrderStatus stringToOrderStatus(const QString& status)
     if (status == "PartiallyFilled")    return OrderStatus::PartiallyFilled;
     if (status == "Filled")             return OrderStatus::Filled;
     if (status == "Cancelled")          return OrderStatus::Cancelled;
-    if (status == "Rejected")           return OrderStatus::Rejected;\
+    if (status == "Rejected")           return OrderStatus::Rejected;
 
     return OrderStatus::Unknown;
 }

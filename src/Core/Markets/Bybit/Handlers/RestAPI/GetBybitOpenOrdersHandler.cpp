@@ -15,7 +15,7 @@ QUrlQuery Core::Markets::GetBybitOpenOrdersHandler::buildRequest(const Tools::Op
     return params;
 }
 
-void Core::Markets::GetBybitOpenOrdersHandler::handle(const QJsonObject &data, IPrivateService *service)
+void Core::Markets::GetBybitOpenOrdersHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
 {
     if (!data.contains("retMsg") || data["retMsg"].toString() != "OK")
     {

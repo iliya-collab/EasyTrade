@@ -30,12 +30,7 @@ namespace Core::Tools {
 
         QString quoteCoin = sourceModel()->data(idx, TradePairsModel::QuoteRole).toString();
 
-        bool accepted = (quoteCoin == m_quoteCoinFilter);
-        qDebug() << "filterAcceptsRow:" << sourceRow
-                 << "quoteCoin=" << quoteCoin
-                 << "filter=" << m_quoteCoinFilter
-                 << "accepted=" << accepted;
-        return accepted;;
+        return quoteCoin == m_quoteCoinFilter;
     }
 
 }

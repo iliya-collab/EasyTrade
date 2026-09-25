@@ -6,10 +6,16 @@ namespace Core {
         : QObject{parent}
     {
         m_tradePairs = std::make_shared<Tools::TradePairsModel>();
-        m_klineSeries = std::make_shared<Tools::KlineModel>();
+        m_klineStore = std::make_shared<Tools::KlineStore>();
         m_asks = std::make_shared<Tools::OrderbookSideModel>(Core::Tools::OrderbookSideModel::Side::Ask);
         m_bids = std::make_shared<Tools::OrderbookSideModel>(Core::Tools::OrderbookSideModel::Side::Bid);
         m_trades = std::make_shared<Tools::PublicTradesModel>();
+    }
+
+    void MarketDataState::setCurrentSymbol(const QString &symbol)
+    {
+        m_currentSymbol = symbol;
+        emit currentSymbolChanged();
     }
 
     void MarketDataState::updateTradePairs(const QList<Tools::TradeInfo>& pairs)
@@ -20,13 +26,13 @@ namespace Core {
 
     void MarketDataState::updateKline(const Tools::Kline &kline)
     {
-        m_klineSeries->updateKline(kline);
-        emit klineSeriesChanged();
+        m_klineStore->updateKline(kline);
+        emit klineStoreChanged();
     }
 
     void MarketDataState::addHistoricalKlines(const QList<Tools::Kline>& klines)
     {
-        m_klineSeries->addHistoricalKlines(klines);
+        m_klineStore->addHistoricalKlines(klines);
     }
 
     void MarketDataState::updateTicker(const Tools::Ticker& ticker)

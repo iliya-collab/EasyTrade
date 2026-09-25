@@ -36,8 +36,6 @@ ApplicationWindow {
     Component.onCompleted: {
         // Инициализируем ядро приложения
         AppCore.init()
-        // Загружаем пары для трейдинга
-        AppCore.marketService.loadTradePairs()
     }
 
     // Меню
@@ -48,22 +46,56 @@ ApplicationWindow {
                 items: [
                     {
                         text: "User",
-                        clicked: function() { mainStack.showUserScreen()() }
+                        clicked: function() { mainStack.showUserScreen() }
                     },
                     {
                         text: "Trade",
-                        clicked: function() { mainStack.showTradeScreen()() }
+                        clicked: function() {
+                            mainStack.showTradeScreen()
+                        }
+                    },
+                    {
+                        text: "Available trades",
+                        clicked: function() {
+                            selecterTradeWindowLoader.active = true
+                        }
                     }
+
                 ]
             },
             {
                 text: "Repository",
                 items: [
                     {
-                        text: "Load spot pairs",
-                        clicked: function() { AppCore.marketService.loadTradePairs() }
+                        text: "Load",
+                        items: [
+                            {
+                                text: "Spot",
+                                clicked: function() { AppCore.marketService.loadTradePairs(Tools.MarketType.Spot) }
+                            },
+                            {
+                                text: "Linear",
+                                clicked: function() { AppCore.marketService.loadTradePairs(Tools.MarketType.Linear) }
+                            },
+                            {
+                                text: "Inverse",
+                                clicked: function() { AppCore.marketService.loadTradePairs(Tools.MarketType.Inverse) }
+                            },
+                            {
+                                text: "Option",
+                                clicked: function() { AppCore.marketService.loadTradePairs(Tools.MarketType.Option) }
+                            }
+                        ]
                     },
-                    { text: "Load candles" }
+                    { text: "---" },
+                    {
+                        text: "Export",
+                        items: [
+                            {
+                                text: "Klines"
+                            }
+                        ]
+                    },
                 ]
             },
             {
@@ -174,6 +206,28 @@ ApplicationWindow {
             function onVisibleChanged() {
                 if (settingsWindowLoader.item && !settingsWindowLoader.item.visible)
                     settingsWindowLoader.active = false
+            }
+        }
+    }
+
+    Loader {
+        id: selecterTradeWindowLoader
+        active: false
+        source: "Views/SelecterTradeWindow.qml"
+
+        onLoaded: {
+            item.tradeSelected.connect(function(symbol) {
+                AppCore.marketService.subscribeSymbol(symbol)
+            })
+        }
+
+        Connections {
+            target: selecterTradeWindowLoader.item
+            ignoreUnknownSignals: true
+
+            function onVisibleChanged() {
+                if (selecterTradeWindowLoader.item && !selecterTradeWindowLoader.item.visible)
+                    selecterTradeWindowLoader.active = false
             }
         }
     }

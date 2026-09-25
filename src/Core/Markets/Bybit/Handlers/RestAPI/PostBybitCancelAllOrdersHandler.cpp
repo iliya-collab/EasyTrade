@@ -16,7 +16,7 @@ QByteArray Core::Markets::PostBybitCancelAllOrdersHandler::buildRequestBody(cons
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
 
-void Core::Markets::PostBybitCancelAllOrdersHandler::handle(const QJsonObject &data, IPrivateService *service)
+void Core::Markets::PostBybitCancelAllOrdersHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
 {
     if (!data.contains("retMsg") || data["retMsg"].toString() != "OK")
     {

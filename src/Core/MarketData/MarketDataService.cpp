@@ -48,7 +48,7 @@ namespace Core
                 this, &MarketDataService::onErrorOccurredWithId, Qt::UniqueConnection);
 
         connect(mediator.get(), &MarketDataMediator::errorOccurred,
-                this, &MarketDataService::errorOccurred, Qt::UniqueConnection);
+                this, &MarketDataService::onErrorOccurred, Qt::UniqueConnection);
     }
 
     void MarketDataService::run()
@@ -86,8 +86,8 @@ namespace Core
     void MarketDataService::subscribeSymbol(const QString &symbol)
     {
         qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
+        m_state->setCurrentSymbol(symbol);
         m_mediator->subscribe(symbol);
-        // m_mediator->subscribePrivateChannel();
     }
 
     void MarketDataService::loadTradePairs(Core::Tools::MarketType type)
@@ -100,8 +100,7 @@ namespace Core
     {
         validateAndSend(params, Tools::buildKlinesRequest, [this](const Tools::KlinesRequest& req)
         {
-            if (!m_mediator->loadKlinesFromRepository(req))
-                m_mediator->loadKlinesFromNetwork(req);
+            m_mediator->loadKlinesFromNetwork(req);
         });
     }
 
@@ -122,6 +121,12 @@ namespace Core
     {
         qDebug().noquote() << QString("%1 : stopped").arg(id);
         emit streamerStopped(id);
+    }
+
+    void MarketDataService::onErrorOccurred(const QString &error)
+    {
+        qCritical() << "Core:" << error;
+        emit errorOccurred(error);
     }
 
 }

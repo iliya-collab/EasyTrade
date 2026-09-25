@@ -28,14 +28,14 @@ namespace Core::Markets
     {
         qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
 
-        requestGetImpl<GetBybitTradePairsHandler>(type);
+        requestGetImpl<GetBybitTradePairsHandler>(QVariant(), type);
     }
 
     void BybitMarketDataService::requestKlines(const Tools::KlinesRequest& req)
     {
         qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
 
-        requestGetImpl<GetBybitKlineHandler>(req);
+        requestGetImpl<GetBybitKlineHandler>(QVariant::fromValue(req), req);
     }
 
 }

@@ -37,12 +37,12 @@ namespace Core::Tools
         };
     }
 
-    void AssetModel::updateAssets(std::vector<std::tuple<QString, double, double> > newAssets)
+    void AssetModel::updateAssets(std::vector<std::tuple<QString, QString, QString> > newAssets)
     {
         beginResetModel();
         m_assets.clear();
         for (const auto& [name, amount, value] : newAssets)
-            m_assets.emplace_back(name, amount, value);
+            m_assets.emplace_back(name, amount.toDouble(), value.toDouble());
         endResetModel();
     }
 

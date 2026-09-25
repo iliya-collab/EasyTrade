@@ -30,10 +30,11 @@ namespace Core::Tools {
         queries << R"(
             CREATE TABLE IF NOT EXISTS crypto (
                 id INTEGER PRIMARY KEY,
-                category TEXT UNIQUE NOT NULL,
-                symbol TEXT UNIQUE NOT NULL,
+                category TEXT NOT NULL,
+                symbol TEXT NOT NULL,
                 base_coin TEXT,
-                quote_coin TEXT
+                quote_coin TEXT,
+                UNIQUE(category, symbol)
             )
         )";
 
@@ -62,7 +63,11 @@ namespace Core::Tools {
             if (!m_dbManager.executePrepared(m_dbPath,
                     R"(INSERT INTO crypto
                         (category, symbol, base_coin, quote_coin)
-                        VALUES (?, ?, ?, ?))",
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(category, symbol) DO UPDATE SET
+                            base_coin = excluded.base_coin,
+                            quote_coin = excluded.quote_coin
+                    )",
                     { Tools::marketTypeToString(item.m_category), item.m_symbol, item.m_baseCoin, item.m_quoteCoin }))
             {
                 m_dbManager.rollbackTransaction(m_dbPath);

@@ -14,7 +14,7 @@ public:
 
     static QUrlQuery buildRequest(const Tools::OrderHistoryRequest& req);
 
-    void handle(const QJsonObject& data, IPrivateService* service) override;
+    void handle(const QJsonObject& data, const QVariant& requestContext, IPrivateService* service) override;
 };
 
 }

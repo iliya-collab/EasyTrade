@@ -26,14 +26,14 @@ void Core::Markets::BybitPrivateService::requestInfoAboutApi()
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
 
-    send<GetBybitInfoAboutAPIHandler>();
+    send<GetBybitInfoAboutAPIHandler>(QVariant());
 }
 
 void Core::Markets::BybitPrivateService::requestAccountBalance()
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
 
-    send<GetBybitAccountBalanceHandler>();
+    send<GetBybitAccountBalanceHandler>(QVariant());
 }
 
 void Core::Markets::BybitPrivateService::init(const Tools::Api &api)
@@ -53,7 +53,7 @@ void Core::Markets::BybitPrivateService::requestCreateOrder(const Tools::OrderRe
     if (!m_currentApi)
         return;
 
-    send<PostBybitCreateOrderHandler>(request);
+    send<PostBybitCreateOrderHandler>(QVariant::fromValue(request), request);
 }
 
 void Core::Markets::BybitPrivateService::requestAmendOrder(const Tools::OrderAmendRequest &request)
@@ -63,7 +63,7 @@ void Core::Markets::BybitPrivateService::requestAmendOrder(const Tools::OrderAme
     if (!m_currentApi)
         return;
 
-    send<PostBybitAmendOrderHandler>(request);
+    send<PostBybitAmendOrderHandler>(QVariant::fromValue(request), request);
 }
 
 void Core::Markets::BybitPrivateService::requestCancelOrder(const Tools::OrderCancelRequest &request)
@@ -73,7 +73,7 @@ void Core::Markets::BybitPrivateService::requestCancelOrder(const Tools::OrderCa
     if (!m_currentApi)
         return;
 
-    send<PostBybitCancelOrderHandler>(request);
+    send<PostBybitCancelOrderHandler>(QVariant::fromValue(request), request);
 }
 
 void Core::Markets::BybitPrivateService::requestCancelAllOrders(const Tools::OrderCancelAllRequest &request)
@@ -83,7 +83,7 @@ void Core::Markets::BybitPrivateService::requestCancelAllOrders(const Tools::Ord
     if (!m_currentApi)
         return;
 
-    send<PostBybitCancelAllOrdersHandler>(request);
+    send<PostBybitCancelAllOrdersHandler>(QVariant::fromValue(request), request);
 }
 
 void Core::Markets::BybitPrivateService::requestOpenOrders(const Tools::OpenOrdersRequest &request)
@@ -93,7 +93,7 @@ void Core::Markets::BybitPrivateService::requestOpenOrders(const Tools::OpenOrde
     if (!m_currentApi)
         return;
 
-    send<GetBybitOpenOrdersHandler>(request);
+    send<GetBybitOpenOrdersHandler>(QVariant::fromValue(request), request);
 }
 
 void Core::Markets::BybitPrivateService::requestOrderHistory(const Tools::OrderHistoryRequest &request)
@@ -103,5 +103,5 @@ void Core::Markets::BybitPrivateService::requestOrderHistory(const Tools::OrderH
     if (!m_currentApi)
         return;
 
-    send<GetBybitOrderHistoryHandler>(request);
+    send<GetBybitOrderHistoryHandler>(QVariant::fromValue(request), request);
 }

@@ -21,7 +21,7 @@ namespace Core::Markets
             return params;
         }
 
-        void handle(const QJsonObject& data, IMarketDataService* service) override;
+        void handle(const QJsonObject& data, const QVariant& requestContext, IMarketDataService* service) override;
     };
 
 }

@@ -95,6 +95,7 @@ qt_add_qml_module(${PROJECT_NAME}
         res/Views/TradeScreen.qml
         res/Views/SettingsWindow.qml
         res/Views/APICreationWindow.qml
+        res/Views/SelecterTradeWindow.qml
 )
 
 # Подключаем внешние UI-поддиректории

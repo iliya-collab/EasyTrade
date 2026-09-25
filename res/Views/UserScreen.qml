@@ -8,7 +8,7 @@ Rectangle {
     id: root
     color: Theme.windowColor
 
-    property Api apiData: AppCore.marketState.api
+    property Api apiData: AppCore.accountState.api
 
     ColumnLayout {
         anchors.fill: parent
@@ -85,7 +85,7 @@ Rectangle {
                     id: viewAssets
                     anchors.fill: parent
                     anchors.margins: Theme.margins
-                    model: AppCore.marketState.assets
+                    model: AppCore.accountState.assets
                     clip: true
                     reuseItems: true
 
@@ -120,7 +120,7 @@ Rectangle {
             Layout.alignment: Qt.AlignRight | Qt.AlignBottom
             enabled: txtfAPIKey.acceptableInput && txtfSecretAPI.acceptableInput
             onClicked: {
-                AppCore.marketService.loadAccountBalance
+                AppCore.accountService.loadAccountBalance
             }
         }
     } // ColumnLayout

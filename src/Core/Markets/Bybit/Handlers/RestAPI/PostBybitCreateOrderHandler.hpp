@@ -14,7 +14,7 @@ public:
 
     static QByteArray buildRequestBody(const Tools::OrderRequest& req);
 
-    void handle(const QJsonObject& data, IPrivateService* service) override;
+    void handle(const QJsonObject& data, const QVariant& requestContext, IPrivateService* service) override;
 
 };
 

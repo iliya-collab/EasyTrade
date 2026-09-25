@@ -25,7 +25,7 @@ QByteArray Core::Markets::PostBybitAmendOrderHandler::buildRequestBody(const Too
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
 
-void Core::Markets::PostBybitAmendOrderHandler::handle(const QJsonObject &data, IPrivateService *service)
+void Core::Markets::PostBybitAmendOrderHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
 {
     if (!data.contains("retMsg") || data["retMsg"].toString() != "OK")
     {

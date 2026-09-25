@@ -21,37 +21,19 @@ namespace Core {
     ConfigurationManager::ConfigurationManager()
     {
         if (!QFile::exists(configPath()))
+        {
             generateDefaultConfiguration();
+            auto res = save();
+            if (!res.has_value())
+                throw std::runtime_error(res.error().toStdString());
+        }
     }
 
     void ConfigurationManager::generateDefaultConfiguration()
     {
-        QFile file(configPath());
-
-        if (!file.open(QIODevice::WriteOnly))
-            return;
-
-        // Корневой элемент конфигурации
-        QJsonObject root;
-
-        // Конфигурация API
-        QJsonObject apisObj;
-        QJsonObject defaultApi;
-        defaultApi["Key"] = "";
-        defaultApi["SecretKey"] = "";
-        defaultApi["isTestnet"] = false;
-        apisObj["default"] = defaultApi;
-        root["APIs"] = apisObj;
-
-        // Конфигурация General
-        QJsonObject generalObj;
-        generalObj["AutoConnection"] = true;
-        generalObj["ActiveAPI"] = "default";
-        root["General"] = generalObj;
-
-        QJsonDocument doc(root);
-        file.write(doc.toJson(QJsonDocument::Indented));
-        file.close();
+        m_data.m_autoConnection = true;
+        m_data.m_activeApi = "default";
+        m_data.m_apis["default"] = { "", "", false };
     }
 
     std::expected<ConfigurationParams, QString> ConfigurationManager::load()
@@ -92,8 +74,10 @@ namespace Core {
 
     std::expected<void, QString> ConfigurationManager::save()
     {
-        QFile file(configPath());
+        const QString dir = QFileInfo(configPath()).absolutePath();
+        QDir().mkpath(dir);
 
+        QFile file(configPath());
         if (!file.open(QIODevice::WriteOnly))
             return std::unexpected(file.errorString());
 

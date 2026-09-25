@@ -100,6 +100,7 @@ struct OrderHistoryRequest
 
 }
 
+Q_DECLARE_METATYPE(Core::Tools::KlinesRequest)
 Q_DECLARE_METATYPE(Core::Tools::OrderRequest)
 Q_DECLARE_METATYPE(Core::Tools::OrderAmendRequest)
 Q_DECLARE_METATYPE(Core::Tools::OrderCancelRequest)

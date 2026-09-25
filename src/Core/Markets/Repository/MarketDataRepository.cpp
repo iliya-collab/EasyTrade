@@ -97,7 +97,8 @@ void MarketDataRepository::clearPublicTradesRepository()
 void MarketDataRepository::saveToCryptoRepository(const QList<Tools::TradeInfo>& tradePairs) {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
     QMutexLocker locker(&m_mutex);
-    if (!m_cryptoRep->insertTrades(tradePairs)) {
+    if (!m_cryptoRep->insertTrades(tradePairs))
+    {
         emit errorOccurred(m_cryptoRep->error());
         return;
     }

@@ -38,12 +38,12 @@ namespace Core::Markets
         // Метод для запроса
         template<typename IHandler, typename... Args>
             requires HasEndpoint<IHandler> && IsGetRequest<IHandler, Args...>
-        void requestGetImpl(Args&&... args)
+        void requestGetImpl(const QVariant& context, Args&&... args)
         {
             if (!m_currentApi)
                 return;
             auto params = IHandler::buildRequest(std::forward<Args>(args)...);
-            m_currentApi->requestEndpointGet(IHandler::endpoint(), params, LOADING_TIMEOUT);
+            m_currentApi->requestEndpointGet(IHandler::endpoint(), params, LOADING_TIMEOUT, context);
         }
 
     public:
@@ -60,7 +60,7 @@ namespace Core::Markets
 
     protected slots:
 
-        virtual void onDataReceived(const QUrl& reqUrl, const QByteArray& data)
+        virtual void onDataReceived(const QUrl& reqUrl, const QByteArray& data, const QVariant& context)
         {
             if (m_handlers.empty())
                 return;
@@ -68,7 +68,7 @@ namespace Core::Markets
             QString path = reqUrl.path();
 
             if (m_handlers.contains(path))
-                m_handlers[path]->handle(QJsonDocument::fromJson(data).object(), this);
+                m_handlers[path]->handle(QJsonDocument::fromJson(data).object(), context, this);
             else
                 emit errorOccurred("Unknown endpoint: " + path);
         }

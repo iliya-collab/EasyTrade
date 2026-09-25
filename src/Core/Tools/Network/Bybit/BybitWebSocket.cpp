@@ -8,7 +8,8 @@
 
 namespace Core::Tools {
 
-    BybitWebSocket::BybitWebSocket(SocketType socketType, MarketType marketType, QObject* parent) : BaseWebSocket(socketType, parent) {}
+    BybitWebSocket::BybitWebSocket(SocketType socketType, MarketType marketType, QObject* parent)
+        : BaseWebSocket(socketType, parent), m_marketType(marketType) {}
 
     void BybitWebSocket::init(const Api &api)
     {

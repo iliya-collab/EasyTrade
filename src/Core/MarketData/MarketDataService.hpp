@@ -19,6 +19,7 @@ namespace Core {
             auto res = build(params);
             if (!res.has_value())
             {
+                qCritical() << "Core:" << res.error();
                 emit errorOccurred(res.error());
                 return;
             }
@@ -43,6 +44,7 @@ namespace Core {
         void onErrorOccurredWithId(const QString& id, const QString& error);
         void onStreamerStarted(const QString& id);
         void onStreamerStopped(const QString& id);
+        void onErrorOccurred(const QString& error);
 
     signals:
 

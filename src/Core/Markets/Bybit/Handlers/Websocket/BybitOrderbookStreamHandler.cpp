@@ -22,8 +22,8 @@ void Core::Markets::BybitOrderbookStreamHandler::handle(const QJsonObject &obj, 
     for (const auto& bidVal : std::as_const(bidsArray))
     {
         QJsonArray bid = bidVal.toArray();
-        double price = bid[0].toString().toDouble();
-        double size = bid[1].toString().toDouble();
+        QString price = bid[0].toString();
+        QString size = bid[1].toString();
         orderbook.m_bids.insert(price, size);
     }
 
@@ -31,8 +31,8 @@ void Core::Markets::BybitOrderbookStreamHandler::handle(const QJsonObject &obj, 
     for (const auto& askVal : std::as_const(asksArray))
     {
         QJsonArray ask = askVal.toArray();
-        double price = ask[0].toString().toDouble();
-        double size = ask[1].toString().toDouble();
+        QString price = ask[0].toString();
+        QString size = ask[1].toString();
         orderbook.m_asks.insert(price, size);
     }
 
@@ -57,10 +57,10 @@ void Core::Markets::BybitOrderbookStreamHandler::deltaUpdateOrderbook(Tools::Ord
 {
     for (const auto& bidVal : newOrderbook.m_bids.asKeyValueRange())
     {
-        double price = bidVal.first;
-        double size = bidVal.second;
+        QString price = bidVal.first;
+        QString size = bidVal.second;
 
-        if (qFuzzyIsNull(size) || size <= 0)
+        if (qFuzzyIsNull(size.toDouble()) || size.toDouble() <= 0)
             oldOrderbook.m_bids.remove(price);
         else
             oldOrderbook.m_bids.insert(price, size);
@@ -68,10 +68,10 @@ void Core::Markets::BybitOrderbookStreamHandler::deltaUpdateOrderbook(Tools::Ord
 
     for (const auto& askVal : newOrderbook.m_asks.asKeyValueRange())
     {
-        double price = askVal.first;
-        double size = askVal.second;
+        QString price = askVal.first;
+        QString size = askVal.second;
 
-        if (qFuzzyIsNull(size) || size <= 0)
+        if (qFuzzyIsNull(size.toDouble()) || size.toDouble() <= 0)
             oldOrderbook.m_asks.remove(price);
         else
             oldOrderbook.m_asks.insert(price, size);

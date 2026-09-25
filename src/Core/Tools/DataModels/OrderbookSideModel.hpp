@@ -41,7 +41,7 @@ namespace Core::Tools {
 
         Side getSide() const { return m_side; }
         void setSide(Side side);
-        void update(const QMap<double, double>& data);
+        void update(const QMap<QString, QString>& data);
 
         Q_INVOKABLE void update(const QVariantList& data);
         Q_INVOKABLE void clear();

@@ -9,7 +9,7 @@ Rectangle {
     border.color: "#3a3a3a"
 
     // Свойства
-    readonly property var klineSeries: AppCore.marketState.klineSeries
+    property var klineSeries: null
 
     property bool enableAutoScroll: true
     property bool enableCursorTime: true
@@ -21,8 +21,6 @@ Rectangle {
 
     property int timeAutoScroll: 3000
     property real volumeChartHeightRatio: 0.25
-
-    signal leftBoundaryReached()
 
     function zoomIn() {
         var newWidth = Math.min(internal.candleWidth + internal.zoomStep, internal.maxCandleWidth);
@@ -94,6 +92,12 @@ Rectangle {
         internal.syncScrollViews();
         internal.updateVisibleRange();
 
+    }
+
+    function resetChart() {
+        internal.maxPrice = 100;
+        internal.minPrice = 0;
+        internal.maxVolume = 1;
     }
 
     QtObject {
@@ -1106,9 +1110,6 @@ Rectangle {
 
                 internal.updateScrollPosition()
                 internal.updateVisibleRange()
-
-                if (contentX <= 0)
-                    root.leftBoundaryReached()
             }
 
             onWidthChanged: {

@@ -17,7 +17,7 @@ namespace Core::Markets
             return query;
         }
 
-        void handle(const QJsonObject& data, IPrivateService* service) override;
+        void handle(const QJsonObject& data, const QVariant& requestContext, IPrivateService* service) override;
     };
 
 }

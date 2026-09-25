@@ -19,7 +19,7 @@ QUrlQuery Core::Markets::GetBybitOrderHistoryHandler::buildRequest(const Tools::
     return params;
 }
 
-void Core::Markets::GetBybitOrderHistoryHandler::handle(const QJsonObject &data, IPrivateService *service)
+void Core::Markets::GetBybitOrderHistoryHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
 {
     if (!data.contains("retMsg") || data["retMsg"].toString() != "OK")
     {

@@ -3,5 +3,6 @@
         <file>icons/icon_play.png</file>
         <file>icons/icon_restart.png</file>
         <file>icons/icon_stop.png</file>
+        <file>Views/SelecterTradeWindow.qml</file>
     </qresource>
 </RCC>

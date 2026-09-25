@@ -11,6 +11,9 @@ namespace Core {
         m_publicStreamer = std::make_unique<Core::Markets::BybitMarketDataStreamer>(Tools::MarketType::Spot);
         m_repository = std::make_unique<Core::Markets::MarketDataRepository>();
 
+        connect(m_repository.get(), &Markets::MarketDataRepository::errorOccurred,
+                this, &MarketDataMediator::errorOccurred, Qt::UniqueConnection);
+
         // Связываем Сеть (REST)
         connect(m_service.get(), &Markets::IMarketDataService::errorOccurred,
                 this, &MarketDataMediator::errorOccurred, Qt::UniqueConnection);
@@ -152,7 +155,7 @@ namespace Core {
 
     void MarketDataMediator::onTradePairsReady(const QList<Tools::TradeInfo> &pairs)
     {
-        emit messageSent("Trade pairs ready");
+        emit messageSent("Trade pairs ready: " + QString::number(pairs.size()));
         m_repository->saveToCryptoRepository(pairs);
         emit tradePairsReady(pairs);
     }

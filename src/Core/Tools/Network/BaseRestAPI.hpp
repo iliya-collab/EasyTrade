@@ -20,9 +20,11 @@ namespace Core::Tools
         virtual void init(const Api& api = Api()) = 0;
 
         // Формирование GET запроса
-        virtual QUrl requestEndpointGet(const QString& endpoint, const QUrlQuery& params = QUrlQuery(), int timeout = -1) = 0;
+        virtual QUrl requestEndpointGet(const QString& endpoint, const QUrlQuery& params = QUrlQuery(),
+                                        int timeoutMs = -1, const QVariant& context = QVariant()) = 0;
         // Формирование POST запроса
-        virtual QUrl requestEndpointPost(const QString& endpoint, const QByteArray& jsonBody = QByteArray(), int timeout = -1) = 0;
+        virtual QUrl requestEndpointPost(const QString& endpoint, const QByteArray& jsonBody = QByteArray(),
+                                        int timeoutMs = -1, const QVariant& context = QVariant()) = 0;
 
     protected:
 
@@ -37,7 +39,7 @@ namespace Core::Tools
     signals:
 
         // Данные пришли
-        void dataReceived(const QUrl& url, const QByteArray& data);
+        void dataReceived(const QUrl& url, const QByteArray& data, const QVariant& context);
         // Возникла ошибка
         void errorOccurred(const QString &error);
         // Отслеживание процесса загрузки

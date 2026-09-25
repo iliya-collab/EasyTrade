@@ -28,7 +28,7 @@ namespace Core::Tools
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
         QHash<int, QByteArray> roleNames() const override;
 
-        void updateAssets(std::vector<std::tuple<QString, double, double>> newAssets);
+        void updateAssets(std::vector<std::tuple<QString, QString, QString>> newAssets);
 
     private:
 

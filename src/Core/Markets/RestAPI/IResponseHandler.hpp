@@ -11,7 +11,7 @@ class IResponseHandler
 public:
     virtual ~IResponseHandler() = default;
     // Метод, который принимает сырой JSON и выполняет парсинг
-    virtual void handle(const QJsonObject& data, TService* service) = 0;
+    virtual void handle(const QJsonObject& data, const QVariant& requestContext, TService* service) = 0;
 };
 
 using IMarketDataResponseHandler = IResponseHandler<IMarketDataService>;

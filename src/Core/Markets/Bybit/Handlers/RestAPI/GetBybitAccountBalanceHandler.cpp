@@ -3,7 +3,7 @@
 namespace Core::Markets
 {
 
-    void GetBybitAccountBalanceHandler::handle(const QJsonObject &data, IPrivateService* service)
+    void GetBybitAccountBalanceHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService* service)
     {
         if (!data.contains("retMsg") || data["retMsg"].toString() != "OK")
         {
@@ -34,8 +34,8 @@ namespace Core::Markets
             QJsonObject objCoin = coin.toObject();
 
             QString nameAsset = objCoin["coin"].toString();
-            double sizeAsset = objCoin["walletBalance"].toString().toDouble();
-            double priceAsset = objCoin["usdValue"].toString().toDouble();
+            QString sizeAsset = objCoin["walletBalance"].toString();
+            QString priceAsset = objCoin["usdValue"].toString();
 
             balance.m_assets.emplace_back(nameAsset, sizeAsset, priceAsset);
         }

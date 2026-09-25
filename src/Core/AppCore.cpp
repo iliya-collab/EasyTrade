@@ -7,6 +7,7 @@
 
 AppCore::AppCore(QObject* parent) : QObject(parent)
 {
+    Core::Tools::LogManager::instance().setDebugEnabled(false);
     Core::Tools::LogManager::instance().setStdLogEnabled(false);
     Core::Tools::LogManager::instance().setLogFileEnabled(true);
     Core::Tools::LogManager::instance().setLogFile("app.log");
@@ -22,26 +23,41 @@ AppCore::AppCore(QObject* parent) : QObject(parent)
 
 void AppCore::init()
 {
-    auto res = Core::ConfigurationManager::instance().load();
-
-    if (!res.has_value())
+    try
     {
-        qCritical() << res.error();
-        qWarning() << "The application will use default configuration";
+
+        auto& configManager = Core::ConfigurationManager::instance();
+
+        auto res = configManager.load();
+        qInfo() << "Config file:" << configManager.configPath();
+
+        if (!res.has_value())
+        {
+            configManager.generateDefaultConfiguration();
+            qCritical() << res.error();
+            qWarning() << "The application will use default configuration";
+        }
+
+        auto config = res.value_or(Core::ConfigurationParams());
+        if (!config.m_apis.contains(config.m_activeApi))
+        {
+            qCritical() << "Active API not found:" << config.m_activeApi;
+            return;
+        }
+        const auto& activeApi = config.m_apis.value(config.m_activeApi);
+
+        m_accountMediator->init(activeApi);
+        m_accountMediator->loadAccountBalance();
+
+        m_marketMediator->init(activeApi.m_isTestnet);
+        if (config.m_autoConnection)
+            m_marketMediator->runStreamer();
+
     }
-
-    auto config = res.value();
-    if (!config.m_apis.contains(config.m_activeApi))
+    catch (const std::exception& e)
     {
-        qCritical() << "Active API not found:" << config.m_activeApi;
+        qCritical() << e.what();
         return;
-    }
-    const auto& activeApi = config.m_apis.value(config.m_activeApi);
+    };
 
-    m_accountMediator->init(activeApi);
-    m_accountMediator->loadAccountBalance();
-
-    m_marketMediator->init(activeApi.m_isTestnet);
-    if (config.m_autoConnection)
-        m_marketMediator->runStreamer();
 }

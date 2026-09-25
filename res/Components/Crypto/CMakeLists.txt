@@ -7,11 +7,10 @@ qt_add_qml_module(CryptoComponents
         OrderbookTableView.qml
         SelecterTradeWidget.qml
         OrderbookWidget.qml
-        TickerItem.qml
         TickerWidget.qml
         KlineWidget.qml
         IndicatorMarketSentiment.qml
         KlineChart.qml
         PingIndicator.qml
-        TradeWidget.qml
+        PublicTradesWidget.qml
 )

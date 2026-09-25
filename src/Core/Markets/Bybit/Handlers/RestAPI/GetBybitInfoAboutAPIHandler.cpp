@@ -24,7 +24,7 @@ namespace Core::Markets
         return localTime.toString("yyyy-MM-dd");
     }
 
-    void GetBybitInfoAboutAPIHandler::handle(const QJsonObject &data, IPrivateService *service)
+    void GetBybitInfoAboutAPIHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
     {
         if (!data.contains("retMsg") || data["retMsg"].toString() != "OK")
         {

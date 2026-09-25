@@ -16,14 +16,12 @@ Item {
     property alias enableVolumeChart: candleChart.enableVolumeChart
 
     function showRecentTrades() {
-        stackWidgets.replace("qrc:/qt/qml/Components/Crypto/TradeWidget.qml")
+        stackWidgets.replace("qrc:/qt/qml/Components/Crypto/PublicTradesWidget.qml")
     }
 
     function showOrderbook() {
         stackWidgets.replace("qrc:/qt/qml/Components/Crypto/OrderbookWidget.qml")
     }
-
-    Component.onCompleted: console.log("TradeScreen ready")
 
     Item {
         id: leftContentContainer
@@ -38,27 +36,14 @@ Item {
                 Layout.alignment: Qt.AlignTop
                 Layout.fillWidth: true
                 color: Theme.windowColor
-                border.width: 1
-                border.color: Theme.borderColor
                 clip: true
 
-                implicitHeight: Math.max(selecterTrade.implicitHeight, tickerWidget.implicitHeight)
+                implicitHeight: tickerWidget.implicitHeight
 
                 RowLayout {
                     anchors.fill: parent
                     anchors.margins: 1
                     spacing: Theme.spacing
-
-                    SelecterTradeWidget {
-                        id: selecterTrade
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 100
-
-
-                        onItemSelected: function(item) {
-                            AppCore.marketService.subscribeSymbol(item)
-                        }
-                    }
 
                     TickerWidget {
                         id: tickerWidget
@@ -76,10 +61,7 @@ Item {
                     Layout.margins: Theme.margins
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-
-                    currentTrade: selecterTrade.currentTrade
-
-                    Component.onCompleted: console.log("KlineWidget ready")
+                    currentTrade: AppCore.marketState.currentSymbol
                 }
 
                 Rectangle {

@@ -19,11 +19,11 @@ namespace Core::Tools {
             case TimeRole:
                 return trade.m_tradeTime;
             case PriceRole:
-                return trade.m_price;
+                return trade.m_price.toDouble();
             case VolumeRole:
-                return trade.m_volume;
+                return trade.m_volume.toDouble();
             case TurnoverRole:
-                return trade.m_turnover;
+                return trade.m_turnover.toDouble();
             case SideRole:
                 return QVariant::fromValue(trade.m_side);
             default:

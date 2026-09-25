@@ -21,7 +21,7 @@ namespace Core::Markets
         }
     }
 
-    void GetBybitTradePairsHandler::handle(const QJsonObject &data, IMarketDataService *service)
+    void GetBybitTradePairsHandler::handle(const QJsonObject &data, const QVariant& requestContext, IMarketDataService *service)
     {
         if (!data.contains("retMsg") || data["retMsg"].toString() != "OK")
         {

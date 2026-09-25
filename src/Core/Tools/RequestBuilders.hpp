@@ -63,7 +63,8 @@ namespace Core::Tools
         // Опциональные
         req.m_start = detail::optInt64(params, "start");
         req.m_end = detail::optInt64(params, "end");
-        req.m_limit = detail::optInt64(params, "limit");
+        if (params.contains("limit"))
+            req.m_limit = detail::optInt64(params, "limit");
 
         // Обработка
         if (req.m_category == MarketType::Unknown)

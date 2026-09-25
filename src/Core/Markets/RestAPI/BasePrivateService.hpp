@@ -38,28 +38,28 @@ protected:
     // Метод для GET запроса
     template<typename IHandler, typename... Args>
         requires HasEndpoint<IHandler> && IsGetRequest<IHandler, Args...>
-    void requestGetImpl(Args&&... args)
+    void requestGetImpl(const QVariant& context, Args&&... args)
     {
         if (!m_currentApi)
             return;
         auto params = IHandler::buildRequest(std::forward<Args>(args)...);
-        m_currentApi->requestEndpointGet(IHandler::endpoint(), params, LOADING_TIMEOUT);
+        m_currentApi->requestEndpointGet(IHandler::endpoint(), params, LOADING_TIMEOUT, context);
     }
 
     // Метод для POST запроса
     template<typename IHandler, typename... Args>
         requires HasEndpoint<IHandler> && IsPostRequest<IHandler, Args...>
-    void requestPostImpl(Args&&... args)
+    void requestPostImpl(const QVariant& context, Args&&... args)
     {
         if (!m_currentApi)
             return;
         auto params = IHandler::buildRequestBody(std::forward<Args>(args)...);
-        m_currentApi->requestEndpointPost(IHandler::endpoint(), params, LOADING_TIMEOUT);
+        m_currentApi->requestEndpointPost(IHandler::endpoint(), params, LOADING_TIMEOUT, context);
     }
 
     // Универсальный метод отправки сообщений
     template<typename Endpoint, typename... Args>
-    void send(Args&&... args)
+    void send(const QVariant& context, Args&&... args)
     {
         static_assert(HasEndpoint<Endpoint>, "No endpoint()");
 
@@ -69,12 +69,12 @@ protected:
         if constexpr (IsGetRequest<Endpoint, Args...>)
         {
             QUrlQuery params = Endpoint::buildRequest(std::forward<Args>(args)...);
-            m_currentApi->requestEndpointGet(Endpoint::endpoint(), params, LOADING_TIMEOUT);
+            m_currentApi->requestEndpointGet(Endpoint::endpoint(), params, LOADING_TIMEOUT, context);
         }
         else if constexpr (IsPostRequest<Endpoint, Args...>)
         {
             QByteArray params = Endpoint::buildRequestBody(std::forward<Args>(args)...);
-            m_currentApi->requestEndpointPost(Endpoint::endpoint(), params, LOADING_TIMEOUT);
+            m_currentApi->requestEndpointPost(Endpoint::endpoint(), params, LOADING_TIMEOUT, context);
         }
         else
         {
@@ -96,7 +96,7 @@ public:
 
 protected slots:
 
-    virtual void onDataReceived(const QUrl& reqUrl, const QByteArray& data)
+    virtual void onDataReceived(const QUrl& reqUrl, const QByteArray& data, const QVariant& context)
     {
         if (m_handlers.empty())
             return;
@@ -104,7 +104,7 @@ protected slots:
         QString path = reqUrl.path();
 
         if (m_handlers.contains(path))
-            m_handlers[path]->handle(QJsonDocument::fromJson(data).object(), this);
+            m_handlers[path]->handle(QJsonDocument::fromJson(data).object(), context, this);
         else
             emit errorOccurred("Unknown endpoint: " + path);
     }

@@ -44,8 +44,10 @@ namespace Core::Tools
 
         void init(const Api& api = Api()) override;
 
-        QUrl requestEndpointGet(const QString& endpoint, const QUrlQuery& params = QUrlQuery(), int timeout = -1) override;
-        QUrl requestEndpointPost(const QString& endpoint, const QByteArray& jsonBody = QByteArray(), int timeout = -1) override;
+        QUrl requestEndpointGet(const QString& endpoint, const QUrlQuery& params = QUrlQuery(),
+                                int timeoutMs = -1, const QVariant& context = QVariant()) override;
+        QUrl requestEndpointPost(const QString& endpoint, const QByteArray& jsonBody = QByteArray(),
+                                int timeoutMs = -1, const QVariant& context = QVariant()) override;
 
     };
     

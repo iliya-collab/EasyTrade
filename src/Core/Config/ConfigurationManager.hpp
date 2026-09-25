@@ -18,6 +18,8 @@ public:
     std::expected<ConfigurationParams, QString> load();
     // Метод для записи текущей конфигурации
     std::expected<void, QString> save();
+    // Создает конфигурацию по умолчания
+    void generateDefaultConfiguration();
 
 // ==================================   Методы для задания параметров конфигурации  ==================================
     std::expected<void, QString>  addApi(const QString& name, const Tools::Api& api);
@@ -31,8 +33,6 @@ private:
     ConfigurationManager(const ConfigurationManager&) = delete;
     ConfigurationManager& operator=(const ConfigurationManager&) = delete;
 
-    // Создает конфигурацию по умолчания
-    void generateDefaultConfiguration();
     // Текущая конфигурация
     ConfigurationParams m_data;
 

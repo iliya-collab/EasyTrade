@@ -35,7 +35,10 @@ namespace Core::Tools {
         if (reply->error() == QNetworkReply::NoError) {
             QByteArray response = reply->readAll();
             if (!response.isNull())
-                emit dataReceived(reply->url(), response);
+            {
+                QVariant ctx = reply->property("requestContext");
+                emit dataReceived(reply->url(), response, ctx);
+            }
             else
                 emit errorOccurred("Failed to parse JSON response");
         }
@@ -45,7 +48,7 @@ namespace Core::Tools {
         reply->deleteLater();
     }
 
-    QUrl BybitRestAPI::requestEndpointGet(const QString& endpoint, const QUrlQuery& params, int timeout)
+    QUrl BybitRestAPI::requestEndpointGet(const QString& endpoint, const QUrlQuery& params, int timeoutMs, const QVariant& context)
     {
         QUrl url(m_baseEndpoint + endpoint);
         if (!params.isEmpty())
@@ -64,10 +67,11 @@ namespace Core::Tools {
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0");
 
-        if (timeout > 0)
-            request.setTransferTimeout(timeout);
+        if (timeoutMs > 0)
+            request.setTransferTimeout(timeoutMs);
 
         QNetworkReply* reply = m_manager->get(request);
+        reply->setProperty("requestContext", context);
 
         connect(reply, &QNetworkReply::finished, this, &BybitRestAPI::onHandleResponse, Qt::UniqueConnection);
         connect(reply, &QNetworkReply::downloadProgress, this, &BybitRestAPI::downloadProgress, Qt::UniqueConnection);
@@ -75,7 +79,7 @@ namespace Core::Tools {
         return request.url();
     }
 
-    QUrl BybitRestAPI::requestEndpointPost(const QString &endpoint, const QByteArray &jsonBody, int timeout)
+    QUrl BybitRestAPI::requestEndpointPost(const QString &endpoint, const QByteArray &jsonBody, int timeoutMs, const QVariant& context)
     {
         QUrl url(m_baseEndpoint + endpoint);
 
@@ -92,10 +96,11 @@ namespace Core::Tools {
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0");
 
-        if (timeout > 0)
-            request.setTransferTimeout(timeout);
+        if (timeoutMs > 0)
+            request.setTransferTimeout(timeoutMs);
 
         QNetworkReply* reply = m_manager->get(request);
+        reply->setProperty("requestContext", context);
 
         connect(reply, &QNetworkReply::finished, this, &BybitRestAPI::onHandleResponse, Qt::UniqueConnection);
         connect(reply, &QNetworkReply::downloadProgress, this, &BybitRestAPI::downloadProgress, Qt::UniqueConnection);
