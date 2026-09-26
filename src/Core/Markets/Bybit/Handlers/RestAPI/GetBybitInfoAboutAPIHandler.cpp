@@ -26,79 +26,88 @@ namespace Core::Markets
 
     void GetBybitInfoAboutAPIHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
     {
-        if (!data.contains("retMsg") || data["retMsg"].toString() != "OK")
+        if (!data.contains("retCode") || data["retCode"].toInt() != 0)
         {
-            emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
+            emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " +
+                                                data["retMsg"].toString()).arg(endpoint()));
             return;
         }
+
+        //qInfo() << QJsonDocument(data).toJson(QJsonDocument::Indented);
+        //qInfo().noquote() << QJsonDocument(data).toJson();
 
         Tools::ApiInfo info{};
 
         QJsonObject result = data["result"].toObject();
 
-        info.m_readOnly = result["readOnly"].toVariant().toBool();
-        info.m_expiredAt = parseISOFormat(result["expiredAt"].toString());
+        info.m_note = result["note"].toString();
 
         QJsonArray ipsArr = result["ips"].toArray();
-        info.m_ips.reserve(ipsArr.size());
-        for (const auto& ip : std::as_const(ipsArr))
-            info.m_ips.emplaceBack(ip.toString());
+        bool anyIp = ipsArr.size() == 1 && ipsArr[0].toString() == "*";
+        if (!anyIp)
+        {
+            info.m_ips.reserve(ipsArr.size());
+            for (const auto& ip : std::as_const(ipsArr))
+                info.m_ips.emplaceBack(ip.toString());
+        }
 
+        info.m_expiredAt = parseISOFormat(result["expiredAt"].toString());
+        info.m_createdAt = parseISOFormat(result["createdAt"].toString());
+        info.m_deadlineDay = result["deadlineDay"].toInt();
+        info.m_vipLevel = result["vipLevel"].toString();
+        info.m_isUnifiedAccount = result["uta"].toInt() == 1;
+        info.m_isMaster = result["isMaster"].toBool();
+        info.m_kycLevel = result["kycLevel"].toString();
+        info.m_userId = QString::number(result["userID"].toInt());
+
+        info.m_readOnly = result["readOnly"].toVariant().toBool();
         QJsonObject permissionsObj = result["permissions"].toObject();
 
-        if (permissionsObj.contains("ContractTrade"))
-        {
+        // Хелпер-лямбда для быстрой проверки строки внутри JSON-массива
+        auto hasField = [](const QJsonArray &arr, const QString &val) -> bool {
+            for (const auto& item : std::as_const(arr)) {
+                if (item.toString() == val) return true;
+            }
+            return false;
+        };
+
+        // Контракты (Деривативы)
+        if (permissionsObj.contains("ContractTrade")) {
             QJsonArray contractArr = permissionsObj["ContractTrade"].toArray();
-
-            bool hasOrder = false;
-            bool hasPosition = false;
-
-            for (const auto& val : std::as_const(contractArr))
-            {
-                QString perm = val.toString();
-                if (perm == "Order")
-                    hasOrder = true;
-                else if (perm == "Position")
-                    hasPosition = true;
-            }
-
-            info.m_permissionContractTrade = hasOrder && hasPosition;
+            info.m_permissionOrderContract = hasField(contractArr, "Order");
+            info.m_permissionPositionContract = hasField(contractArr, "Position");
         }
-        else
-            info.m_permissionContractTrade = false;
 
-        if (permissionsObj.contains("Spot"))
-        {
-            QJsonArray spotArr = permissionsObj["Spot"].toArray();
-
-            for (const auto& val : std::as_const(spotArr))
-            {
-                QString perm = val.toString();
-                if (perm == "SpotTrade")
-                {
-                    info.m_permissionContractTrade = true;
-                    break;
-                }
-            }
+        // Спот
+        if (permissionsObj.contains("Spot")) {
+            info.m_permissionSpotTrade = hasField(permissionsObj["Spot"].toArray(), "SpotTrade");
         }
-        else
-            info.m_permissionContractTrade = false;
 
-        if (permissionsObj.contains("Wallet"))
-        {
+        // Опционы
+        if (permissionsObj.contains("Options")) {
+            info.m_permissionOptionsTrade = hasField(permissionsObj["Options"].toArray(), "OptionsTrade");
+        }
+
+        // Конвертация
+        if (permissionsObj.contains("Exchange")) {
+            info.m_permissionExchange = hasField(permissionsObj["Exchange"].toArray(), "ExchangeHistory");
+        }
+
+        // Earn продукты
+        if (permissionsObj.contains("Earn")) {
+            info.m_permissionEarn = hasField(permissionsObj["Earn"].toArray(), "Earn");
+        }
+
+        // Кошелек и переводы
+        if (permissionsObj.contains("Wallet")) {
             QJsonArray walletArr = permissionsObj["Wallet"].toArray();
+            info.m_permissionWithdraw = hasField(walletArr, "Withdraw");
+            info.m_permissionAccountTransfer = hasField(walletArr, "AccountTransfer");
 
-            for (const auto& val : std::as_const(walletArr))
-            {
-                QString perm = val.toString();
-                if (perm == "Withdraw")
-                    info.m_permissionWithdraw = true;
-                else if (perm == "AccountTransfer")
-                    info.m_permissionAccountTransfer = true;
-            }
+            // Проверяем права на суб-переводы (зависит от того мастер-ключ или суб-ключ)
+            info.m_permissionSubTransfer = hasField(walletArr, "SubMemberTransfer") ||
+                                           hasField(walletArr, "SubMemberTransferList");
         }
-        else
-            info.m_permissionContractTrade = false;
 
         emit service->infoAboutApiReceived(info);
     }

@@ -19,8 +19,9 @@ namespace Core {
 
     void AccountState::updateApiInfo(const Tools::ApiInfo &apiInfo)
     {
-        m_apiInfo = apiInfo;
+        m_api.m_info = apiInfo;
         emit apiInfoChanged();
+        emit apiChanged();
     }
 
     void AccountState::updateValidAccount(bool isValid)

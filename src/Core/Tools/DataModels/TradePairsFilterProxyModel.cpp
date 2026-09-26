@@ -10,27 +10,26 @@ namespace Core::Tools {
         setFilterCaseSensitivity(Qt::CaseInsensitive);
     }
 
-    void TradePairsFilterProxyModel::setQuoteCoinFilter(const QString &text)
+    void TradePairsFilterProxyModel::setSymbolFilter(const QString &text)
     {
-        if (m_quoteCoinFilter == text)
+        if (m_symbolFilter == text)
             return;
 
-        m_quoteCoinFilter = text;
+        m_symbolFilter = text;
 
-        emit quoteCoinFilterChanged();
+        emit symbolFilterChanged();
 
         invalidate();
     }
 
     bool TradePairsFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const {
-        if (m_quoteCoinFilter.isEmpty())
+        if (m_symbolFilter.isEmpty())
             return true;
 
         auto idx = sourceModel()->index(sourceRow, 0, sourceParent);
+        QString symbol = sourceModel()->data(idx, TradePairsModel::SymbolRole).toString();
 
-        QString quoteCoin = sourceModel()->data(idx, TradePairsModel::QuoteRole).toString();
-
-        return quoteCoin == m_quoteCoinFilter;
+        return symbol.contains(m_symbolFilter, Qt::CaseInsensitive);
     }
 
 }

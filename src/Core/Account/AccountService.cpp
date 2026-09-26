@@ -44,7 +44,7 @@ Core::AccountService::AccountService(std::shared_ptr<AccountState> state, std::s
             this, &AccountService::onErrorOccurredWithId);
 
     connect(mediator.get(), &AccountMediator::errorOccurred,
-            this, &AccountService::errorOccurred);
+            this, &AccountService::onErrorOccurred);
 }
 
 void Core::AccountService::init(const Tools::Api &api)
@@ -84,11 +84,27 @@ void Core::AccountService::subscribe()
     m_mediator->subscribe();
 }
 
+void Core::AccountService::loadAccountBalance()
+{
+    m_mediator->loadAccountBalance();
+}
+
+void Core::AccountService::loadInfoAboutApi()
+{
+    m_mediator->loadInfoAboutApi();
+}
+
 void Core::AccountService::onErrorOccurredWithId(const QString& id, const QString &error)
 {
     QString errMsg = id + " : " + error;
     qCritical().noquote() << errMsg;
     emit errorOccurred(errMsg);
+}
+
+void Core::AccountService::onErrorOccurred(const QString &error)
+{
+    qCritical().noquote() << error;
+    emit errorOccurred(error);
 }
 
 void Core::AccountService::onStreamerStarted(const QString& id)

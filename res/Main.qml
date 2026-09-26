@@ -18,10 +18,23 @@ ApplicationWindow {
     title: "EasyTrade"
     color: Theme.windowColor
 
-    visibility: "FullScreen"
+    //visibility: "FullScreen"
 
     Connections {
         target: AppCore.marketService
+
+        //function onErrorOccurred(error) { statusWidget.text = error }
+
+        function onMessageReceived(msg) { statusWidget.text = msg }
+
+        function onDownloadProgress(received, total) {
+            if (total > 0)
+                statusWidget.progressValue = received / total * 100
+        }
+    }
+
+    Connections {
+        target: AppCore.accountService
 
         //function onErrorOccurred(error) { statusWidget.text = error }
 

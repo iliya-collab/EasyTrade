@@ -19,14 +19,17 @@ Window {
     color: Theme.windowColor
 
     QtObject {
-        id: state
+        id: internal
 
         property bool isComponentReady: false
         readonly property var tradePairList: TradePairsFilterProxyModel
         {
             sourceModel: AppCore.marketState.tradePairs
-            quoteCoinFilter: ""
+            symbolFilter: ""
         }
+        property var currentCategory: null
+        property var currentSymbol: null
+        property bool symbolSelected: currentSymbol !== null && currentSymbol !== ""
     }
 
     signal tradeSelected(string symbol)
@@ -37,7 +40,8 @@ Window {
         anchors.margins: Theme.margins
 
         CustomTabBar {
-            id: marketTabsBar
+            id: tabsBar
+            Layout.fillWidth: true
             modelTabs: [
                 { text: "spot",     type: Tools.MarketType.Spot },
                 { text: "linear",   type: Tools.MarketType.Linear },
@@ -45,24 +49,53 @@ Window {
                 { text: "option",   type: Tools.MarketType.Option }
             ]
             onCurrentIndexChanged: {
-                var curType = modelTabs[currentIndex].type
-                AppCore.marketService.loadTradePairs(curType)
+                internal.currentCategory = modelTabs[currentIndex].text
+                internal.currentSymbol = null
+                AppCore.marketService.loadTradePairs(modelTabs[currentIndex].type)
             }
-        } // tabsBar
+        }
 
-        CustomTabBar {
-            id: tabsBar
-            modelTabs: [
-                { text: "ALL" },
-                { text: "USDT" },
-                { text: "USDC" },
-                { text: "USDE" }
-            ]
-            onCurrentIndexChanged: {
-                var curText = modelTabs[currentIndex].text
-                state.tradePairList.quoteCoinFilter = curText === "ALL" ? "" : curText
+        CustomTextField {
+            id: txtFilter
+            Layout.fillWidth: true
+            placeholderText: "Enter symbol..."
+            onTextChanged: internal.tradePairList.symbolFilter = txtFilter.text
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Theme.margins
+
+            Text {
+                text: "Category:"
+                font.pixelSize: Theme.fontSizeBody
+                font.family: Theme.fontFamily
+                color: Theme.textColor
             }
-        } // tabsBar
+            Text {
+                text: internal.currentCategory ?? "—"
+                font.pixelSize: Theme.fontSizeBody
+                font.family: Theme.fontFamily
+                font.bold: true
+                color: Theme.accentColor
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Text {
+                text: "Symbol:"
+                font.pixelSize: Theme.fontSizeBody
+                font.family: Theme.fontFamily
+                color: Theme.textColor
+            }
+            Text {
+                text: internal.currentSymbol ?? "—"
+                font.pixelSize: Theme.fontSizeBody
+                font.family: Theme.fontFamily
+                font.bold: true
+                color: Theme.accentColor
+            }
+        }
 
         Rectangle {
             Layout.fillWidth: true
@@ -74,7 +107,7 @@ Window {
 
             ListView {
                 id: lstTrades
-                model: state.tradePairList
+                model: internal.tradePairList
                 anchors.fill: parent
                 clip: true
 
@@ -82,19 +115,34 @@ Window {
                     id: lstItem
                     width: lstTrades.width
                     text: symbol
+
+                    property string symbolName: symbol
+                    readonly property bool isSelected: internal.currentSymbol === symbolName
+
                     background: Rectangle {
-                        color: lstItem.pressed ? Theme.pressColor : (lstItem.hovered ? Theme.hoverColor : "transparent")
+                        color: lstItem.isSelected
+                               ? Theme.selectColor
+                               : (lstItem.pressed ? Theme.pressColor
+                               : (lstItem.hovered ? Theme.hoverColor : "transparent"))
+                        radius: Theme.radius
+                        border.color: lstItem.isSelected ? Theme.accentColor : "transparent"
+                        border.width: lstItem.isSelected ? Theme.borderWidth : 0
                     }
+
                     contentItem: Text {
-                        text: parent.text
+                        text: lstItem.text
                         font.pixelSize: Theme.fontSizeBody
                         font.family: Theme.fontFamily
-                        padding: Theme.padding
-                        color: Theme.textColor
+                        font.bold: lstItem.isSelected
+                        leftPadding: Theme.padding
+                        color: lstItem.isSelected ? Theme.selectTextColor : Theme.textColor
+                        verticalAlignment: Text.AlignVCenter
                     }
+
                     onClicked: {
-                        root.tradeSelected(symbol)
-                        root.close()
+                        console.info("clicked symbol:", symbol, "type:", typeof symbol)
+                        internal.currentSymbol = symbol
+                        console.info("currentSymbol now:", internal.currentSymbol)
                     }
                 }
 
@@ -119,6 +167,30 @@ Window {
                 }
             } // lstTrades
         } // Rectangle
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Theme.margins
+
+            Item { Layout.fillWidth: true }
+
+            CustomButton {
+                text: "Cancel"
+                implicitHeight: 30
+                onClicked: root.close()
+            }
+
+            CustomButton {
+                text: "Select"
+                enabled: internal.symbolSelected
+                implicitHeight: 30
+                onClicked: {
+                    root.tradeSelected(internal.currentSymbol)
+                    root.close()
+                }
+            }
+        }
+
     } // contentLayout
 
 } // root

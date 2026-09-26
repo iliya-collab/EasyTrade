@@ -47,6 +47,7 @@ void AppCore::init()
         const auto& activeApi = config.m_apis.value(config.m_activeApi);
 
         m_accountMediator->init(activeApi);
+        m_accountMediator->loadInfoAboutApi();
         m_accountMediator->loadAccountBalance();
 
         m_marketMediator->init(activeApi.m_isTestnet);

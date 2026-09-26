@@ -27,7 +27,7 @@ QByteArray Core::Markets::PostBybitAmendOrderHandler::buildRequestBody(const Too
 
 void Core::Markets::PostBybitAmendOrderHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
 {
-    if (!data.contains("retMsg") || data["retMsg"].toString() != "OK")
+    if (!data.contains("retCode") || data["retCode"].toInt() != 0)
     {
         emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
         return;

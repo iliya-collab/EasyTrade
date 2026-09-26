@@ -21,7 +21,7 @@ QUrlQuery Core::Markets::GetBybitOrderHistoryHandler::buildRequest(const Tools::
 
 void Core::Markets::GetBybitOrderHistoryHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
 {
-    if (!data.contains("retMsg") || data["retMsg"].toString() != "OK")
+    if (!data.contains("retCode") || data["retCode"].toInt() != 0)
     {
         emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
         return;

@@ -10,10 +10,7 @@ TabBar {
     property var modelTabs: []
 
     background: Rectangle {
-        border.color: Theme.borderColor
-        border.width: Theme.borderWidth
         color: Theme.toolBarColor
-        radius: Theme.radius
     }
 
     Repeater {
@@ -22,9 +19,28 @@ TabBar {
         TabButton {
             id: tabs
             text: modelData.text
+
+            z: tabs.checked ? 1 : 0
+
             background: Rectangle {
-                color: tabs.pressed ? Theme.pressColor : (tabs.hovered ? Theme.hoverColor : "transparent")
+                color: tabs.checked ? Theme.selectColor
+                     : tabs.pressed ? Theme.pressColor
+                     : tabs.hovered ? Theme.hoverColor
+                     : "transparent"
                 radius: Theme.radius
+                border.color: Theme.borderColor
+                border.width: Theme.borderWidth
+
+                transform: Translate {
+                    y: tabs.checked ? -4 : 0
+                    Behavior on y {
+                        NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
+                    }
+                }
+
+                Behavior on color {
+                    ColorAnimation { duration: 150 }
+                }
             }
             contentItem: Text {
                 text: tabs.text
@@ -33,6 +49,13 @@ TabBar {
                 color: Theme.textColor
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
+
+                transform: Translate {
+                    y: tabs.checked ? -4 : 0
+                    Behavior on y {
+                        NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
+                    }
+                }
             }
         } // ToolButton
     } // Repeater

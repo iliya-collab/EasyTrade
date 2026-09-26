@@ -38,6 +38,9 @@ namespace Core
         Q_INVOKABLE void init(const Tools::Api& api);
         Q_INVOKABLE void subscribe();
 
+        Q_INVOKABLE void loadAccountBalance();
+        Q_INVOKABLE void loadInfoAboutApi();
+
         Q_INVOKABLE void createOrder(const QVariantMap& params);
         Q_INVOKABLE void amendOrder(const QVariantMap& params);
         Q_INVOKABLE void cancelOrder(const QVariantMap& params);
@@ -62,6 +65,7 @@ namespace Core
     private slots:
 
         void onErrorOccurredWithId(const QString& id, const QString& error);
+        void onErrorOccurred(const QString& error);
         void onStreamerStarted(const QString& id);
         void onStreamerStopped(const QString& id);
 

@@ -16,6 +16,9 @@ AccountMediator::AccountMediator(QObject* parent) : QObject(parent)
     connect(m_privateService.get(), &Markets::IPrivateService::accountBalanceReceived,
             this, &AccountMediator::onAccountBalanceReady);
 
+    connect(m_privateService.get(), &Markets::IPrivateService::infoAboutApiReceived,
+            this, &AccountMediator::onInfoAboutApiReady);
+
     connect(m_privateService.get(), &Markets::IPrivateService::orderCreated,
             this, &AccountMediator::onOrderCreated);
 
@@ -36,6 +39,9 @@ AccountMediator::AccountMediator(QObject* parent) : QObject(parent)
 
     connect(m_privateService.get(), &Markets::IPrivateService::orderRequestRejected,
             this, &AccountMediator::onOrderRequestRejected);
+
+    connect(m_privateService.get(), &Markets::IPrivateService::errorOccurred,
+            this, &AccountMediator::errorOccurred);
 
     // Связываем приватный стрим
     connect(m_privateStreamer.get(), &Markets::IPrivateStreamer::errorOccurred,

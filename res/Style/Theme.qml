@@ -9,6 +9,7 @@ QtObject {
     readonly property color buttonColor: "#1c1c1c"
     readonly property color hoverColor: "#a6a6a6"
     readonly property color pressColor: "#a6a6a6"
+    readonly property color selectColor: "#a6a6a6"
 
     // CheckBox
     readonly property color indicatorColor: "#ffffff"
@@ -31,6 +32,7 @@ QtObject {
     readonly property int spacing: 10
     readonly property int radius: 10
     readonly property color borderColor: "#adadad"
+    readonly property color accentColor: "#adadad"
     readonly property int borderWidth: 1
 
     // Шрифт
@@ -39,4 +41,5 @@ QtObject {
     readonly property int fontSizeSmall: 11 // размер маленького текста
     readonly property string fontFamily: "Segoe UI" // шрифт
     readonly property color textColor: "#ffffff" // цвет текста
+    readonly property color selectTextColor: "#ffffff"
 }
