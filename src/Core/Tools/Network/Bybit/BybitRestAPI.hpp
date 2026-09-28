@@ -42,7 +42,7 @@ namespace Core::Tools
         BybitRestAPI(QObject* parent = nullptr);
         ~BybitRestAPI() = default;
 
-        void init(const Api& api = Api()) override;
+        void init(const Api& api = Api(), bool isTestnet = false) override;
 
         QUrl requestEndpointGet(const QString& endpoint, const QUrlQuery& params = QUrlQuery(),
                                 int timeoutMs = -1, const QVariant& context = QVariant()) override;

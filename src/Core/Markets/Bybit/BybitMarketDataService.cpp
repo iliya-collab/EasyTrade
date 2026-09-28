@@ -20,8 +20,8 @@ namespace Core::Markets
         if (!m_currentApi)
             return;
 
-        Tools::Api api {"", "", isTestnet};
-        m_currentApi->init(api);
+        Tools::Api api {"", ""};
+        m_currentApi->init(api, isTestnet);
     }
 
     void BybitMarketDataService::requestTradePairs(Tools::MarketType type)

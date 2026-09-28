@@ -1,6 +1,5 @@
 #include "AppCore.hpp"
 #include "Tools/LogManager.hpp"
-#include "Config/ConfigurationManager.hpp"
 #include <QVariant>
 #include <QList>
 #include <QVariantList>
@@ -19,23 +18,43 @@ AppCore::AppCore(QObject* parent) : QObject(parent)
     m_accountMediator = std::make_shared<Core::AccountMediator>();
     m_accountState = std::make_shared<Core::AccountState>();
     m_accountService = std::make_shared<Core::AccountService>(m_accountState, m_accountMediator);
+
+    m_logModel = std::make_unique<Core::Tools::LogModel>();
+
+    connect(m_marketService.get(), &Core::MarketDataService::messageReceived,
+            this, [](const QString& m) { qInfo().noquote() << "Market:" << m; });
+    connect(m_accountService.get(), &Core::AccountService::messageReceived,
+            this, [](const QString& m) { qInfo().noquote() << "Account:" << m; });
+
+    init();
+}
+
+AppCore &AppCore::instance()
+{
+    static AppCore core;
+    return core;
+}
+
+AppCore *AppCore::create(QQmlEngine *, QJSEngine *)
+{
+    auto* inst = &instance();
+    QJSEngine::setObjectOwnership(inst, QJSEngine::CppOwnership);
+    return inst;
 }
 
 void AppCore::init()
-{
+{   
     try
     {
 
         auto& configManager = Core::ConfigurationManager::instance();
-
-        auto res = configManager.load();
         qInfo() << "Config file:" << configManager.configPath();
 
+        auto res = configManager.tryLoad();
         if (!res.has_value())
         {
-            configManager.generateDefaultConfiguration();
             qCritical() << res.error();
-            qWarning() << "The application will use default configuration";
+            return;
         }
 
         auto config = res.value_or(Core::ConfigurationParams());
@@ -46,11 +65,14 @@ void AppCore::init()
         }
         const auto& activeApi = config.m_apis.value(config.m_activeApi);
 
-        m_accountMediator->init(activeApi);
+        qInfo() << "Network in use:" << (config.m_testnet ? "testnet" : "mainnet");
+
+        m_marketMediator->init(config.m_testnet);
+        m_accountMediator->init(activeApi, config.m_testnet);
+
         m_accountMediator->loadInfoAboutApi();
         m_accountMediator->loadAccountBalance();
 
-        m_marketMediator->init(activeApi.m_isTestnet);
         if (config.m_autoConnection)
             m_marketMediator->runStreamer();
 

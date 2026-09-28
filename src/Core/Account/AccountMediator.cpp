@@ -159,11 +159,11 @@ void AccountMediator::requestOrderHistory(const Tools::OrderHistoryRequest &requ
     m_privateService->requestOrderHistory(request);
 }
 
-void AccountMediator::init(const Tools::Api &api)
+void AccountMediator::init(const Tools::Api &api, bool isTestnet)
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-    m_privateService->init(api);
-    m_privateStreamer->init(api);
+    m_privateService->init(api, isTestnet);
+    m_privateStreamer->init(api, isTestnet);
     emit apiReady(api);
 }
 

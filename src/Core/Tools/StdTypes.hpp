@@ -227,20 +227,20 @@ struct Api {
 
     Q_PROPERTY(QString apiKey MEMBER m_apiKey FINAL)
     Q_PROPERTY(QString secretKey MEMBER m_secretKey FINAL)
-    Q_PROPERTY(bool isTestnet MEMBER m_isTestnet FINAL)
+    //Q_PROPERTY(bool isTestnet MEMBER m_isTestnet FINAL)
     Q_PROPERTY(ApiInfo info MEMBER m_info FINAL)
 
 public:
 
     QString m_apiKey = "";              // Api ключ
     QString m_secretKey = "";           // Секретный Api ключ
-    bool m_isTestnet = false;           // Тип сети
+    //bool m_isTestnet = false;           // Тип сети
     ApiInfo m_info{};
 
     bool operator==(const Api &other) const noexcept {
         return m_apiKey       == other.m_apiKey
                && m_secretKey == other.m_secretKey
-               && m_isTestnet == other.m_isTestnet
+               //&& m_isTestnet == other.m_isTestnet
                && m_info      == other.m_info;
     }
 

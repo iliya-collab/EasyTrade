@@ -10,6 +10,17 @@ QtObject {
     readonly property color hoverColor: "#a6a6a6"
     readonly property color pressColor: "#a6a6a6"
     readonly property color selectColor: "#a6a6a6"
+    readonly property color disabledButtonColor: "#3a3a3a"
+    readonly property color disabledBorderColor: "#555555"
+    readonly property color disabledTextColor:   "#888888"
+    readonly property color focusColor:             "#4caf50"
+
+    // Switch
+    readonly property int   switchWidth:  40
+    readonly property int   switchHeight: 22
+    readonly property color switchBackgroundColor: "#3a3a3a"
+    readonly property color switchCheckedColor:    "#4caf50"
+    readonly property color switchHandleColor:     "#f0f0f0"
 
     // CheckBox
     readonly property color indicatorColor: "#ffffff"
@@ -18,6 +29,10 @@ QtObject {
     // TextField
     readonly property color textFieldColor: "#1c1c1c"
     readonly property color hoverTextFieldColor: "#d4d4d4"
+    readonly property color placeholderColor:   "#808080"
+    readonly property color selectionColor:     "#4caf50"
+    readonly property color selectedTextColor:  "#ffffff"
+    readonly property color disabledFieldColor: "#252525"
 
     // ScrollBar
     readonly property color sliderColor: "#2e2e2e" // цвет бегунка

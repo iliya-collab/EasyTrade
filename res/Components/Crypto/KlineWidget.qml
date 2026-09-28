@@ -74,7 +74,7 @@ Item {
             spacing: 8
 
             // Панель таймфреймов
-            ComboBox {
+            CustomComboBox {
                 id: timeframeCombo
                 Layout.preferredHeight: 30
                 Layout.preferredWidth: 90

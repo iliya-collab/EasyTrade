@@ -38,6 +38,8 @@ find_package(Qt6 REQUIRED COMPONENTS
     Xml
 )
 
+find_package(Qt6Keychain REQUIRED)
+
 qt_standard_project_setup()
 
 file(GLOB_RECURSE MY_SOURCES RELATIVE ${CMAKE_SOURCE_DIR}
@@ -76,6 +78,7 @@ target_link_libraries(EasyTradeCore PRIVATE
     Qt6::WebSockets
     Qt6::Sql
     Qt6::Xml
+    Qt6Keychain::Qt6Keychain
 )
 
 target_include_directories(EasyTradeCore PRIVATE
@@ -94,8 +97,11 @@ qt_add_qml_module(${PROJECT_NAME}
         res/Views/UserScreen.qml
         res/Views/TradeScreen.qml
         res/Views/SettingsWindow.qml
-        res/Views/APICreationWindow.qml
+        res/Views/LogWindow.qml
+        res/Views/APICreationFormWindow.qml
         res/Views/SelecterTradeWindow.qml
+        res/Views/APISettingsPage.qml
+        res/Views/GeneralSettingsPage.qml
 )
 
 # Подключаем внешние UI-поддиректории

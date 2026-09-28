@@ -47,9 +47,9 @@ Core::AccountService::AccountService(std::shared_ptr<AccountState> state, std::s
             this, &AccountService::onErrorOccurred);
 }
 
-void Core::AccountService::init(const Tools::Api &api)
+void Core::AccountService::init(const Tools::Api &api, bool isTestnet)
 {
-    m_mediator->init(api);
+    m_mediator->init(api, isTestnet);
 }
 
 void Core::AccountService::run()

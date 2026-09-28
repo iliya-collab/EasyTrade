@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-
 import Application.UI 1.0
 import Application.Core 1.0
 import Theme 1.0
@@ -20,12 +19,12 @@ ApplicationWindow {
 
     //visibility: "FullScreen"
 
-    Connections {
+    /*Connections {
         target: AppCore.marketService
 
-        //function onErrorOccurred(error) { statusWidget.text = error }
+        function onMessageReceived(msg) { addLog("info", "Market", msg ) }
 
-        function onMessageReceived(msg) { statusWidget.text = msg }
+        function onErrorOccurred(error) { mainWindow.addLog("error", "Market", error) }
 
         function onDownloadProgress(received, total) {
             if (total > 0)
@@ -36,9 +35,9 @@ ApplicationWindow {
     Connections {
         target: AppCore.accountService
 
-        //function onErrorOccurred(error) { statusWidget.text = error }
+        function onMessageReceived(msg) { addLog("info", "Account", msg ) }
 
-        function onMessageReceived(msg) { statusWidget.text = msg }
+        function onErrorOccurred(error) { mainWindow.addLog("error", "Account", error) }
 
         function onDownloadProgress(received, total) {
             if (total > 0)
@@ -46,10 +45,64 @@ ApplicationWindow {
         }
     }
 
-    Component.onCompleted: {
-        // Инициализируем ядро приложения
-        AppCore.init()
+    Connections {
+        target: ConfigurationManager
+
+        function onErrorOccurred(error) { mainWindow.addLog("error", "Config", error) }
+    }*/
+
+    Loader {
+        id: settingsWindowLoader
+        active: false
+        source: "Views/SettingsWindow.qml"
+
+        Connections {
+            target: settingsWindowLoader.item
+            ignoreUnknownSignals: true
+            function onVisibleChanged() {
+                if (settingsWindowLoader.item && !settingsWindowLoader.item.visible)
+                    settingsWindowLoader.active = false
+            }
+        }
     }
+
+    Loader {
+        id: selecterTradeWindowLoader
+        active: false
+        source: "Views/SelecterTradeWindow.qml"
+
+        onLoaded: {
+            item.tradeSelected.connect(function(symbol) {
+                AppCore.marketService.subscribeSymbol(symbol)
+            })
+        }
+
+        Connections {
+            target: selecterTradeWindowLoader.item
+            ignoreUnknownSignals: true
+            function onVisibleChanged() {
+                if (selecterTradeWindowLoader.item && !selecterTradeWindowLoader.item.visible)
+                    selecterTradeWindowLoader.active = false
+            }
+        }
+    }
+
+    Loader {
+        id: logWindowLoader
+        active: false
+        source: "Views/LogWindow.qml"
+
+        Connections {
+            target: logWindowLoader.item
+            ignoreUnknownSignals: true
+            function onVisibleChanged() {
+                if (logWindowLoader.item && !logWindowLoader.item.visible)
+                    Qt.callLater(function() { logWindowLoader.active = false })
+            }
+        }
+    }
+
+// ++++++++++++++++++++++++++++++++++++++++++   UI  ++++++++++++++++++++++++++++++++++++++++++
 
     // Меню
     menuBar: CustomMenuBar {
@@ -131,6 +184,14 @@ ApplicationWindow {
             {
                 text: "Settings",
                 clicked: function() { settingsWindowLoader.active = true }
+            },
+            {
+                text: "Logs",
+                clicked: function() {
+                    if (logWindowLoader.item)
+                        logWindowLoader.item.raise()
+                    else logWindowLoader.active = true
+                }
             }
         ]
     }
@@ -164,9 +225,6 @@ ApplicationWindow {
 
             initialItem: UserScreen {}
 
-            //property bool isTradeScreen: mainStack.currentItem instanceof TradeScreen
-            //property bool isUserScreen: mainStack.currentItem instanceof UserScreen
-
             // Метод для вызова экрана торговли
             function showTradeScreen()
             {
@@ -181,7 +239,7 @@ ApplicationWindow {
 
         } // mainStack
 
-        footer: Rectangle {
+        /*footer: Rectangle {
             color: Theme.toolBarColor
             height: 30
 
@@ -193,7 +251,6 @@ ApplicationWindow {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     autoHide: false
-                    //visibleProgressBar: false
                 }
 
                 Item { Layout.fillWidth: true }
@@ -205,44 +262,10 @@ ApplicationWindow {
                     pingValue: AppCore.marketState.pingMs
                 }
             }
-        }
+        }*/
 
     } // mainLayout
 
-    Loader {
-        id: settingsWindowLoader
-        active: false
-        source: "Views/SettingsWindow.qml"
-
-        Connections {
-            target: settingsWindowLoader.item
-            function onVisibleChanged() {
-                if (settingsWindowLoader.item && !settingsWindowLoader.item.visible)
-                    settingsWindowLoader.active = false
-            }
-        }
-    }
-
-    Loader {
-        id: selecterTradeWindowLoader
-        active: false
-        source: "Views/SelecterTradeWindow.qml"
-
-        onLoaded: {
-            item.tradeSelected.connect(function(symbol) {
-                AppCore.marketService.subscribeSymbol(symbol)
-            })
-        }
-
-        Connections {
-            target: selecterTradeWindowLoader.item
-            ignoreUnknownSignals: true
-
-            function onVisibleChanged() {
-                if (selecterTradeWindowLoader.item && !selecterTradeWindowLoader.item.visible)
-                    selecterTradeWindowLoader.active = false
-            }
-        }
-    }
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 }

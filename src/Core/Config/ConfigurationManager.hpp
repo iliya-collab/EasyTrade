@@ -1,41 +1,80 @@
 #pragma once
 #include "Configuration.hpp"
+
+#include <QObject>
+#include <QQmlEngine>
+#include <QStringList>
+#include <QVariantList>
 #include <expected>
 
 namespace Core {
 
-class ConfigurationManager
+class ConfigurationManager : public QObject
 {
-public:
+    Q_OBJECT
+    QML_ELEMENT
+    QML_SINGLETON
 
+    Q_PROPERTY(bool        autoConnection READ autoConnection WRITE setAutoConnection NOTIFY autoConnectionChanged)
+    Q_PROPERTY(bool        testnet        READ testnet        WRITE setTestnet        NOTIFY testnetChanged)
+    Q_PROPERTY(QString     activeApi      READ activeApi      WRITE setActiveApi      NOTIFY activeApiChanged)
+    Q_PROPERTY(QStringList apiNames       READ apiNames                                NOTIFY apisChanged)
+
+public:
+    // --- Singleton для QML ---
     static ConfigurationManager& instance();
+    static ConfigurationManager* create(QQmlEngine*, QJSEngine*);
 
     static QString configPath();
 
-    // Метод для получения текущей конфигурации
-    const ConfigurationParams& data() const noexcept { return m_data; }
-    // Метод для чтения файла конфигурации
-    std::expected<ConfigurationParams, QString> load();
-    // Метод для записи текущей конфигурации
-    std::expected<void, QString> save();
-    // Создает конфигурацию по умолчания
-    void generateDefaultConfiguration();
+    // --- Q_PROPERTY getters ---
+    bool        autoConnection() const noexcept { return m_data.m_autoConnection; }
+    bool        testnet()        const noexcept { return m_data.m_testnet; }
+    QString     activeApi()      const noexcept { return m_data.m_activeApi; }
+    QStringList apiNames()       const noexcept { return m_data.m_apis.keys(); }
 
-// ==================================   Методы для задания параметров конфигурации  ==================================
-    std::expected<void, QString>  addApi(const QString& name, const Tools::Api& api);
-    std::expected<void, QString>  removeApi(const QString& name);
+    // --- Q_PROPERTY setters ---
     void setAutoConnection(bool enabled);
-    std::expected<void, QString> setActiveApi(const QString& name);
+    void setTestnet(bool enabled);
+    void setActiveApi(const QString& name);
+
+    // --- Q_INVOKABLE для QML ---
+    Q_INVOKABLE bool addApi(const QString& name, const QString& apiKey, const QString& secretKey);
+    Q_INVOKABLE bool removeApi(const QString& name);
+    Q_INVOKABLE QVariantMap api(const QString& name) const;
+    Q_INVOKABLE bool reload();
+    Q_INVOKABLE bool saveConfig();
+
+    const ConfigurationParams& data() const noexcept { return m_data; }
+    std::expected<ConfigurationParams, QString> tryLoad();
+    std::expected<void, QString> trySave();
+    std::expected<void, QString> tryAddApi(const QString& name, const Tools::Api& api);
+    std::expected<void, QString> tryRemoveApi(const QString& name);
+    std::expected<void, QString> trySetActiveApi(const QString& name);
+
+signals:
+    void autoConnectionChanged();
+    void testnetChanged();
+    void activeApiChanged();
+    void apisChanged();
+
+    void errorOccurred(const QString& error);
 
 private:
-
-    ConfigurationManager();
+    explicit ConfigurationManager(QObject* parent = nullptr);
     ConfigurationManager(const ConfigurationManager&) = delete;
     ConfigurationManager& operator=(const ConfigurationManager&) = delete;
 
-    // Текущая конфигурация
-    ConfigurationParams m_data;
+    // QtKeychain helpers
+    static QString serviceName() { return QStringLiteral("EasyTrade"); }
+    static QString apiKeyKey(const QString& name)    { return QStringLiteral("apiKey_%1").arg(name); }
+    static QString secretKeyKey(const QString& name) { return QStringLiteral("secretKey_%1").arg(name); }
 
+    static bool    writeSecret (const QString& key, const QString& value);
+    static QString readSecret  (const QString& key);
+    static bool    deleteSecret(const QString& key);
+
+    ConfigurationParams m_data;
 };
 
 }

@@ -36,14 +36,14 @@ void Core::Markets::BybitPrivateService::requestAccountBalance()
     send<GetBybitAccountBalanceHandler>(QVariant());
 }
 
-void Core::Markets::BybitPrivateService::init(const Tools::Api &api)
+void Core::Markets::BybitPrivateService::init(const Tools::Api &api, bool isTestnet)
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
 
     if (!m_currentApi)
         return;
 
-    m_currentApi->init(api);
+    m_currentApi->init(api, isTestnet);
 }
 
 void Core::Markets::BybitPrivateService::requestCreateOrder(const Tools::OrderRequest &request)

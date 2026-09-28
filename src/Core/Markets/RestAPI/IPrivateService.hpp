@@ -12,7 +12,7 @@ public:
 
     IPrivateService(QObject* parent = nullptr) : QObject(parent) {}
 
-    virtual void init(const Tools::Api& api) = 0;
+    virtual void init(const Tools::Api& api, bool isTestnet) = 0;
 
     // Запрос информации об аккаунте
     virtual void requestAccountBalance() = 0;

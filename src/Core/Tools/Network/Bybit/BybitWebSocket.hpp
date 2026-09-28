@@ -19,7 +19,7 @@ namespace Core::Tools {
         void setMarketType(MarketType type) { m_marketType = type; }
         QString getMarketType() const { return marketTypeToString(m_marketType); }
 
-        void init(const Api& api = Api()) override;
+        void init(const Api& api = Api(), bool isTestnet = false) override;
 
     private slots:
 

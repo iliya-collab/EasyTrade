@@ -21,7 +21,7 @@ namespace Core::Tools
         void setId(const QString& str) { m_id = str; }
         QString getId() { return m_id; }
 
-        virtual void init(const Api& api = Api()) = 0;
+        virtual void init(const Api& api = Api(), bool isTestnet = false) = 0;
 
         // Открыть websocket
         void open();

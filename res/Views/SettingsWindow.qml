@@ -14,8 +14,9 @@ Window {
 
     ListModel {
         id: settingsModel
+        ListElement { type: "item"; text: "General"; clicked: function() { contentStack.showGeneralSettingsPage() } }
         ListElement { type: "header"; text: "Account" }
-        ListElement { type: "item"; text: "API"; clicked: function() { contentStack.showAPIPage() } }
+        ListElement { type: "item"; text: "API"; clicked: function() { contentStack.showAPISettingsPage() } }
     }
 
     RowLayout {
@@ -65,9 +66,12 @@ Window {
 
             initialItem: Item {}
 
-            // Метод для вызова экрана подключения API
-            function showAPIPage() {
-                contentStack.replace("APIScreen.qml")
+            function showAPISettingsPage() {
+                contentStack.replace("APISettingsPage.qml", StackView.Immediate)
+            }
+
+            function showGeneralSettingsPage() {
+                contentStack.replace("GeneralSettingsPage.qml", StackView.Immediate)
             }
         } // contentStack
     } // contentLayout

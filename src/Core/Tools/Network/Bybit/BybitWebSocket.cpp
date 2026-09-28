@@ -11,10 +11,10 @@ namespace Core::Tools {
     BybitWebSocket::BybitWebSocket(SocketType socketType, MarketType marketType, QObject* parent)
         : BaseWebSocket(socketType, parent), m_marketType(marketType) {}
 
-    void BybitWebSocket::init(const Api &api)
+    void BybitWebSocket::init(const Api &api, bool isTestnet)
     {
         setApi(api);
-        setUrl(BybitEndpointProvider::webSocketUrl(m_socketType, m_marketType, api.m_isTestnet));
+        setUrl(BybitEndpointProvider::webSocketUrl(m_socketType, m_marketType, isTestnet));
     }
 
     void BybitWebSocket::onConnected()

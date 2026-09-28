@@ -7,44 +7,62 @@
 
 namespace Core::Tools {
 
-    class LogManager {
-    public:
+struct LogEntry
+{
+    QtMsgType type;
+    QString category;
+    QString message;
+    QString timeStamp;
+};
 
-        static LogManager& instance();
+using LogSink = std::function<void(const LogEntry&)>;
 
-        void setDebugEnabled(bool enabled);
-        void setInfoEnabled(bool enabled);
-        void setWarningEnabled(bool enabled);
+class LogManager
+{
+public:
 
-        void setLogFile(const QString& name);
-        void setLogFileEnabled(bool enabled);
-        void setStdLogEnabled(bool enanbled);
+    static LogManager& instance();
 
-        bool isDebugEnabled() const;
-        bool isInfoEnabled() const;
-        bool isWarningEnabled() const;
-        bool isLogFileEnabled() const;
-        bool isStdLogEnabled() const;
+    void setDebugEnabled(bool enabled);
+    void setInfoEnabled(bool enabled);
+    void setWarningEnabled(bool enabled);
 
-    private:
+    void setLogFile(const QString& name);
+    void setLogFileEnabled(bool enabled);
+    void setStdLogEnabled(bool enanbled);
 
-        LogManager();
-        ~LogManager() = default;
+    bool isDebugEnabled() const;
+    bool isInfoEnabled() const;
+    bool isWarningEnabled() const;
+    bool isLogFileEnabled() const;
+    bool isStdLogEnabled() const;
 
-        LogManager(const LogManager&) = delete;
-        LogManager& operator= (const LogManager&) = delete;
+    // Подписка на поток сообщений
+    int addSink(LogSink sink);
+    void removeSink(int id);
 
-        static void messageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg);
+private:
 
-        bool m_debugEnabled = true;
-        bool m_infoEnabled = true;
-        bool m_warningEnabled = true;
+    LogManager();
+    ~LogManager() = default;
 
-        bool m_isLogFile = false;
-        bool m_isStdLog = true;
+    LogManager(const LogManager&) = delete;
+    LogManager& operator= (const LogManager&) = delete;
 
-        QFile m_logFile{};
-        mutable QMutex m_mutex;
-    };
+    static void messageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg);
+
+    bool m_debugEnabled = true;
+    bool m_infoEnabled = true;
+    bool m_warningEnabled = true;
+
+    bool m_isLogFile = false;
+    bool m_isStdLog = true;
+
+    QFile m_logFile{};
+    mutable QMutex m_mutex;
+
+    std::vector<std::pair<int, LogSink>> m_sinks;
+    int m_nextSinkId = 0;
+};
 
 }

@@ -33,7 +33,7 @@ public:
     void requestOpenOrders(const Tools::OpenOrdersRequest& request);
     void requestOrderHistory(const Tools::OrderHistoryRequest& request);
 
-    void init(const Tools::Api& api);
+    void init(const Tools::Api& api, bool isTestnet);
 
 signals:
 

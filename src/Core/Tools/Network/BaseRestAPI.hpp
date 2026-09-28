@@ -17,7 +17,7 @@ namespace Core::Tools
 
         void setUrl(const QString& url) { m_baseEndpoint = url; }
 
-        virtual void init(const Api& api = Api()) = 0;
+        virtual void init(const Api& api = Api(), bool isTestnet = false) = 0;
 
         // Формирование GET запроса
         virtual QUrl requestEndpointGet(const QString& endpoint, const QUrlQuery& params = QUrlQuery(),

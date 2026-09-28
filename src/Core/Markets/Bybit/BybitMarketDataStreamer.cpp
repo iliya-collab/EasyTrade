@@ -38,8 +38,8 @@ namespace Core::Markets
 
     void BybitMarketDataStreamer::init(bool isTestnet)
     {
-        Tools::Api api {"", "", isTestnet};
-        m_webSocket->init(api);
+        Tools::Api api {"", ""};
+        m_webSocket->init(api, isTestnet);
     }
 
     void BybitMarketDataStreamer::sendSubscriptionMessage(const QStringList &streams)

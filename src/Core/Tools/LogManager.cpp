@@ -16,6 +16,20 @@ namespace Core::Tools {
         qInstallMessageHandler(LogManager::messageHandler);
     }
 
+    int LogManager::addSink(LogSink sink)
+    {
+        QMutexLocker locker(&m_mutex);
+        const int id = m_nextSinkId++;
+        m_sinks.emplace_back(id, std::move(sink));
+        return id;
+    }
+
+    void LogManager::removeSink(int id)
+    {
+        QMutexLocker locker(&m_mutex);
+        std::erase_if(m_sinks, [id](const auto& p) { return p.first == id; });
+    }
+
     void LogManager::setDebugEnabled(bool enabled)
     {
         QMutexLocker locker(&m_mutex);
@@ -104,7 +118,7 @@ namespace Core::Tools {
             return;
 
         QByteArray localMsg = msg.toLocal8Bit();
-        QString timeStamp = QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
+        QString timeStamp = QDateTime::currentDateTime().toString("hh:mm:ss");
         QByteArray timeBytes = timeStamp.toLocal8Bit();
 
         if (manager.m_isLogFile && manager.m_logFile.isOpen())
@@ -112,6 +126,13 @@ namespace Core::Tools {
             QTextStream out(&manager.m_logFile);
             out << "[" << timeStamp << "] " << msg << "\n";
             out.flush();
+        }
+
+        if (!manager.m_sinks.empty())
+        {
+            LogEntry entry{ type, QString::fromUtf8(context.category), msg, timeStamp };
+            for (const auto& [id, sink] : manager.m_sinks)
+                sink(entry);
         }
 
         if (!manager.m_isStdLog)

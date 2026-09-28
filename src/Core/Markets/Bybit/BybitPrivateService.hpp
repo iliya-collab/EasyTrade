@@ -11,7 +11,7 @@ public:
 
     explicit BybitPrivateService(QObject* parent = nullptr);
 
-    void init(const Tools::Api& api) override;
+    void init(const Tools::Api& api, bool isTestnet) override;
 
     void requestInfoAboutApi() override;
     void requestAccountBalance() override;

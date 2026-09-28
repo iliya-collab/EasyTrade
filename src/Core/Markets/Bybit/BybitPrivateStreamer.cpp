@@ -36,9 +36,9 @@ namespace Core::Markets
         return "private";
     }
 
-    void BybitPrivateStreamer::init(const Tools::Api &api)
+    void BybitPrivateStreamer::init(const Tools::Api &api, bool isTestnet)
     {
-        m_webSocket->init(api);
+        m_webSocket->init(api, isTestnet);
     }
 
     void BybitPrivateStreamer::sendSubscriptionMessage(const QStringList &streams)

@@ -20,7 +20,7 @@ namespace Core::Markets
         ~BybitPrivateStreamer();
 \
         QString id() override;
-        void init(const Core::Tools::Api& api) override;
+        void init(const Core::Tools::Api& api, bool isTestnet) override;
         void start() override;
         void stop() override;
         void restart() override;

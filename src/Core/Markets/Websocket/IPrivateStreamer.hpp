@@ -15,7 +15,7 @@ namespace Core::Markets
         IPrivateStreamer(QObject* parent = nullptr) : IStreamer(parent) {};
         virtual ~IPrivateStreamer() = default;
 
-        virtual void init(const Core::Tools::Api& api) = 0;
+        virtual void init(const Core::Tools::Api& api, bool isTestnet) = 0;
 
         // Отправка всех текущих подписок
         virtual void connectToStreams() = 0;

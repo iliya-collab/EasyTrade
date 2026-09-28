@@ -9,13 +9,13 @@ namespace Core::Tools {
 
     BybitRestAPI::BybitRestAPI(QObject* parent) : BaseRestAPI(parent)
     {
-        m_manager = new QNetworkAccessManager(parent);
+        m_manager = new QNetworkAccessManager(this);
     }
 
-    void BybitRestAPI::init(const Api &api)
+    void BybitRestAPI::init(const Api &api, bool isTestnet)
     {
         setApi(api);
-        setUrl(BybitEndpointProvider::restBaseUrl(api.m_isTestnet));
+        setUrl(BybitEndpointProvider::restBaseUrl(isTestnet));
     }
 
     void BybitRestAPI::onHandleResponse()

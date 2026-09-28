@@ -35,7 +35,7 @@ namespace Core
         Q_INVOKABLE void run();
         Q_INVOKABLE void restart();
         Q_INVOKABLE void shutdown();
-        Q_INVOKABLE void init(const Tools::Api& api);
+        Q_INVOKABLE void init(const Tools::Api& api, bool isTestnet);
         Q_INVOKABLE void subscribe();
 
         Q_INVOKABLE void loadAccountBalance();
