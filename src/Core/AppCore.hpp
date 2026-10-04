@@ -3,6 +3,7 @@
 #include "Account/AccountService.hpp"
 #include "Config/ConfigurationManager.hpp"
 #include "Tools/DataModels/LogModel.hpp"
+#include "Tools/DataModels/LogFilterProxyModel.hpp"
 #include <QQmlContext>
 #include <QObject>
 #include <memory>

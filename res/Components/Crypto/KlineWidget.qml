@@ -14,21 +14,23 @@ Item {
     property alias enableVolumeChart: chart.enableShowVolumes
 
     // Список таймфреймов для панели: подпись -> значение interval для Bybit API
-    readonly property var timeframes: [
-        { label: "1m",  value: "1" },
-        { label: "3m",  value: "3" },
-        { label: "5m",  value: "5" },
-        { label: "15m", value: "15" },
-        { label: "30m", value: "30" },
-        { label: "1h",  value: "60" },
-        { label: "2h",  value: "120" },
-        { label: "4h",  value: "240" },
-        { label: "6h",  value: "360" },
-        { label: "12h",  value: "720" },
-        { label: "D",  value: "D" },
-        { label: "W",  value: "W" },
-        { label: "M",  value: "M" }
-    ]
+    ListModel {
+        id: timeframesModel
+
+        ListElement { label: "1m";  value: "1"   }
+        ListElement { label: "3m";  value: "3"   }
+        ListElement { label: "5m";  value: "5"   }
+        ListElement { label: "15m"; value: "15"  }
+        ListElement { label: "30m"; value: "30"  }
+        ListElement { label: "1h";  value: "60"  }
+        ListElement { label: "2h";  value: "120" }
+        ListElement { label: "4h";  value: "240" }
+        ListElement { label: "6h";  value: "360" }
+        ListElement { label: "12h"; value: "720" }
+        ListElement { label: "D";   value: "D"   }
+        ListElement { label: "W";   value: "W"   }
+        ListElement { label: "M";   value: "M"   }
+    }
 
     onCurrentCategoryChanged: reloadFull()
     onCurrentTradeChanged: reloadFull()
@@ -77,9 +79,9 @@ Item {
             CustomComboBox {
                 id: timeframeCombo
                 Layout.preferredHeight: 30
-                Layout.preferredWidth: 90
+                Layout.preferredWidth: 120
 
-                model: root.timeframes
+                model: timeframesModel
                 textRole: "label"
                 valueRole: "value"
 

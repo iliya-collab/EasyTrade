@@ -84,14 +84,14 @@ void Core::AccountService::subscribe()
     m_mediator->subscribe();
 }
 
-void Core::AccountService::loadAccountBalance()
+void Core::AccountService::requestAccountBalance()
 {
-    m_mediator->loadAccountBalance();
+    m_mediator->requestAccountBalance();
 }
 
-void Core::AccountService::loadInfoAboutApi()
+void Core::AccountService::requestInfoAboutApi()
 {
-    m_mediator->loadInfoAboutApi();
+    m_mediator->requestInfoAboutApi();
 }
 
 void Core::AccountService::onErrorOccurredWithId(const QString& id, const QString &error)
@@ -121,24 +121,48 @@ void Core::AccountService::onStreamerStopped(const QString& id)
 
 void Core::AccountService::createOrder(const QVariantMap& params)
 {
+    if (!m_enableTrades)
+    {
+        qWarning().noquote() << "Trading was disabled";
+        return;
+    }
+
     validateAndSend(params, Tools::buildOrderRequest,
                     [this](const Tools::OrderRequest& req) { m_mediator->requestCreateOrder(req); });
 }
 
 void Core::AccountService::amendOrder(const QVariantMap& params)
 {
+    if (!m_enableTrades)
+    {
+        qWarning().noquote() << "Trading was disabled";
+        return;
+    }
+
     validateAndSend(params, Tools::buildOrderAmendRequest,
                     [this](const Tools::OrderAmendRequest& req) { m_mediator->requestAmendOrder(req); });
 }
 
 void Core::AccountService::cancelOrder(const QVariantMap& params)
 {
+    if (!m_enableTrades)
+    {
+        qWarning().noquote() << "Trading was disabled";
+        return;
+    }
+
     validateAndSend(params, Tools::buildOrderCancelRequest,
                     [this](const Tools::OrderCancelRequest& req) { m_mediator->requestCancelOrder(req); });
 }
 
 void Core::AccountService::cancelAllOrders(const QVariantMap& params)
 {
+    if (!m_enableTrades)
+    {
+        qWarning().noquote() << "Trading was disabled";
+        return;
+    }
+
     validateAndSend(params, Tools::buildOrderCancelAllRequest,
                     [this](const Tools::OrderCancelAllRequest& req) { m_mediator->requestCancelAllOrders(req); });
 }

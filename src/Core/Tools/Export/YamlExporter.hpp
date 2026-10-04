@@ -1,21 +1,18 @@
 #pragma once
+#include "ExportOptions.hpp"
 #include "IRepositoryExporter.hpp"
 
 namespace Core::Tools::Exporter
 {
 
-template <typename TRow>
-class YamlExporter : public IRepositoryExporter<TRow>
+class YamlExporter : public IRepositoryExporter
 {
 public:
 
-    using Converter = std::function<QList<QPair<QString, QVariant>>(const TRow&)>;
 
-    explicit YamlExporter(Converter conv, QString rootName = {}, int indentSize = 2)
-        : m_conv(std::move(conv)), m_rootName(std::move(rootName)), m_indentSize(indentSize)
-    {}
+    explicit YamlExporter(YamlExportOptions opts) : m_opts(std::move(opts)) {}
 
-    QString exportData(const QList<TRow>& data) const override;
+    QString exportData(const ExportRows& data) const override;
 
     QString fileExtension() const override;
 
@@ -23,9 +20,7 @@ public:
 
 private:
 
-    Converter m_conv;
-    QString   m_rootName;
-    int       m_indentSize;
+    YamlExportOptions m_opts;
 
     static QString renderScalar(const QVariant& value);
     static QString quoteStringIfNeeded(const QString& value);

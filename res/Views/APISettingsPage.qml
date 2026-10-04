@@ -73,28 +73,25 @@ Item {
             }
         }
 
-        CustomButton {
-            text: "Create..."
-            onClicked: {
-                apiCreationFormWindow.active = true
-            }
-        }
-
-        CustomLabel {
-            id: errorLabel
+        RowLayout {
             Layout.fillWidth: true
-            color: "#ff0000"
-            wrapMode: Text.WordWrap
-            visible: text.length > 0
+
+            CustomButton {
+                text: "Create..."
+                onClicked: {
+                    apiCreationFormWindow.active = true
+                }
+            }
+
+            CustomButton {
+                text: "Save"
+                onClicked: ConfigurationManager.saveConfig()
+            }
         }
     }
 
     Connections {
         target: ConfigurationManager
-
-        function onErrorOccurred(error) {
-            errorLabel.text = error
-        }
 
         function onApisChanged() {}
 
@@ -107,7 +104,7 @@ Item {
     Loader {
         id: apiCreationFormWindow
         active: false
-        source: "APICreationFormWindow.qml"
+        source: "APICreationWindow.qml"
 
         Connections {
             target: apiCreationFormWindow.item
@@ -117,7 +114,4 @@ Item {
             }
         }
     }
-
-    Component.onCompleted: console.info("apiNames =", ConfigurationManager.apiNames,
-                                       "length =", ConfigurationManager.apiNames.length)
 }

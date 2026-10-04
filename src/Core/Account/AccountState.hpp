@@ -11,21 +11,19 @@ class AccountState : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(bool validAccount READ getValidAccount NOTIFY validAccountChanged FINAL)
-    Q_PROPERTY(Core::Tools::AssetModel* assets READ getAssets NOTIFY assetsChanged FINAL)
-    Q_PROPERTY(qint64 overallAssetsBalance READ getOverallAssetsBalance NOTIFY overallAssetsBalanceChanged FINAL)
-    Q_PROPERTY(Core::Tools::Api api READ getApi NOTIFY apiChanged FINAL)
-    //Q_PROPERTY(Core::Tools::ApiInfo apiInfo READ getApiInfo NOTIFY apiInfoChanged FINAL)
-    Q_PROPERTY(Core::Tools::OrderModel* orders READ getOrders NOTIFY ordersChanged FINAL)
-    Q_PROPERTY(Core::Tools::ExecutionModel* executions READ getExecutions NOTIFY executionsChanged FINAL)
-    Q_PROPERTY(Core::Tools::PositionModel* positions READ getPositions NOTIFY positionsChanged FINAL)
+    Q_PROPERTY(bool                         validAccount            READ getValidAccount            NOTIFY validAccountChanged          FINAL)
+    Q_PROPERTY(Core::Tools::AssetModel*     assets                  READ getAssets                  NOTIFY assetsChanged                FINAL)
+    Q_PROPERTY(qint64                       overallAssetsBalance    READ getOverallAssetsBalance    NOTIFY overallAssetsBalanceChanged  FINAL)
+    Q_PROPERTY(Core::Tools::Api             api                     READ getApi                     NOTIFY apiChanged                   FINAL)
+    Q_PROPERTY(Core::Tools::OrderModel*     orders                  READ getOrders                  NOTIFY ordersChanged                FINAL)
+    Q_PROPERTY(Core::Tools::ExecutionModel* executions              READ getExecutions              NOTIFY executionsChanged            FINAL)
+    Q_PROPERTY(Core::Tools::PositionModel*  positions               READ getPositions               NOTIFY positionsChanged             FINAL)
 
 private:
 
     // Даннные аккаунта/пользователя
     bool m_validAccount = false;
     Tools::Api m_api{};
-    //Tools::ApiInfo m_apiInfo{};
     std::shared_ptr<Tools::AssetModel> m_assets{};
     qint64 m_overallAssetsBalance = 0;
     std::shared_ptr<Tools::OrderModel> m_orders{};

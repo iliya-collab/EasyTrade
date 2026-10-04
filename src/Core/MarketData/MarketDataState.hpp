@@ -14,14 +14,14 @@ namespace Core {
         Q_OBJECT
 
         // Readonly свойства
-        Q_PROPERTY(QString currentSymbol READ getCurrentSymbol NOTIFY currentSymbolChanged FINAL)
-        Q_PROPERTY(Core::Tools::TradePairsModel* tradePairs READ getTradePairs NOTIFY tradePairsChanged FINAL)
-        Q_PROPERTY(Core::Tools::KlineStore* klineStore READ getKlineStore NOTIFY klineStoreChanged FINAL)
-        Q_PROPERTY(qint64 pingMs READ getPingMs NOTIFY pingMsChanged FINAL)
-        Q_PROPERTY(Core::Tools::Ticker ticker READ getTicker NOTIFY tickerChanged FINAL)
-        Q_PROPERTY(Core::Tools::OrderbookSideModel* asks READ getAsks NOTIFY asksChanged FINAL)
-        Q_PROPERTY(Core::Tools::OrderbookSideModel* bids READ getBids NOTIFY bidsChanged FINAL)
-        Q_PROPERTY(Core::Tools::PublicTradesModel* trades READ getTrades NOTIFY tradesChanged FINAL)
+        Q_PROPERTY(QString                          currentSymbol   READ getCurrentSymbol   NOTIFY currentSymbolChanged FINAL)
+        Q_PROPERTY(Core::Tools::TradePairsModel*    tradePairs      READ getTradePairs      NOTIFY tradePairsChanged    FINAL)
+        Q_PROPERTY(Core::Tools::KlineStore*         klineStore      READ getKlineStore      NOTIFY klineStoreChanged    FINAL)
+        Q_PROPERTY(qint64                           pingMs          READ getPingMs          NOTIFY pingMsChanged        FINAL)
+        Q_PROPERTY(Core::Tools::Ticker              ticker          READ getTicker          NOTIFY tickerChanged        FINAL)
+        Q_PROPERTY(Core::Tools::OrderbookSideModel* asks            READ getAsks            NOTIFY asksChanged          FINAL)
+        Q_PROPERTY(Core::Tools::OrderbookSideModel* bids            READ getBids            NOTIFY bidsChanged          FINAL)
+        Q_PROPERTY(Core::Tools::PublicTradesModel*  trades          READ getTrades          NOTIFY tradesChanged        FINAL)
 
     private:
 

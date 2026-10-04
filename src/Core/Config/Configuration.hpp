@@ -9,8 +9,9 @@ struct ConfigurationParams
 {
     // Общее
     bool m_autoConnection = true;
-    QString m_activeApi = "";
+    bool m_enableTrades = false;
     bool m_testnet = true;
+    QString m_activeApi = "";
     // Набор ключей
     QMap<QString, Tools::Api> m_apis{};
 };

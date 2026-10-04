@@ -15,7 +15,7 @@ Item {
         anchors.fill: parent
         spacing: 0
 
-        OrderbookTableView {
+        OrderbookView {
             id: viewOrderbook
             Layout.fillHeight: true
             Layout.fillWidth: true

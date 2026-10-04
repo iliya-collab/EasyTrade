@@ -1,17 +1,13 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
 import Theme 1.0
 
 TabBar {
     id: root
-
     property var modelTabs: []
 
-    background: Rectangle {
-        color: Theme.toolBarColor
-    }
+    background: Rectangle { color: Theme.toolBarColor }
 
     Repeater {
         model: root.modelTabs
@@ -19,8 +15,9 @@ TabBar {
         TabButton {
             id: tabs
             text: modelData.text
-
+            height: root.height
             z: tabs.checked ? 1 : 0
+            implicitWidth: Math.max(80, contentItem.implicitWidth + 24)
 
             background: Rectangle {
                 color: tabs.checked ? Theme.selectColor
@@ -33,15 +30,11 @@ TabBar {
 
                 transform: Translate {
                     y: tabs.checked ? -4 : 0
-                    Behavior on y {
-                        NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
-                    }
+                    Behavior on y { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
                 }
-
-                Behavior on color {
-                    ColorAnimation { duration: 150 }
-                }
+                Behavior on color { ColorAnimation { duration: 150 } }
             }
+
             contentItem: Text {
                 text: tabs.text
                 font.pixelSize: Theme.fontSizeBody
@@ -52,11 +45,9 @@ TabBar {
 
                 transform: Translate {
                     y: tabs.checked ? -4 : 0
-                    Behavior on y {
-                        NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
-                    }
+                    Behavior on y { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
                 }
             }
-        } // ToolButton
-    } // Repeater
+        }
+    }
 }

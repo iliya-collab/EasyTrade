@@ -23,8 +23,8 @@ public:
     void restartStreamer();
     void subscribe();
 
-    void loadAccountBalance();
-    void loadInfoAboutApi();
+    void requestAccountBalance();
+    void requestInfoAboutApi();
 
     void requestCreateOrder(const Tools::OrderRequest& request);
     void requestAmendOrder(const Tools::OrderAmendRequest& request);

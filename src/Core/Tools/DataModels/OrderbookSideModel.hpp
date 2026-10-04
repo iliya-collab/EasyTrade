@@ -23,7 +23,7 @@ namespace Core::Tools {
         Q_ENUM(Side)
 
         enum Roles {
-            PriceRole = Qt::UserRole + 1,
+            PriceRole =  Qt::UserRole + 1,
             VolumeRole,
             TurnoverRole,
             TotalVolumeRole,
@@ -43,7 +43,7 @@ namespace Core::Tools {
         void setSide(Side side);
         void update(const QMap<QString, QString>& data);
 
-        Q_INVOKABLE void update(const QVariantList& data);
+        //Q_INVOKABLE void update(const QVariantList& data);
         Q_INVOKABLE void clear();
         Q_INVOKABLE QVariantMap get(int index) const;
 
@@ -66,16 +66,17 @@ namespace Core::Tools {
             double totalTurnover = 0;   // Весь Оборот до n уровня
             double avgPrice = 0;        // Средняя цена за n уровней
 
-            bool operator!=(const Level& other) const {
-                return  this->price != other.price ||
-                        this->volume != other.volume ||
-                        this->turnover != other.turnover;
-            }
-
             bool operator==(const Level& other) const {
                 return  this->price == other.price &&
                         this->volume == other.volume &&
-                        this->turnover == other.turnover;
+                        this->turnover == other.turnover &&
+                        this->totalVolume == other.totalVolume &&
+                        this->totalTurnover == other.totalTurnover &&
+                        this->avgPrice == other.avgPrice;
+            }
+
+            bool operator!=(const Level& other) const {
+                return !(*this == other);
             }
 
         };
@@ -85,7 +86,7 @@ namespace Core::Tools {
         double m_totalVolume = 0;
         double m_totalTurnover = 0;
         Side m_side;
-        QVector<Level> m_levels;
+        std::vector<Level> m_levels;
 
     };
 

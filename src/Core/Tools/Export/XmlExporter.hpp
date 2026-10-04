@@ -1,35 +1,28 @@
-// Tools/Export/XmlExporter.hpp
 #pragma once
 #include "IRepositoryExporter.hpp"
+#include "ExportOptions.hpp"
 #include <QDomDocument>
 #include <QDomElement>
 
 namespace Core::Tools::Exporter
 {
 
-template <typename TRow>
-class XmlExporter : public IRepositoryExporter<TRow>
+class XmlExporter : public IRepositoryExporter
 {
 public:
 
-    using Converter = std::function<QList<QPair<QString, QVariant>>(const TRow&)>;
+    XmlExporter(XmlExportOptions opts) : m_opts(std::move(opts)) {}
 
-    XmlExporter(Converter conv, QString rootName = "items", QString rowName = "item", int indent = 4)
-        : m_conv(std::move(conv)), m_rootName(std::move(rootName)), m_rowName(std::move(rowName)), m_indent(indent)
-    {}
-
-    QString exportData(const QList<TRow>& data) const override;
+    QString exportData(const ExportRows &data) const override;
 
     QString fileExtension() const override;
 
-    virtual ExportFormat format() const noexcept override;
+    ExportFormat format() const noexcept override;
+
 
 private:
 
-    Converter m_conv;
-    QString   m_rootName;
-    QString   m_rowName;
-    int       m_indent;
+    XmlExportOptions m_opts;
 
 };
 

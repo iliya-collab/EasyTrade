@@ -14,7 +14,8 @@ namespace Core::Tools {
         return m_levels.size();
     }
 
-    QVariant OrderbookSideModel::data(const QModelIndex &index, int role) const {
+    QVariant OrderbookSideModel::data(const QModelIndex &index, int role) const
+    {
         if (!index.isValid() || index.row() >= m_levels.size())
             return QVariant();
 
@@ -38,20 +39,22 @@ namespace Core::Tools {
         }
     }
 
-    QHash<int, QByteArray> OrderbookSideModel::roleNames() const {
+    QHash<int, QByteArray> OrderbookSideModel::roleNames() const
+    {
         QHash<int, QByteArray> roles;
 
-        roles[PriceRole]  = "price";
-        roles[VolumeRole] = "volume";
-        roles[TurnoverRole] = "turnover";
-        roles[TotalVolumeRole] = "totalVolume";
-        roles[TotalTurnoverRole] = "totalTurnover";
-        roles[AvgPriceRole] = "avgPrice";
+        roles[PriceRole]            = "price";
+        roles[VolumeRole]           = "volume";
+        roles[TurnoverRole]         = "turnover";
+        roles[TotalVolumeRole]      = "totalVolume";
+        roles[TotalTurnoverRole]    = "totalTurnover";
+        roles[AvgPriceRole]         = "avgPrice";
 
         return roles;
     }
 
-    void OrderbookSideModel::setSide(Side side) {
+    void OrderbookSideModel::setSide(Side side)
+    {
         if (m_side == side)
             return;
 
@@ -60,18 +63,22 @@ namespace Core::Tools {
         emit sideChanged();
     }
 
-    void OrderbookSideModel::update(const QMap<QString, QString>& data) {
-        QVector<Level> new_levels;
+    void OrderbookSideModel::update(const QMap<QString, QString>& data)
+    {
+        std::vector<Level> new_levels;
         new_levels.reserve(data.size());
 
-        if (m_side == Ask) {
-            for (auto it = data.constBegin(); it != data.constEnd(); ++it)
-                new_levels.push_back({it.key().toDouble(), it.value().toDouble(), 0.0});
-        } else {
-            for (auto it = data.constEnd(); it != data.constBegin(); ) {
-                --it;
-                new_levels.push_back({it.key().toDouble(), it.value().toDouble(), 0.0});
-            }
+        for (auto it = data.constBegin(); it != data.constEnd(); ++it)
+            new_levels.push_back({it.key().toDouble(), it.value().toDouble()});
+
+        if (m_side == Ask)
+        {
+            std::sort(new_levels.begin(), new_levels.end(),
+                      [](const Level& a, const Level& b) { return a.price < b.price; });
+        } else
+        {
+            std::sort(new_levels.begin(), new_levels.end(),
+                      [](const Level& a, const Level& b) { return a.price > b.price; });
         }
 
         double cumulativeVolume = 0.0;
@@ -121,13 +128,15 @@ namespace Core::Tools {
                 if (m_levels[i] != new_levels[i]) {
                     m_levels[i] = new_levels[i];
                     hasDataChanged = true;
-                    if (firstChanged == -1) firstChanged = i;
+                    if (firstChanged == -1)
+                        firstChanged = i;
                     lastChanged = i;
                 }
             } else {
                 m_levels[i] = new_levels[i];
                 hasDataChanged = true;
-                if (firstChanged == -1) firstChanged = i;
+                if (firstChanged == -1)
+                    firstChanged = i;
                 lastChanged = i;
             }
         }
@@ -145,10 +154,11 @@ namespace Core::Tools {
         emit totalTurnoverChanged();
     }
 
-    QVariantMap OrderbookSideModel::get(int index) const {
+    QVariantMap OrderbookSideModel::get(int index) const
+    {
         QVariantMap res;
 
-        if (index < 0 || index >= m_levels.count())
+        if (index < 0 || index >= m_levels.size())
             return res;
 
         auto item = m_levels[index];
@@ -163,7 +173,7 @@ namespace Core::Tools {
         return res;
     }
 
-    void OrderbookSideModel::update(const QVariantList& data) {
+    /*void OrderbookSideModel::update(const QVariantList& data) {
         QVector<Level> new_levels;
         new_levels.reserve(data.size());
 
@@ -251,9 +261,10 @@ namespace Core::Tools {
         emit maxVolumeChanged();
         emit totalVolumeChanged();
         emit totalTurnoverChanged();
-    }
+    }*/
 
-    void OrderbookSideModel::clear() {
+    void OrderbookSideModel::clear()
+    {
         beginResetModel();
         m_levels.clear();
         m_count = 0;

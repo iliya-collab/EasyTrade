@@ -24,7 +24,6 @@ Item {
     }
 
     Item {
-        id: leftContentContainer
         anchors.fill: parent
 
         ColumnLayout {
@@ -83,6 +82,20 @@ Item {
                 } // Rectangle
             } // RowLayout
 
+            Rectangle {
+                Layout.alignment: Qt.AlignBottom
+                Layout.fillWidth: true
+                Layout.preferredHeight: 150
+                border.width: Theme.borderWidth
+                border.color: Theme.borderColor
+                color: Theme.windowColor
+                clip: true
+
+                OrdersPanel {
+
+                }
+            }
+
         } // mainContent
-    } // leftContentContainer
+    }
 } // TradePage

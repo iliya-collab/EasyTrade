@@ -29,25 +29,19 @@ Item {
             onToggled: ConfigurationManager.testnet = checked
         }
 
+        CustomSwitch {
+            id: enableTradesCheck
+            text: "Enable trades"
+            checked: ConfigurationManager.enableTrades
+            onToggled: ConfigurationManager.enableTrades = checked
+        }
+
         Item { Layout.fillHeight: true }
 
         CustomButton {
             text: "Save"
             onClicked: ConfigurationManager.saveConfig()
         }
-
-        CustomLabel {
-            id: errorLabel
-            Layout.fillWidth: true
-            color: "#ff0000"
-            wrapMode: Text.WordWrap
-            visible: text.length > 0
-        }
-    }
-
-    Connections {
-        target: ConfigurationManager
-        function onErrorOccurred(error) { errorLabel.text = error }
     }
 
 }

@@ -120,7 +120,10 @@ void MarketDataRepository::saveToKlinesRepository(const QList<Tools::Kline>& new
 
 void MarketDataRepository::saveToPublicTradesRepository(const Tools::PublicTrades newTrades)
 {
-
+    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
+    QMutexLocker locker(&m_mutex);
+    if (!m_publicTradesRep->insertPublicTrades(newTrades))
+        emit errorOccurred(m_publicTradesRep->error());
 }
 
 

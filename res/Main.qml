@@ -12,6 +12,8 @@ ApplicationWindow {
 
     id: mainWindow
     visible: true
+    minimumWidth: 800
+    minimumHeight: 600
     width: 1000
     height: 800
     title: "EasyTrade"
@@ -228,13 +230,13 @@ ApplicationWindow {
             // Метод для вызова экрана торговли
             function showTradeScreen()
             {
-                mainStack.replace("Views/TradeScreen.qml")
+                mainStack.replace("Views/TradeScreen.qml", StackView.Immediate)
             }
 
             // Метод для вызова экрана пользователя
             function showUserScreen()
             {
-                mainStack.replace("Views/UserScreen.qml")
+                mainStack.replace("Views/UserScreen.qml", StackView.Immediate)
             }
 
         } // mainStack

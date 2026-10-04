@@ -3,8 +3,7 @@
 #include <QMetaType>
 #include <cmath>
 
-template<typename TRow>
-QString Core::Tools::Exporter::YamlExporter<TRow>::quoteStringIfNeeded(const QString& value)
+QString Core::Tools::Exporter::YamlExporter::quoteStringIfNeeded(const QString& value)
 {
     static const QRegularExpression looksLikeNumber(R"(^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$)");
     static const QStringList reservedWords = {
@@ -33,8 +32,7 @@ QString Core::Tools::Exporter::YamlExporter<TRow>::quoteStringIfNeeded(const QSt
     return '"' + escaped + '"';
 }
 
-template<typename TRow>
-QString Core::Tools::Exporter::YamlExporter<TRow>::renderScalar(const QVariant& value)
+QString Core::Tools::Exporter::YamlExporter::renderScalar(const QVariant& value)
 {
     if (!value.isValid() || value.isNull())
         return "null";
@@ -65,26 +63,29 @@ QString Core::Tools::Exporter::YamlExporter<TRow>::renderScalar(const QVariant& 
     }
 }
 
-template<typename TRow>
-QString Core::Tools::Exporter::YamlExporter<TRow>::exportData(const QList<TRow>& data) const
+QString Core::Tools::Exporter::YamlExporter::exportData(const ExportRows& data) const
 {
     QString out;
-    const QString itemIndent(m_indentSize, ' ');
-    const QString fieldIndent(m_indentSize * 2, ' ');
+    const QString itemIndent(m_opts.indentSize, ' ');
+    const QString fieldIndent(m_opts.indentSize * 2, ' ');
 
     if (data.isEmpty())
     {
-        if (m_rootName.isEmpty())
+        if (!m_opts.rootName.has_value())
             return "[]\n";
-        return m_rootName + ": []\n";
+
+        if (m_opts.rootName.value().isEmpty())
+            return "[]\n";
+
+        return m_opts.rootName.value() + ": []\n";
     }
 
-    if (!m_rootName.isEmpty())
-        out += m_rootName + ":\n";
+    if (m_opts.rootName.has_value() && !m_opts.rootName.value().isEmpty())
+        out += m_opts.rootName.value() + ":\n";
 
     for (const auto& row : data)
     {
-        const auto fields = m_conv(row);
+        const auto fields = row;
         if (fields.isEmpty())
         {
             out += itemIndent + "- {}\n";
@@ -111,9 +112,6 @@ QString Core::Tools::Exporter::YamlExporter<TRow>::exportData(const QList<TRow>&
     return out;
 }
 
-template<typename TRow>
-QString Core::Tools::Exporter::YamlExporter<TRow>::fileExtension() const { return exportFormatToString(format()); }
+QString Core::Tools::Exporter::YamlExporter::fileExtension() const { return exportFormatToString(format()); }
 
-template<typename TRow>
-Core::Tools::Exporter::ExportFormat Core::Tools::Exporter::YamlExporter<TRow>::format() const noexcept
-{ return ExportFormat::Yaml; }
+Core::Tools::Exporter::ExportFormat Core::Tools::Exporter::YamlExporter::format() const noexcept { return ExportFormat::Yaml; }

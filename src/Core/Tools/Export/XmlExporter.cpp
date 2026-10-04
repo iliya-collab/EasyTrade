@@ -1,19 +1,18 @@
 #include "XmlExporter.hpp"
 
-template<typename TRow>
-QString Core::Tools::Exporter::XmlExporter<TRow>::exportData(const QList<TRow> &data) const
+QString Core::Tools::Exporter::XmlExporter::exportData(const ExportRows &data) const
 {
     QDomDocument doc;
     doc.appendChild(doc.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\""));
 
-    QDomElement root = doc.createElement(m_rootName);
+    QDomElement root = doc.createElement(m_opts.rootName);
     root.setAttribute("count", static_cast<int>(data.size()));
     doc.appendChild(root);
 
     for (const auto& row : data)
     {
-        QDomElement rowEl = doc.createElement(m_rowName);
-        for (const auto& [key, value] : m_conv(row))
+        QDomElement rowEl = doc.createElement(m_opts.rowName);
+        for (const auto& [key, value] : row)
         {
             QDomElement field = doc.createElement(key);
             field.appendChild(doc.createTextNode(value.toString()));
@@ -22,12 +21,9 @@ QString Core::Tools::Exporter::XmlExporter<TRow>::exportData(const QList<TRow> &
         root.appendChild(rowEl);
     }
 
-    return doc.toString(m_indent);
+    return doc.toString(m_opts.indent);
 }
 
-template<typename TRow>
-QString Core::Tools::Exporter::XmlExporter<TRow>::fileExtension() const { return exportFormatToString(format()); }
+QString Core::Tools::Exporter::XmlExporter::fileExtension() const { return exportFormatToString(format()); }
 
-template<typename TRow>
-Core::Tools::Exporter::ExportFormat Core::Tools::Exporter::XmlExporter<TRow>::format() const noexcept
-{ return ExportFormat::Xml; }
+Core::Tools::Exporter::ExportFormat Core::Tools::Exporter::XmlExporter::format() const noexcept { return ExportFormat::Xml; }

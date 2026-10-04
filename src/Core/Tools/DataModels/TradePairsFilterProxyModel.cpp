@@ -22,7 +22,8 @@ namespace Core::Tools {
         invalidate();
     }
 
-    bool TradePairsFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const {
+    bool TradePairsFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+    {
         if (m_symbolFilter.isEmpty())
             return true;
 

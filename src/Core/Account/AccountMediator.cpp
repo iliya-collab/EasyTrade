@@ -103,14 +103,14 @@ void AccountMediator::subscribe()
     });
 }
 
-void AccountMediator::loadAccountBalance()
+void AccountMediator::requestAccountBalance()
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
     emit messageSent("Loading account balance...");
     m_privateService->requestAccountBalance();
 }
 
-void AccountMediator::loadInfoAboutApi()
+void AccountMediator::requestInfoAboutApi()
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
     emit messageSent("Loading information about your API...");

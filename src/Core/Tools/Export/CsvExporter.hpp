@@ -1,23 +1,20 @@
 #pragma once
 #include "IRepositoryExporter.hpp"
+#include "ExportOptions.hpp"
 #include <QChar>
 #include <QStringList>
 
 namespace Core::Tools::Exporter
 {
 
-template<typename TRow>
-class CsvExporter : public IRepositoryExporter<TRow>
+class CsvExporter : public IRepositoryExporter
 {
 public:
 
-    using Converter = std::function<QList<QPair<QString, QVariant>>(const TRow&)>;
 
-    explicit CsvExporter(Converter conv, QChar delimiter = ',', bool withHeader = true)
-        : m_conv(std::move(conv)), m_delimiter(delimiter), m_withHeader(withHeader)
-    {}
+    explicit CsvExporter(CsvExportOptions opts) : m_opts(std::move(opts)) {}
 
-    QString exportData(const QList<TRow>& data) const override;
+    QString exportData(const ExportRows& data) const override;
 
     QString fileExtension() const override;
 
@@ -25,9 +22,7 @@ public:
 
 private:
 
-    Converter m_conv;
-    QChar     m_delimiter;
-    bool      m_withHeader;
+    CsvExportOptions m_opts;
 
     static QString escapeField(const QString& field, QChar delimiter);
 

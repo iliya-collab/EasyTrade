@@ -98,7 +98,7 @@ qt_add_qml_module(${PROJECT_NAME}
         res/Views/TradeScreen.qml
         res/Views/SettingsWindow.qml
         res/Views/LogWindow.qml
-        res/Views/APICreationFormWindow.qml
+        res/Views/APICreationWindow.qml
         res/Views/SelecterTradeWindow.qml
         res/Views/APISettingsPage.qml
         res/Views/GeneralSettingsPage.qml

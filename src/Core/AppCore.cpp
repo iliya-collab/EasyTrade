@@ -65,13 +65,15 @@ void AppCore::init()
         }
         const auto& activeApi = config.m_apis.value(config.m_activeApi);
 
-        qInfo() << "Network in use:" << (config.m_testnet ? "testnet" : "mainnet");
+        qInfo() << "Network:" << (config.m_testnet ? "testnet" : "mainnet");
+        qInfo() << "Trading:" << (config.m_enableTrades ? "enable" : "disable");
 
         m_marketMediator->init(config.m_testnet);
         m_accountMediator->init(activeApi, config.m_testnet);
 
-        m_accountMediator->loadInfoAboutApi();
-        m_accountMediator->loadAccountBalance();
+        m_accountService->setEnableTrades(config.m_enableTrades);
+        m_accountMediator->requestInfoAboutApi();
+        m_accountMediator->requestAccountBalance();
 
         if (config.m_autoConnection)
             m_marketMediator->runStreamer();

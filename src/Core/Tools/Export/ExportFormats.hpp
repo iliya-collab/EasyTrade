@@ -30,9 +30,9 @@ inline QString exportFormatToString(ExportFormat fmt)
 inline ExportFormat stringToExportFormat(const QString &str)
 {
     if (str == "json")   return ExportFormat::Json;
-    if (str == "xml")   return ExportFormat::Xml;
-    if (str == "csv")   return ExportFormat::Csv;
-    if (str == "yaml")  return ExportFormat::Yaml;
+    if (str == "xml")    return ExportFormat::Xml;
+    if (str == "csv")    return ExportFormat::Csv;
+    if (str == "yaml")   return ExportFormat::Yaml;
 
     return ExportFormat::Unknown;
 }

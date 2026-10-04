@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
 import Application.Core 1.0
+import Components.Custom 1.0
 import Theme 1.0
 
 Window {
@@ -13,7 +14,10 @@ Window {
     title: "Logs"
     color: Theme.windowColor
 
-    property int filter: 0   // 0 - все, 1 - ошибки, 2 - уведомления
+    readonly property var logModel: LogFilterProxyModel {
+        sourceModel: AppCore.logModel
+        logLevel: ""
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -21,14 +25,22 @@ Window {
         spacing: 6
 
         RowLayout {
-            ComboBox {
-                model: ["All", "Errors", "Info"]
-                onCurrentIndexChanged: root.filter = currentIndex
+            CustomTabBar {
+                modelTabs: [
+                    { text: "All",         level: "" },
+                    { text: "Errors",      level: "error" },
+                    { text: "Warnings",    level: "warning" },
+                    { text: "Info",        level: "info" }
+                ]
+                onCurrentIndexChanged: {
+                    var logLevel = modelTabs[currentIndex].level
+                    logModel.logLevel = logLevel
+                }
             }
             Item { Layout.fillWidth: true }
-            Button {
+            CustomButton {
                 text: "Clear"
-                onClicked: if (root.logModel) root.logModel.clear()
+                onClicked: if (AppCore.logModel) AppCore.logModel.clear()
             }
         }
 
@@ -37,7 +49,7 @@ Window {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: AppCore.logModel
+            model: logModel
             property bool stick: true
 
             ScrollBar.vertical: ScrollBar {}
@@ -51,13 +63,7 @@ Window {
                 required property string category
                 required property string message
 
-                readonly property bool shown:
-                    root.filter === 0
-                    || (root.filter === 1 && level === "error")
-                    || (root.filter === 2 && level === "info")
-
-                visible: shown
-                height: shown ? implicitHeight : 0
+                height: implicitHeight
                 width: ListView.view.width
                 wrapMode: Text.WordWrap
                 color:  level === "error" ? "#ff5555" :

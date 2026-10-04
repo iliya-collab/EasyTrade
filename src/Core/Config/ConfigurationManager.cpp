@@ -89,6 +89,7 @@ ConfigurationManager::ConfigurationManager(QObject* parent)
         m_data.m_autoConnection = true;
         m_data.m_activeApi = QStringLiteral("default");
         m_data.m_testnet = true;
+        m_data.m_enableTrades = false;
         m_data.m_apis[QStringLiteral("default")] = Tools::Api{ "", "" };
 
         auto res = trySave();
@@ -127,15 +128,16 @@ std::expected<ConfigurationParams, QString> ConfigurationManager::tryLoad()
     {
         const QString name = it.key();
         Tools::Api api;
-        api.m_apiKey    = readSecret(apiKeyKey(name));
-        api.m_secretKey = readSecret(secretKeyKey(name));
+        api.m_apiKey        = readSecret(apiKeyKey(name));
+        api.m_secretKey     = readSecret(secretKeyKey(name));
         m_data.m_apis[name] = api;
     }
 
     const QJsonObject generalObj = root.value("General").toObject();
-    m_data.m_autoConnection = generalObj.value("AutoConnection").toBool(true);
-    m_data.m_activeApi      = generalObj.value("ActiveAPI").toString();
-    m_data.m_testnet        = generalObj.value("Testnet").toBool(true);
+    m_data.m_autoConnection      = generalObj.value("AutoConnection").toBool(true);
+    m_data.m_activeApi           = generalObj.value("ActiveAPI").toString();
+    m_data.m_testnet             = generalObj.value("Testnet").toBool(true);
+    m_data.m_enableTrades        = generalObj.value("EnableTrades").toBool(false);
 
     if (!m_data.m_apis.contains(m_data.m_activeApi))
         m_data.m_activeApi = m_data.m_apis.isEmpty() ? QString{} : m_data.m_apis.firstKey();
@@ -144,6 +146,7 @@ std::expected<ConfigurationParams, QString> ConfigurationManager::tryLoad()
     emit activeApiChanged();
     emit autoConnectionChanged();
     emit testnetChanged();
+    emit enableTradesChanged();
 
     return m_data;
 }
@@ -180,7 +183,8 @@ std::expected<void, QString> ConfigurationManager::trySave()
     generalObj["AutoConnection"] = m_data.m_autoConnection;
     generalObj["ActiveAPI"]      = m_data.m_activeApi;
     generalObj["Testnet"]        = m_data.m_testnet;
-    root["General"] = generalObj;
+    generalObj["EnableTrades"]   = m_data.m_enableTrades;
+    root["General"]              = generalObj;
 
     const QJsonDocument doc(root);
     if (file.write(doc.toJson(QJsonDocument::Indented)) < 0)
@@ -300,6 +304,14 @@ void ConfigurationManager::setAutoConnection(bool enabled)
         return;
     m_data.m_autoConnection = enabled;
     emit autoConnectionChanged();
+}
+
+void ConfigurationManager::setEnableTrades(bool enabled)
+{
+    if (m_data.m_enableTrades == enabled)
+        return;
+    m_data.m_enableTrades = enabled;
+    emit enableTradesChanged();
 }
 
 void ConfigurationManager::setTestnet(bool enabled)

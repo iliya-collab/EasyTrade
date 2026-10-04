@@ -104,6 +104,12 @@ namespace Core
         });
     }
 
+    bool MarketDataService::exportKlines(const QString &path, Tools::Exporter::ExportFormat format, const QVariantMap &opts)
+    {
+        // TODO
+        return true;
+    }
+
     void MarketDataService::onErrorOccurredWithId(const QString& id, const QString &error)
     {
         QString errMsg = id + " : " + error;

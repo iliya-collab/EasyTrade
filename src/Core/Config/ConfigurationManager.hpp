@@ -15,12 +15,14 @@ class ConfigurationManager : public QObject
     QML_ELEMENT
     QML_SINGLETON
 
-    Q_PROPERTY(bool        autoConnection READ autoConnection WRITE setAutoConnection NOTIFY autoConnectionChanged)
-    Q_PROPERTY(bool        testnet        READ testnet        WRITE setTestnet        NOTIFY testnetChanged)
-    Q_PROPERTY(QString     activeApi      READ activeApi      WRITE setActiveApi      NOTIFY activeApiChanged)
-    Q_PROPERTY(QStringList apiNames       READ apiNames                                NOTIFY apisChanged)
+    Q_PROPERTY(bool         autoConnection   READ autoConnection     WRITE setAutoConnection     NOTIFY autoConnectionChanged   FINAL)
+    Q_PROPERTY(bool         enableTrades     READ enableTrades       WRITE setEnableTrades       NOTIFY enableTradesChanged     FINAL)
+    Q_PROPERTY(bool         testnet          READ testnet            WRITE setTestnet            NOTIFY testnetChanged          FINAL)
+    Q_PROPERTY(QString      activeApi        READ activeApi          WRITE setActiveApi          NOTIFY activeApiChanged        FINAL)
+    Q_PROPERTY(QStringList  apiNames         READ apiNames                                       NOTIFY apisChanged             FINAL)
 
 public:
+
     // --- Singleton для QML ---
     static ConfigurationManager& instance();
     static ConfigurationManager* create(QQmlEngine*, QJSEngine*);
@@ -30,11 +32,13 @@ public:
     // --- Q_PROPERTY getters ---
     bool        autoConnection() const noexcept { return m_data.m_autoConnection; }
     bool        testnet()        const noexcept { return m_data.m_testnet; }
+    bool        enableTrades()   const noexcept { return m_data.m_enableTrades; }
     QString     activeApi()      const noexcept { return m_data.m_activeApi; }
     QStringList apiNames()       const noexcept { return m_data.m_apis.keys(); }
 
     // --- Q_PROPERTY setters ---
     void setAutoConnection(bool enabled);
+    void setEnableTrades(bool enabled);
     void setTestnet(bool enabled);
     void setActiveApi(const QString& name);
 
@@ -53,14 +57,17 @@ public:
     std::expected<void, QString> trySetActiveApi(const QString& name);
 
 signals:
+
     void autoConnectionChanged();
     void testnetChanged();
+    void enableTradesChanged();
     void activeApiChanged();
     void apisChanged();
 
     void errorOccurred(const QString& error);
 
 private:
+
     explicit ConfigurationManager(QObject* parent = nullptr);
     ConfigurationManager(const ConfigurationManager&) = delete;
     ConfigurationManager& operator=(const ConfigurationManager&) = delete;

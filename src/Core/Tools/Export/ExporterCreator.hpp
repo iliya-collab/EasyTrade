@@ -1,35 +1,61 @@
 #pragma once
 #include "ExportFormats.hpp"
 #include "IRepositoryExporter.hpp"
+#include "ExportOptionsBuilders.hpp"
 #include "JsonExporter.hpp"
 #include "XmlExporter.hpp"
 #include "CsvExporter.hpp"
 #include "YamlExporter.hpp"
+#include <expected>
 
 namespace Core::Tools::Exporter
 {
 
-template <typename TRow>
 class ExporterCreator
 {
 public:
 
-    template<typename... Args>
-    static std::unique_ptr<IRepositoryExporter<TRow>>
-    create(ExportFormat fmt, Args&&... args)
+    static std::expected< std::unique_ptr<IRepositoryExporter>, QString >
+    create(ExportFormat fmt, const QVariantMap& opts = {})
     {
         switch (fmt)
         {
+
         case ExportFormat::Json:
-            return std::make_unique<JsonExporter<TRow>>(std::forward<Args>(args)...);
+        {
+            auto o = buildJsonExportOptions(opts);
+            if (!o.has_value())
+                return std::unexpected(o.error());
+            return std::make_unique<JsonExporter>(o.value());
+        }
+
         case ExportFormat::Xml:
-            return std::make_unique<XmlExporter<TRow>>(std::forward<Args>(args)...);
+        {
+            auto o = buildXmlExportOptions(opts);
+            if (!o.has_value())
+                return std::unexpected(o.error());
+            return std::make_unique<XmlExporter>(o.value());
+        }
+
         case ExportFormat::Csv:
-            return std::make_unique<CsvExporter<TRow>>(std::forward<Args>(args)...);
+        {
+            auto o = buildCsvExportOptions(opts);
+            if (!o.has_value())
+                return std::unexpected(o.error());
+            return std::make_unique<CsvExporter>(o.value());
+        }
+
         case ExportFormat::Yaml:
-            return std::make_unique<YamlExporter<TRow>>(std::forward<Args>(args)...);
+        {
+            auto o = buildYamlExportOptions(opts);
+            if (!o.has_value())
+                return std::unexpected(o.error());
+            return std::make_unique<YamlExporter>(o.value());
+        }
+
         default:
-            return nullptr;
+            return std::unexpected("export: unsupported format");
+
         }
     }
 
