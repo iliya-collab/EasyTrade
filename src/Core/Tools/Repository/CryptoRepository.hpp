@@ -23,8 +23,8 @@ namespace Core::Tools {
         bool clear() override;
 
         bool insertTrades(const QList<TradeInfo>& newTrades);
-        bool selectTrades(MarketType type);
-        bool selectTrades(MarketType type, const QString& quoteCoin);
+        bool selectTrades(EnumHelpers::MarketType type);
+        bool selectTrades(EnumHelpers::MarketType type, const QString& quoteCoin);
 
     };
 

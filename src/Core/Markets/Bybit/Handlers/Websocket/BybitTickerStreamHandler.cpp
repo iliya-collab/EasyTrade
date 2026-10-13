@@ -13,7 +13,7 @@ void Core::Markets::BybitTickerStreamHandler::handle(const QJsonObject &obj, IMa
 
     Tools::Ticker ticker{};
 
-    ticker.m_category = Tools::stringToMarketType(streamer->id());
+    ticker.m_category = Tools::EnumHelpers::apiStringToMarketType(streamer->id());
     ticker.m_symbol = symbol;
     ticker.m_lastPrice = data["lastPrice"].toString();
     ticker.m_usdIndexPrice = data["usdIndexPrice"].toString();

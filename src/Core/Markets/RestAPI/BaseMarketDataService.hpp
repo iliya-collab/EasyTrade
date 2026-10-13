@@ -1,6 +1,7 @@
 #pragma once
 #include <Tools/Network/BaseRestAPI.hpp>
 #include "IResponseHandler.hpp"
+#include "IMarketDataService.hpp"
 #include "ServiceConcepts.hpp"
 #include <QObject>
 
@@ -12,7 +13,9 @@ namespace Core::Markets
         Q_OBJECT
 \
     private:
+
         std::map<QString, std::unique_ptr<IMarketDataResponseHandler>> m_handlers;
+        MarketDataServiceSignals* m_signaller;
 
     protected:
 
@@ -51,12 +54,16 @@ namespace Core::Markets
         explicit BaseMarketDataService(std::unique_ptr<Tools::BaseRestAPI> api, QObject* parent = nullptr)
             : IMarketDataService(parent), m_currentApi(std::move(api))
         {
-            connect(m_currentApi.get(), &Tools::BaseRestAPI::downloadProgress, this, &BaseMarketDataService::downloadProgress, Qt::UniqueConnection);
-            connect(m_currentApi.get(), &Tools::BaseRestAPI::errorOccurred, this, &BaseMarketDataService::errorOccurred, Qt::UniqueConnection);
+            m_signaller = new MarketDataServiceSignals(this);
+
+            connect(m_currentApi.get(), &Tools::BaseRestAPI::downloadProgress, m_signaller, &MarketDataServiceSignals::downloadProgress, Qt::UniqueConnection);
+            connect(m_currentApi.get(), &Tools::BaseRestAPI::errorOccurred, m_signaller, &MarketDataServiceSignals::errorOccurred, Qt::UniqueConnection);
             connect(m_currentApi.get(), &Tools::BaseRestAPI::dataReceived, this, &BaseMarketDataService::onDataReceived, Qt::UniqueConnection);
         }
 
         virtual ~BaseMarketDataService() {}
+
+        MarketDataServiceSignals* signaller() override { return m_signaller; }
 
     protected slots:
 
@@ -68,9 +75,9 @@ namespace Core::Markets
             QString path = reqUrl.path();
 
             if (m_handlers.contains(path))
-                m_handlers[path]->handle(QJsonDocument::fromJson(data).object(), context, this);
+                m_handlers[path]->handle(QJsonDocument::fromJson(data).object(), context, m_signaller);
             else
-                emit errorOccurred("Unknown endpoint: " + path);
+                emit m_signaller->errorOccurred("Unknown endpoint: " + path);
         }
 
     };

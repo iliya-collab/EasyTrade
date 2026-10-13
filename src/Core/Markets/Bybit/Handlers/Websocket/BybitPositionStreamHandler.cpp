@@ -18,21 +18,21 @@ void Core::Markets::BybitPositionStreamHandler::handle(const QJsonObject &data, 
 
         Tools::PositionInfo position{};
 
-        position.m_category = Tools::stringToMarketType(dataObj["category"].toString());
+        position.m_category = Tools::EnumHelpers::apiStringToMarketType(dataObj["category"].toString());
         position.m_symbol = dataObj["symbol"].toString();
         QString strSide = dataObj["side"].toString();
         if (strSide == "Buy")
-            position.m_side = Tools::OrderSide::Buy;
+            position.m_side = Tools::EnumHelpers::OrderSide::Buy;
         else if (strSide == "Sell")
-            position.m_side = Tools::OrderSide::Sell;
+            position.m_side = Tools::EnumHelpers::OrderSide::Sell;
         else
         {
             if (position.m_positionIdx == 1)
-                position.m_side = Tools::OrderSide::Buy;
+                position.m_side = Tools::EnumHelpers::OrderSide::Buy;
             else if (position.m_positionIdx == 2)
-                position.m_side = Tools::OrderSide::Sell;
+                position.m_side = Tools::EnumHelpers::OrderSide::Sell;
             else
-                position.m_side = Tools::OrderSide::Unknown;
+                position.m_side = Tools::EnumHelpers::OrderSide::Unknown;
         }
         position.m_size = dataObj["size"].toString();
         position.m_positionIdx = dataObj["positionIdx"].toInt();

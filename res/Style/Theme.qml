@@ -15,6 +15,10 @@ QtObject {
     readonly property color disabledTextColor:   "#888888"
     readonly property color focusColor:             "#4caf50"
 
+    readonly property color upColor: "#00ff66"
+    readonly property color downColor: "#ff4444"
+    readonly property color currentColor: "#aaaaaa"
+
     // Switch
     readonly property int   switchWidth:  40
     readonly property int   switchHeight: 22

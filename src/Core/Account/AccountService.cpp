@@ -10,13 +10,10 @@ Core::AccountService::AccountService(std::shared_ptr<AccountState> state, std::s
     connect(mediator.get(), &AccountMediator::accountVerificationReady,
             state.get(), &AccountState::updateValidAccount);
 
-    connect(mediator.get(), &AccountMediator::accountBalanceReady,
-            state.get(), &AccountState::updateBalance);
-
     connect(mediator.get(), &AccountMediator::apiInfoReady,
             state.get(), &AccountState::updateApiInfo);
 
-    connect(mediator.get(), &AccountMediator::walletReady,
+    connect(mediator.get(), &AccountMediator::accountBalanceReady,
             state.get(), &AccountState::updateBalance);
 
     connect(mediator.get(), &AccountMediator::orderReady,
@@ -27,6 +24,12 @@ Core::AccountService::AccountService(std::shared_ptr<AccountState> state, std::s
 
     connect(mediator.get(), &AccountMediator::positionReady,
             state.get(), &AccountState::updatePosition);
+
+    connect(mediator.get(), &AccountMediator::orderHistoryReady,
+            state.get(), &AccountState::updateOrders);
+
+    connect(mediator.get(), &AccountMediator::openOrdersReady,
+            state.get(), &AccountState::updateOrders);
 
     connect(mediator.get(), &AccountMediator::messageSent,
             this, &AccountService::messageReceived);

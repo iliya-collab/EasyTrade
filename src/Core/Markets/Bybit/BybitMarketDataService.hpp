@@ -13,7 +13,7 @@ public:
 
     void init(bool isTestnet) override;
 
-    void requestTradePairs(Tools::MarketType type) override;
+    void requestTradePairs(Tools::EnumHelpers::MarketType type) override;
     void requestKlines(const Tools::KlinesRequest& req) override;
 
 };

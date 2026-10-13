@@ -45,6 +45,12 @@ namespace Core {
         emit ordersChanged();
     }
 
+    void AccountState::updateOrders(const QList<Tools::OrderInfo> &orders)
+    {
+        m_orders->upsertOrders(orders);
+        emit ordersChanged();
+    }
+
     void AccountState::updateExecution(const Tools::ExecutionInfo &execution)
     {
         m_executions->addExecution(execution);

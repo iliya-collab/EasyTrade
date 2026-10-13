@@ -25,7 +25,7 @@ namespace Core::Tools {
             case TurnoverRole:
                 return trade.m_turnover.toDouble();
             case SideRole:
-                return orderSideToString(trade.m_side);
+                return EnumHelpers::orderSideToString(trade.m_side);
             default:
                 return QVariant();
         };

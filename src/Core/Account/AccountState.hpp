@@ -40,6 +40,7 @@ public:
     void updateValidAccount(bool isValid);
     void updateBalance(const Tools::AccountBalance& balance);
     void updateOrder(const Tools::OrderInfo& order);
+    void updateOrders(const QList<Tools::OrderInfo>& orders);
     void updateExecution(const Tools::ExecutionInfo& execution);
     void updatePosition(const Tools::PositionInfo& position);
 

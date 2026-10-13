@@ -33,5 +33,5 @@ void Core::Markets::BybitWalletStreamHandler::handle(const QJsonObject &data, IP
         balance.m_assets.emplace_back(nameAsset, sizeAsset, priceAsset);
     }
 
-    emit streamer->walletUpdated(balance);
+    emit streamer->accountBalanceUpdated(balance);
 }

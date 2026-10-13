@@ -61,9 +61,9 @@ namespace Core {
         Q_INVOKABLE void restart();
         Q_INVOKABLE void shutdown();
         Q_INVOKABLE void init(bool isTestnet);
-        Q_INVOKABLE void subscribeSymbol(const QString& symbol);
+        Q_INVOKABLE void subscribeSymbol(Tools::EnumHelpers::MarketType category, const QString& symbol);
 
-        Q_INVOKABLE void loadTradePairs(Core::Tools::MarketType type);
+        Q_INVOKABLE void loadTradePairs(Core::Tools::EnumHelpers::MarketType type);
         Q_INVOKABLE void loadKlines(const QVariantMap& params);
         Q_INVOKABLE bool exportKlines(const QString& path, Tools::Exporter::ExportFormat format, const QVariantMap& opts);
 

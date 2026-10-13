@@ -36,6 +36,7 @@ void LogModel::append(const Entry& e)
         beginRemoveRows({}, 0, 0);
         if (m_entries.front().level == "error")
             --m_errorCount;
+        --m_count;
         m_entries.pop_front();
         endRemoveRows();
     }
@@ -49,6 +50,9 @@ void LogModel::append(const Entry& e)
         ++m_errorCount;
         emit errorCountChanged();
     }
+
+    ++m_count;
+    emit countChanged();
 }
 
 void LogModel::clear()
@@ -56,6 +60,7 @@ void LogModel::clear()
     beginResetModel();
     m_entries.clear();
     m_errorCount = 0;
+    m_count = 0;
     endResetModel();
     emit errorCountChanged();
 }

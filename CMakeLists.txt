@@ -84,6 +84,7 @@ target_link_libraries(EasyTradeCore PRIVATE
 target_include_directories(EasyTradeCore PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/Core/Tools/DataModels
 )
 
 # Делаем из исполняемого файла QML-модуль для интерфейса
@@ -102,6 +103,7 @@ qt_add_qml_module(${PROJECT_NAME}
         res/Views/SelecterTradeWindow.qml
         res/Views/APISettingsPage.qml
         res/Views/GeneralSettingsPage.qml
+        res/Views/OrderManagementWindow.qml
 )
 
 # Подключаем внешние UI-поддиректории

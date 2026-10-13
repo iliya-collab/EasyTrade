@@ -21,38 +21,6 @@ ApplicationWindow {
 
     //visibility: "FullScreen"
 
-    /*Connections {
-        target: AppCore.marketService
-
-        function onMessageReceived(msg) { addLog("info", "Market", msg ) }
-
-        function onErrorOccurred(error) { mainWindow.addLog("error", "Market", error) }
-
-        function onDownloadProgress(received, total) {
-            if (total > 0)
-                statusWidget.progressValue = received / total * 100
-        }
-    }
-
-    Connections {
-        target: AppCore.accountService
-
-        function onMessageReceived(msg) { addLog("info", "Account", msg ) }
-
-        function onErrorOccurred(error) { mainWindow.addLog("error", "Account", error) }
-
-        function onDownloadProgress(received, total) {
-            if (total > 0)
-                statusWidget.progressValue = received / total * 100
-        }
-    }
-
-    Connections {
-        target: ConfigurationManager
-
-        function onErrorOccurred(error) { mainWindow.addLog("error", "Config", error) }
-    }*/
-
     Loader {
         id: settingsWindowLoader
         active: false
@@ -74,8 +42,10 @@ ApplicationWindow {
         source: "Views/SelecterTradeWindow.qml"
 
         onLoaded: {
-            item.tradeSelected.connect(function(symbol) {
-                AppCore.marketService.subscribeSymbol(symbol)
+            item.tradeSelected.connect(function(category, symbol) {
+                AppCore.marketService.subscribeSymbol(category, symbol)
+                AppCore.accountService.requestOrderHistory({ "category": category })
+                AppCore.accountService.requestOpenOrders({ "category": category })
             })
         }
 
@@ -104,6 +74,21 @@ ApplicationWindow {
         }
     }
 
+    Loader {
+        id: orderWindowLoader
+        active: false
+        source: "Views/OrderManagementWindow.qml"
+
+        Connections {
+            target: orderWindowLoader.item
+            ignoreUnknownSignals: true
+            function onVisibleChanged() {
+                if (orderWindowLoader.item && !orderWindowLoader.item.visible)
+                    Qt.callLater(function() { orderWindowLoader.active = false })
+            }
+        }
+    }
+
 // ++++++++++++++++++++++++++++++++++++++++++   UI  ++++++++++++++++++++++++++++++++++++++++++
 
     // Меню
@@ -126,6 +111,12 @@ ApplicationWindow {
                         text: "Available trades",
                         clicked: function() {
                             selecterTradeWindowLoader.active = true
+                        }
+                    },
+                    {
+                        text: "Orders",
+                        clicked: function() {
+                            orderWindowLoader.active = true
                         }
                     }
 

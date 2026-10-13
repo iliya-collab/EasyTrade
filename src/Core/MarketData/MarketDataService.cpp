@@ -83,14 +83,15 @@ namespace Core
         m_mediator->init(isTestnet);
     }
 
-    void MarketDataService::subscribeSymbol(const QString &symbol)
+    void MarketDataService::subscribeSymbol(Tools::EnumHelpers::MarketType category, const QString &symbol)
     {
         qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
+        m_state->setCurrentCategory(category);
         m_state->setCurrentSymbol(symbol);
         m_mediator->subscribe(symbol);
     }
 
-    void MarketDataService::loadTradePairs(Core::Tools::MarketType type)
+    void MarketDataService::loadTradePairs(Core::Tools::EnumHelpers::MarketType type)
     {
         if (!m_mediator->loadAllTradePairFromRepository(type))
             m_mediator->loadTradePairsFromNetwork(type);

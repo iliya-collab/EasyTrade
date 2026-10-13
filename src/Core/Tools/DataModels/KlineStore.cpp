@@ -35,7 +35,7 @@ bool KlineStore::hasTimeframe(const QString& timeframe) const
 
 void KlineStore::updateKline(const Kline& kline)
 {
-    QString tf = Tools::intervalToString(kline.m_interval);
+    QString tf = Tools::EnumHelpers::intervalToString(kline.m_interval);
     auto& bucket = m_klineSeries[tf];
 
     auto it = bucket.find(kline.m_start);
@@ -55,7 +55,7 @@ void KlineStore::updateKline(const Kline& kline)
 
 void KlineStore::addKline(const Kline& kline)
 {
-    QString tf = Tools::intervalToString(kline.m_interval);
+    QString tf = Tools::EnumHelpers::intervalToString(kline.m_interval);
     auto& bucket = m_klineSeries[tf];
 
     if (bucket.contains(kline.m_start))
@@ -73,7 +73,7 @@ void KlineStore::addHistoricalKlines(const QList<Kline>& klines)
     if (klines.isEmpty())
         return;
 
-    QString tf = Tools::intervalToString(klines.first().m_interval);
+    QString tf = Tools::EnumHelpers::intervalToString(klines.first().m_interval);
     auto& bucket = m_klineSeries[tf];
 
     for (const auto& kline : klines)

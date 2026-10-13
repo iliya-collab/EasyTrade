@@ -18,7 +18,7 @@ void Core::Markets::BybitExecutionStreamHandler::handle(const QJsonObject &data,
 
         Tools::ExecutionInfo exec{};
 
-        exec.m_category    = Tools::stringToMarketType(dataObj["category"].toString());
+        exec.m_category    = Tools::EnumHelpers::apiStringToMarketType(dataObj["category"].toString());
         exec.m_symbol      = dataObj["symbol"].toString();
         exec.m_execId      = dataObj["execId"].toString();
         exec.m_orderId     = dataObj["orderId"].toString();
@@ -27,23 +27,23 @@ void Core::Markets::BybitExecutionStreamHandler::handle(const QJsonObject &data,
 
         QString strSide = dataObj["side"].toString();
         if (strSide == "Buy")
-            exec.m_side = Tools::OrderSide::Buy;
+            exec.m_side = Tools::EnumHelpers::OrderSide::Buy;
         else if (strSide == "Sell")
-            exec.m_side = Tools::OrderSide::Sell;
+            exec.m_side = Tools::EnumHelpers::OrderSide::Sell;
         else
-            exec.m_side = Tools::OrderSide::Unknown;
+            exec.m_side = Tools::EnumHelpers::OrderSide::Unknown;
 
         QString strExecType = dataObj["execType"].toString();
         if (strExecType == "Trade")
-            exec.m_execType = Tools::ExecType::Trade;
+            exec.m_execType = Tools::EnumHelpers::ExecType::Trade;
         else if (strExecType == "Adl")
-            exec.m_execType = Tools::ExecType::Adl;
+            exec.m_execType = Tools::EnumHelpers::ExecType::Adl;
         else if (strExecType == "Funding")
-            exec.m_execType = Tools::ExecType::Funding;
+            exec.m_execType = Tools::EnumHelpers::ExecType::Funding;
         else if (strExecType == "Liquidation" || strExecType == "BustTrade")
-            exec.m_execType = Tools::ExecType::Liquidation;
+            exec.m_execType = Tools::EnumHelpers::ExecType::Liquidation;
         else
-            exec.m_execType = Tools::ExecType::Unknown;
+            exec.m_execType = Tools::EnumHelpers::ExecType::Unknown;
 
         exec.m_execPrice   = dataObj["execPrice"].toString();
         exec.m_execQty     = dataObj["execQty"].toString();

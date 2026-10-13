@@ -8,23 +8,23 @@ namespace Core {
     MarketDataMediator::MarketDataMediator(QObject* parent) : QObject(parent)
     {
         m_service = std::make_unique<Core::Markets::BybitMarketDataService>();
-        m_publicStreamer = std::make_unique<Core::Markets::BybitMarketDataStreamer>(Tools::MarketType::Spot);
+        m_publicStreamer = std::make_unique<Core::Markets::BybitMarketDataStreamer>(Tools::EnumHelpers::MarketType::Spot);
         m_repository = std::make_unique<Core::Markets::MarketDataRepository>();
 
         connect(m_repository.get(), &Markets::MarketDataRepository::errorOccurred,
                 this, &MarketDataMediator::errorOccurred, Qt::UniqueConnection);
 
         // Связываем Сеть (REST)
-        connect(m_service.get(), &Markets::IMarketDataService::errorOccurred,
+        connect(m_service->signaller(), &Markets::MarketDataServiceSignals::errorOccurred,
                 this, &MarketDataMediator::errorOccurred, Qt::UniqueConnection);
 
-        connect(m_service.get(), &Markets::IMarketDataService::downloadProgress,
+        connect(m_service->signaller(), &Markets::MarketDataServiceSignals::downloadProgress,
                 this, &MarketDataMediator::downloadProgress, Qt::UniqueConnection);
 
-        connect(m_service.get(), &Markets::IMarketDataService::tradePairsReceived,
+        connect(m_service->signaller(), &Markets::MarketDataServiceSignals::tradePairsReceived,
                 this, &MarketDataMediator::onTradePairsReady, Qt::UniqueConnection);
 
-        connect(m_service.get(), &Markets::IMarketDataService::klinesReceived,
+        connect(m_service->signaller(), &Markets::MarketDataServiceSignals::klinesReceived,
                 this, &MarketDataMediator::onKlinesReady, Qt::UniqueConnection);
 
         // Связываем публичный стрим
@@ -101,7 +101,7 @@ namespace Core {
         });
     }
 
-    bool MarketDataMediator::loadAllTradePairFromRepository(Tools::MarketType type)
+    bool MarketDataMediator::loadAllTradePairFromRepository(Tools::EnumHelpers::MarketType type)
     {
         emit messageSent("Loading trade pairs from repository...");
         auto pairs = m_repository->loadFromCryptoRepository(type);
@@ -131,12 +131,12 @@ namespace Core {
         return false;
     }
 
-    void MarketDataMediator::loadPublicTradesFromRepository(Tools::MarketType type, const QString &symbol)
+    void MarketDataMediator::loadPublicTradesFromRepository(Tools::EnumHelpers::MarketType type, const QString &symbol)
     {
         // TODO
     }
 
-    void MarketDataMediator::loadTradePairsFromNetwork(Tools::MarketType type)
+    void MarketDataMediator::loadTradePairsFromNetwork(Tools::EnumHelpers::MarketType type)
     {
         emit messageSent("Loading trade pairs from network...");
         m_service->requestTradePairs(type);

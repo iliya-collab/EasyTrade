@@ -62,7 +62,6 @@ signals:
     void orderHistoryReady(const QList<Core::Tools::OrderInfo>& orders);
     void orderRequestRejected(const QString& orderLinkId, const QString& reason);
 
-    void walletReady(const Core::Tools::AccountBalance& newAccountBalance);
     void orderReady(const Core::Tools::OrderInfo& order);
     void executionReady(const Core::Tools::ExecutionInfo& exec);
     void positionReady(const Core::Tools::PositionInfo& position);

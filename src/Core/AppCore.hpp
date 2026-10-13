@@ -4,6 +4,7 @@
 #include "Config/ConfigurationManager.hpp"
 #include "Tools/DataModels/LogModel.hpp"
 #include "Tools/DataModels/LogFilterProxyModel.hpp"
+#include "Tools/DataModels/OrderFilterProxyModel.hpp"
 #include <QQmlContext>
 #include <QObject>
 #include <memory>

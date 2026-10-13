@@ -8,10 +8,10 @@ namespace Core::Tools
     {
     public:
 
-        static std::unique_ptr<BybitWebSocket> create(SocketType socketType, MarketType marketType, const Api& api, QObject* parent = nullptr)
+        static std::unique_ptr<BybitWebSocket> create(SocketType socketType, EnumHelpers::MarketType marketType, const Api& api, QObject* parent = nullptr)
         {
             auto newBybitWebSocket = std::make_unique<BybitWebSocket>(socketType, marketType, parent);
-            newBybitWebSocket->setId(marketTypeToString(marketType));
+            newBybitWebSocket->setId(EnumHelpers::marketTypeToApiString(marketType));
             newBybitWebSocket->init(api);
             return newBybitWebSocket;
         }

@@ -22,9 +22,9 @@ public:
     explicit MarketDataRepository(QObject* parent = nullptr);
 
     // Загрузка всех данных из крипторепозитория
-    QList<Tools::TradeInfo> loadFromCryptoRepository(Tools::MarketType type);
-    QList<Tools::Kline> loadFromKlinesRepository(Tools::MarketType type, const QString& symbol, Tools::Interval interval, std::optional<qint64> start, std::optional<qint64> end);
-    Tools::PublicTrades loadFromPublicTradesRepository(Tools::MarketType type, const QString& symbol);
+    QList<Tools::TradeInfo> loadFromCryptoRepository(Tools::EnumHelpers::MarketType type);
+    QList<Tools::Kline> loadFromKlinesRepository(Tools::EnumHelpers::MarketType type, const QString& symbol, Tools::EnumHelpers::Interval interval, std::optional<qint64> start, std::optional<qint64> end);
+    Tools::PublicTrades loadFromPublicTradesRepository(Tools::EnumHelpers::MarketType type, const QString& symbol);
 
     void clearCryptoRepository();
     void clearKlinesRepository();

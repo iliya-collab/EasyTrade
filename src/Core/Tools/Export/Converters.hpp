@@ -13,9 +13,9 @@ using ExportRows = QList<ExportRow>;
 inline ExportRow toField(const PublicTradeItem &t)
 {
     return {
-        { "category", marketTypeToString(t.m_category) },
+        { "category", EnumHelpers::marketTypeToApiString(t.m_category) },
         { "symbol",   t.m_symbol },
-        { "side",     orderSideToString(t.m_side) },
+        { "side",     EnumHelpers::orderSideToString(t.m_side) },
         { "price",    t.m_price },
         { "volume",   t.m_volume },
         { "turnover", t.m_turnover },
@@ -28,9 +28,9 @@ inline ExportRow toField(const PublicTradeItem &t)
 inline ExportRow toField(const Kline &k)
 {
     return {
-        { "category", marketTypeToString(k.m_category) },
+        { "category", EnumHelpers::marketTypeToApiString(k.m_category) },
         { "symbol",   k.m_symbol },
-        { "interval", intervalToString(k.m_interval) },
+        { "interval", EnumHelpers::intervalToString(k.m_interval) },
         { "open",     k.m_open },
         { "close",    k.m_close },
         { "high",     k.m_high },
@@ -48,15 +48,15 @@ inline ExportRow toField(const Kline &k)
 inline ExportRow toField(const OrderInfo &o)
 {
     return {
-        { "category",     marketTypeToString(o.m_category) },
+        { "category",     EnumHelpers::marketTypeToApiString(o.m_category) },
         { "orderId",      o.m_orderId },
         { "orderLinkId",  o.m_orderLinkId },
         { "symbol",       o.m_symbol },
-        { "side",         orderSideToString(o.m_side) },
-        { "orderType",    orderTypeToString(o.m_orderType) },
+        { "side",         EnumHelpers::orderSideToString(o.m_side) },
+        { "orderType",    EnumHelpers::orderTypeToString(o.m_orderType) },
         { "price",        o.m_price },
         { "qty",          o.m_qty },
-        { "status",       orderStatusToString(o.m_status) },
+        { "status",       EnumHelpers::orderStatusToString(o.m_status) },
         { "positionIdx",  o.m_positionIdx },
         { "leavesQty",    o.m_leavesQty },
         { "cumExecQty",   o.m_cumExecQty },
@@ -73,16 +73,16 @@ inline ExportRow toField(const OrderInfo &o)
 inline ExportRow toField(const ExecutionInfo &e)
 {
     return {
-        { "category",    marketTypeToString(e.m_category) },
+        { "category",    EnumHelpers::marketTypeToApiString(e.m_category) },
         { "symbol",      e.m_symbol },
         { "execId",      e.m_execId },
         { "orderId",     e.m_orderId },
         { "orderLinkId", e.m_orderLinkId },
-        { "side",        orderSideToString(e.m_side) },
+        { "side",        EnumHelpers::orderSideToString(e.m_side) },
         { "execPrice",   e.m_execPrice },
         { "execQty",     e.m_execQty },
         { "execValue",   e.m_execValue },
-        { "execType",    execTypeToString(e.m_execType) },
+        { "execType",    EnumHelpers::execTypeToString(e.m_execType) },
         { "execFee",     e.m_execFee },
         { "feeCurrency", e.m_feeCurrency },
         { "isMaker",     e.m_isMaker },
@@ -95,9 +95,9 @@ inline ExportRow toField(const ExecutionInfo &e)
 inline ExportRow toField(const PositionInfo &p)
 {
     return {
-        { "category",         marketTypeToString(p.m_category) },
+        { "category",         EnumHelpers::marketTypeToApiString(p.m_category) },
         { "symbol",           p.m_symbol },
-        { "side",             orderSideToString(p.m_side) },
+        { "side",             EnumHelpers::orderSideToString(p.m_side) },
         { "size",             p.m_size },
         { "positionIdx",      p.m_positionIdx },
         { "avgPrice",         p.m_avgPrice },

@@ -4,7 +4,7 @@ QByteArray Core::Markets::PostBybitCancelOrderHandler::buildRequestBody(const To
 {
     QJsonObject body;
 
-    body["category"] = Tools::marketTypeToString(req.m_category);
+    body["category"] = Tools::EnumHelpers::marketTypeToApiString(req.m_category);
     body["symbol"] = req.m_symbol;
 
     if (req.m_orderLinkId.has_value() && !req.m_orderLinkId->isEmpty())
@@ -15,11 +15,11 @@ QByteArray Core::Markets::PostBybitCancelOrderHandler::buildRequestBody(const To
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
 
-void Core::Markets::PostBybitCancelOrderHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
+void Core::Markets::PostBybitCancelOrderHandler::handle(const QJsonObject &data, const QVariant& requestContext, PrivateServiceSignals *signaller)
 {
     if (!data.contains("retCode") || data["retCode"].toInt() != 0)
     {
-        emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
+        emit signaller->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
         return;
     }
 
@@ -27,5 +27,5 @@ void Core::Markets::PostBybitCancelOrderHandler::handle(const QJsonObject &data,
     QString orderId = result["orderId"].toString();
     QString orderLinkId = result["orderLinkId"].toString();
 
-    emit service->orderCancelled(orderId, orderLinkId);
+    emit signaller->orderCancelled(orderId, orderLinkId);
 }

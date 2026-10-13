@@ -39,6 +39,9 @@ MenuBar {
         }
     }
 
+    // Component.onCompleted: console.info("[menubar] completed, count =", root.count,
+    //                                    "model =", menuModel.length)
+
     // Instantiator для меню верхнего уровня
     /*Instantiator {
         model: root.menuModel
@@ -228,6 +231,20 @@ MenuBar {
 
             //Component.onCompleted: console.log("Component submenuComponent created")
 
+            implicitWidth: {
+                var w = 0
+                for (var i = 0; i < count; ++i) {
+                    var it = itemAt(i)
+                    if (it)
+                        w = Math.max(w, it.implicitWidth)
+                }
+                return Math.max(w, 160)
+            }
+
+            // onAboutToShow: console.info("[menu] aboutToShow:", title, "count =", count)
+            // onOpened: console.info("[menu] opened:", title, "x =", x, "y =", y,
+            //                       "size =", width, "x", height, "parent =", parent)
+
             delegate: MenuItem {
                 id: item
 
@@ -255,7 +272,6 @@ MenuBar {
                 color: Theme.menuBarColor
                 border.width: Theme.borderWidth
                 border.color: Theme.borderColor
-                radius: Theme.radius
             }
 
             // Instantiator для вложенного меню

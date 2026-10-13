@@ -4,7 +4,7 @@ QByteArray Core::Markets::PostBybitAmendOrderHandler::buildRequestBody(const Too
 {
     QJsonObject body;
 
-    body["category"] = Tools::marketTypeToString(req.m_category);
+    body["category"] = Tools::EnumHelpers::marketTypeToApiString(req.m_category);
     body["symbol"] = req.m_symbol;
 
     if (req.m_orderLinkId.has_value() && !req.m_orderLinkId->isEmpty())
@@ -25,11 +25,11 @@ QByteArray Core::Markets::PostBybitAmendOrderHandler::buildRequestBody(const Too
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
 
-void Core::Markets::PostBybitAmendOrderHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
+void Core::Markets::PostBybitAmendOrderHandler::handle(const QJsonObject &data, const QVariant& requestContext, PrivateServiceSignals *signaller)
 {
     if (!data.contains("retCode") || data["retCode"].toInt() != 0)
     {
-        emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
+        emit signaller->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
         return;
     }
 
@@ -37,5 +37,5 @@ void Core::Markets::PostBybitAmendOrderHandler::handle(const QJsonObject &data, 
     QString orderId = result["orderId"].toString();
     QString orderLinkId = result["orderLinkId"].toString();
 
-    emit service->orderAmended(orderId, orderLinkId);
+    emit signaller->orderAmended(orderId, orderLinkId);
 }

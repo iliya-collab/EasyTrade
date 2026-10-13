@@ -1,5 +1,5 @@
 #pragma once
-#include "Tools/StdTypes.hpp"
+#include "MarketDataServiceSignals.hpp"
 #include "Tools/QueryStructures.hpp"
 
 namespace Core::Markets
@@ -13,17 +13,13 @@ namespace Core::Markets
 
         virtual void init(bool isTestnet) = 0;
 
+        // Доступ к своему сигнальщику
+        virtual MarketDataServiceSignals* signaller() = 0;
+
         // Запрос пар
-        virtual void requestTradePairs(Tools::MarketType category) = 0;
+        virtual void requestTradePairs(Tools::EnumHelpers::MarketType category) = 0;
         // Запрос свеч
         virtual void requestKlines(const Tools::KlinesRequest& req) = 0;
-
-    signals:
-
-        void errorOccurred(const QString& error);
-        void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
-        void klinesReceived(const QList<Core::Tools::Kline>& klines);
-        void tradePairsReceived(const QList<Core::Tools::TradeInfo>& pairs);
 
     };
 }

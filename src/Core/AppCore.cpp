@@ -23,8 +23,13 @@ AppCore::AppCore(QObject* parent) : QObject(parent)
 
     connect(m_marketService.get(), &Core::MarketDataService::messageReceived,
             this, [](const QString& m) { qInfo().noquote() << "Market:" << m; });
+    connect(m_marketService.get(), &Core::MarketDataService::errorOccurred,
+            this, [](const QString& e) { qCritical().noquote() << "Market:" << e; });
+
     connect(m_accountService.get(), &Core::AccountService::messageReceived,
             this, [](const QString& m) { qInfo().noquote() << "Account:" << m; });
+    connect(m_accountService.get(), &Core::AccountService::errorOccurred,
+            this, [](const QString& e) { qCritical().noquote() << "Account:" << e; });
 
     init();
 }
@@ -76,7 +81,10 @@ void AppCore::init()
         m_accountMediator->requestAccountBalance();
 
         if (config.m_autoConnection)
+        {
             m_marketMediator->runStreamer();
+            m_accountMediator->runStreamer();
+        }
 
     }
     catch (const std::exception& e)

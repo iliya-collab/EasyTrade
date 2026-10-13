@@ -13,6 +13,7 @@ class LogModel : public QAbstractListModel
     QML_ANONYMOUS
 
     Q_PROPERTY(int errorCount READ errorCount NOTIFY errorCountChanged FINAL)
+    Q_PROPERTY(int count READ count NOTIFY countChanged FINAL)
 
 public:
 
@@ -30,13 +31,15 @@ public:
     QVariant data(const QModelIndex& index, int role) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    int errorCount() { return m_errorCount; }
+    int errorCount() const { return m_errorCount; }
+    int count() const { return m_count; }
 
     Q_INVOKABLE void clear();
 
 signals:
 
     void errorCountChanged();
+    void countChanged();
 
 private:
 
@@ -53,6 +56,7 @@ private:
     static constexpr int kMaxEntries = 2000;
     std::deque<Entry> m_entries{};
     int m_errorCount = 0;
+    int m_count = 0;
     int m_sinkId = -1;
 
 };

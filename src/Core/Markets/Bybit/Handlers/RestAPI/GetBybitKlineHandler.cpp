@@ -2,17 +2,17 @@
 
 namespace Core::Markets
 {
-    void GetBybitKlineHandler::handle(const QJsonObject &data, const QVariant& requestContext, IMarketDataService *service)
+    void GetBybitKlineHandler::handle(const QJsonObject &data, const QVariant& requestContext, MarketDataServiceSignals *signaller)
     {
         if (!data.contains("retCode") || data["retCode"].toInt() != 0)
         {
-            emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
+            emit signaller->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
             return;
         }
 
         if (!requestContext.canConvert<Tools::KlinesRequest>())
         {
-            emit service->errorOccurred(QString("Missing request context [endpoint = %1]").arg(endpoint()));
+            emit signaller->errorOccurred(QString("Missing request context [endpoint = %1]").arg(endpoint()));
             return;
         }
 
@@ -20,23 +20,23 @@ namespace Core::Markets
 
         QList<Tools::Kline> klines;
         processRequestKlines(klines, req.m_interval, data);
-        emit service->klinesReceived(klines);
+        emit signaller->klinesReceived(klines);
     }
 
-    void GetBybitKlineHandler::processRequestKlines(QList<Tools::Kline>& klines, Tools::Interval interval, const QJsonObject& data)
+    void GetBybitKlineHandler::processRequestKlines(QList<Tools::Kline>& klines, Tools::EnumHelpers::Interval interval, const QJsonObject& data)
     {
         QJsonObject result = data["result"].toObject();
         QString symbol = result["symbol"].toString();
         QString category = result["category"].toString();
         QJsonArray list = result["list"].toArray();
 
-        qint64 durationMs = Tools::intervalToMs(interval);
+        qint64 durationMs = Tools::EnumHelpers::intervalToMs(interval);
 
         for (const auto& obj : std::as_const(list))
         {
             QJsonArray itemArr = obj.toArray();
             Tools::Kline kline;
-            kline.m_category = Tools::stringToMarketType(category);
+            kline.m_category = Tools::EnumHelpers::apiStringToMarketType(category);
             kline.m_symbol = symbol;
             kline.m_start = itemArr[0].toString().toLongLong();
             kline.m_end = kline.m_start + durationMs;
@@ -55,9 +55,9 @@ namespace Core::Markets
     QUrlQuery GetBybitKlineHandler::buildRequest(const Tools::KlinesRequest &req)
     {
         QUrlQuery params;
-        params.addQueryItem("category", Tools::marketTypeToString(req.m_category));
+        params.addQueryItem("category", Tools::EnumHelpers::marketTypeToApiString(req.m_category));
         params.addQueryItem("symbol", req.m_symbol);
-        params.addQueryItem("interval", Tools::intervalToString(req.m_interval));
+        params.addQueryItem("interval", Tools::EnumHelpers::intervalToString(req.m_interval));
         if (req.m_start.has_value())
             params.addQueryItem("start", QString::number(req.m_start.value()));
         if (req.m_end.has_value())

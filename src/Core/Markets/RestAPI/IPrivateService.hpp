@@ -1,5 +1,5 @@
 #pragma once
-#include "Tools/StdTypes.hpp"
+#include "PrivateServiceSignals.hpp"
 #include "Tools/QueryStructures.hpp"
 
 namespace Core::Markets
@@ -11,6 +11,9 @@ class IPrivateService : public QObject
 public:
 
     IPrivateService(QObject* parent = nullptr) : QObject(parent) {}
+
+    // Доступ к своему сигнальщику
+    virtual PrivateServiceSignals* signaller() = 0;
 
     virtual void init(const Tools::Api& api, bool isTestnet) = 0;
 
@@ -36,34 +39,8 @@ public:
     virtual void requestOpenOrders(const Tools::OpenOrdersRequest& request) = 0;
     // GET /v5/order/history — получить историю закрытых/отмененных/исполненных ордеров
     virtual void requestOrderHistory(const Tools::OrderHistoryRequest& request) = 0;
-
-signals:
-
-    void accountBalanceReceived(const Core::Tools::AccountBalance& balance);
-    void accountVerified();
-    void infoAboutApiReceived(const Core::Tools::ApiInfo& apiInfo);
-
-    // ===================================================================================
-    //  Ответы на управление ордерами
-    // ===================================================================================
-
-    // Ордер успешно создан
-    void orderCreated(const QString& orderId, const QString& orderLinkId);
-    // Ордер успешно изменен
-    void orderAmended(const QString& orderId, const QString& orderLinkId);
-    // Ордер успешно отменен
-    void orderCancelled(const QString& orderId, const QString& orderLinkId);
-    // Массовая отмена выполнена — список ID отмененных ордеров
-    void allOrdersCancelled(const QList<QString>& cancelledOrderIds);
-    // Получен список активных ордеров
-    void openOrdersReceived(const QList<Core::Tools::OrderInfo>& orders);
-    // Получена история ордеров
-    void orderHistoryReceived(const QList<Core::Tools::OrderInfo>& orders);
-
-    // Отдельный канал для отказов конкретно по управлению ордерами
-    void orderRequestRejected(const QString& orderLinkId, const QString& reason);
-    void errorOccurred(const QString& error);
-    void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    // GET /v5/execution/list — получить историю сделок
+    virtual void requestTradeHistory(const Tools::TradeHistoryRequest& request) = 0;
 
 };
 

@@ -21,6 +21,12 @@ public:
     void requestCancelAllOrders(const Tools::OrderCancelAllRequest& request) override;
     void requestOpenOrders(const Tools::OpenOrdersRequest& request) override;
     void requestOrderHistory(const Tools::OrderHistoryRequest& request) override;
+    void requestTradeHistory(const Tools::TradeHistoryRequest& request) override;
+
+private:
+
+    void onOrderHistoryReceived(const QList<Core::Tools::OrderInfo>& orders, const QString& nextPageCursor);
+    void onOpenOrdersReceived(const QList<Core::Tools::OrderInfo>& orders, const QString& nextPageCursor);
 
 };
 

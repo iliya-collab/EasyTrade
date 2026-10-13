@@ -3,15 +3,15 @@
 namespace Core::Markets
 {
 
-    void GetBybitAccountBalanceHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService* service)
+    void GetBybitAccountBalanceHandler::handle(const QJsonObject &data, const QVariant& requestContext, PrivateServiceSignals* signaller)
     {
         if (!data.contains("retCode") || data["retCode"].toInt() != 0)
         {
-            emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
+            emit signaller->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
             return;
         }
 
-        emit service->accountVerified();
+        emit signaller->accountVerified();
 
         Tools::AccountBalance balance{};
 
@@ -40,7 +40,7 @@ namespace Core::Markets
             balance.m_assets.emplace_back(nameAsset, sizeAsset, priceAsset);
         }
 
-        emit service->accountBalanceReceived(balance);
+        emit signaller->accountBalanceReceived(balance);
     }
 
 

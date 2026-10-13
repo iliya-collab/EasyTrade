@@ -36,7 +36,7 @@ void Core::Markets::BybitOrderbookStreamHandler::handle(const QJsonObject &obj, 
         orderbook.m_asks.insert(price, size);
     }
 
-    m_savedOrderbook.m_category = Tools::stringToMarketType(streamer->id());
+    m_savedOrderbook.m_category = Tools::EnumHelpers::apiStringToMarketType(streamer->id());
 
     if (type == "snapshot")
         snapshotOrderbook(m_savedOrderbook, orderbook);

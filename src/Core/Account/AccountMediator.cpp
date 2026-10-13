@@ -10,37 +10,37 @@ AccountMediator::AccountMediator(QObject* parent) : QObject(parent)
     m_privateStreamer = std::make_unique<Core::Markets::BybitPrivateStreamer>();
 
     // Связываем Сеть (REST)
-    connect(m_privateService.get(), &Markets::IPrivateService::accountVerified,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::accountVerified,
             this, &AccountMediator::onAccountVerificationReady);
 
-    connect(m_privateService.get(), &Markets::IPrivateService::accountBalanceReceived,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::accountBalanceReceived,
             this, &AccountMediator::onAccountBalanceReady);
 
-    connect(m_privateService.get(), &Markets::IPrivateService::infoAboutApiReceived,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::infoAboutApiReceived,
             this, &AccountMediator::onInfoAboutApiReady);
 
-    connect(m_privateService.get(), &Markets::IPrivateService::orderCreated,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::orderCreated,
             this, &AccountMediator::onOrderCreated);
 
-    connect(m_privateService.get(), &Markets::IPrivateService::orderAmended,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::orderAmended,
             this, &AccountMediator::onOrderAmended);
 
-    connect(m_privateService.get(), &Markets::IPrivateService::orderCancelled,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::orderCancelled,
             this, &AccountMediator::onOrderCancelled);
 
-    connect(m_privateService.get(), &Markets::IPrivateService::allOrdersCancelled,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::allOrdersCancelled,
             this, &AccountMediator::onAllOrdersCancelled);
 
-    connect(m_privateService.get(), &Markets::IPrivateService::openOrdersReceived,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::allOpenOrdersReceived,
             this, &AccountMediator::onOpenOrdersReceived);
 
-    connect(m_privateService.get(), &Markets::IPrivateService::orderHistoryReceived,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::allOrderHistoryReceived,
             this, &AccountMediator::onOrderHistoryReceived);
 
-    connect(m_privateService.get(), &Markets::IPrivateService::orderRequestRejected,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::orderRequestRejected,
             this, &AccountMediator::onOrderRequestRejected);
 
-    connect(m_privateService.get(), &Markets::IPrivateService::errorOccurred,
+    connect(m_privateService->signaller(), &Markets::PrivateServiceSignals::errorOccurred,
             this, &AccountMediator::errorOccurred);
 
     // Связываем приватный стрим
@@ -62,8 +62,8 @@ AccountMediator::AccountMediator(QObject* parent) : QObject(parent)
     connect(m_privateStreamer.get(), &Markets::IPrivateStreamer::positionUpdated,
             this, &AccountMediator::positionReady);
 
-    connect(m_privateStreamer.get(), &Markets::IPrivateStreamer::walletUpdated,
-            this, &AccountMediator::walletReady);
+    connect(m_privateStreamer.get(), &Markets::IPrivateStreamer::accountBalanceUpdated,
+            this, &AccountMediator::onAccountBalanceReady);
 
 }
 
@@ -175,7 +175,7 @@ void AccountMediator::onAccountVerificationReady()
 
 void AccountMediator::onAccountBalanceReady(const Core::Tools::AccountBalance& balance)
 {
-    emit messageSent("Account balance ready");
+    emit messageSent("Account balance updated");
     emit accountBalanceReady(balance);
 }
 
@@ -217,13 +217,13 @@ void AccountMediator::onOrderRequestRejected(const QString &orderLinkId, const Q
 
 void AccountMediator::onOrderHistoryReceived(const QList<Tools::OrderInfo> &orders)
 {
-    emit messageSent("Order history was received");
+    emit messageSent(QString("The order history is ready.\n%1 orders were received.").arg(orders.size()));
     emit orderHistoryReady(orders);
 }
 
 void AccountMediator::onOpenOrdersReceived(const QList<Tools::OrderInfo> &orders)
 {
-    emit messageSent("Open orders were received");
+    emit messageSent(QString("The opened orders is ready.\n%1 orders were received.").arg(orders.size()));
     emit openOrdersReady(orders);
 }
 

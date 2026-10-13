@@ -37,9 +37,6 @@ Rectangle {
             SplitView.preferredWidth: mainLayout.width * 0.30
             SplitView.minimumWidth: 320
             color: "transparent"
-            border.color: Theme.borderColor
-            border.width: Theme.borderWidth
-            radius: Theme.radius
             clip: true
 
             ScrollView {
@@ -277,9 +274,6 @@ Rectangle {
             SplitView.fillWidth: true
             SplitView.minimumWidth: 300
             color: "transparent"
-            border.color: Theme.borderColor
-            border.width: Theme.borderWidth
-            radius: Theme.radius
             clip: true
 
             ColumnLayout {
@@ -373,7 +367,7 @@ Rectangle {
                             color: Theme.textColor
                         }
                         CustomLabel {
-                            text: Number(model.value).toLocaleString(Qt.locale(), 'f', 2)
+                            text: Number(model.amount).toLocaleString(Qt.locale(), 'f', 2)
                             Layout.preferredWidth: cols.amountWidth
                             Layout.fillWidth: true
                             Layout.minimumWidth: 0

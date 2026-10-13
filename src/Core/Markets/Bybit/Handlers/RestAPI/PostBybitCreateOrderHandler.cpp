@@ -4,10 +4,10 @@ QByteArray Core::Markets::PostBybitCreateOrderHandler::buildRequestBody(const To
 {
     QJsonObject body;
 
-    body["category"] = Tools::marketTypeToString(req.m_category);
+    body["category"] = Tools::EnumHelpers::marketTypeToApiString(req.m_category);
     body["symbol"] = req.m_symbol;
-    body["side"] = Tools::orderSideToString(req.m_side);
-    body["orderType"] = Tools::orderTypeToString(req.m_orderType);
+    body["side"] = Tools::EnumHelpers::orderSideToString(req.m_side);
+    body["orderType"] = Tools::EnumHelpers::orderTypeToString(req.m_orderType);
     body["qty"] = req.m_qty;
 
     if (req.m_price.has_value() && !req.m_price->isEmpty())
@@ -15,7 +15,7 @@ QByteArray Core::Markets::PostBybitCreateOrderHandler::buildRequestBody(const To
     if (req.m_orderLinkId.has_value() && !req.m_orderLinkId->isEmpty())
         body["orderLinkId"] = req.m_orderLinkId.value();
     if (req.m_timeInForce.has_value())
-        body["timeInForce"] = Tools::timeInForceToString(req.m_timeInForce.value());
+        body["timeInForce"] = Tools::EnumHelpers::timeInForceToString(req.m_timeInForce.value());
     if (req.m_takeProfit.has_value() && !req.m_takeProfit->isEmpty())
         body["takeProfit"] = req.m_takeProfit.value();
     if (req.m_stopLoss.has_value() && !req.m_stopLoss->isEmpty())
@@ -28,11 +28,11 @@ QByteArray Core::Markets::PostBybitCreateOrderHandler::buildRequestBody(const To
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
 
-void Core::Markets::PostBybitCreateOrderHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
+void Core::Markets::PostBybitCreateOrderHandler::handle(const QJsonObject &data, const QVariant& requestContext, PrivateServiceSignals *signaller)
 {
     if (!data.contains("retCode") || data["retCode"].toInt() != 0)
     {
-        emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
+        emit signaller->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
         return;
     }
 
@@ -40,5 +40,5 @@ void Core::Markets::PostBybitCreateOrderHandler::handle(const QJsonObject &data,
     QString orderId = result["orderId"].toString();
     QString orderLinkId = result["orderLinkId"].toString();
 
-    emit service->orderCreated(orderId, orderLinkId);
+    emit signaller->orderCreated(orderId, orderLinkId);
 }

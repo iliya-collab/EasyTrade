@@ -1,5 +1,5 @@
 #pragma once
-#include "Tools/StdEnums.hpp"
+#include "Tools/EnumHelpers.hpp"
 
 namespace Core::Markets
 {
@@ -39,29 +39,29 @@ enum class PublicStreams
     PublicTrade
 };
 
-inline Core::Tools::Interval klineInterval(PublicStreams s)
+inline Core::Tools::EnumHelpers::Interval klineInterval(PublicStreams s)
 {
-    using Core::Tools::Interval;
+    using Core::Tools::EnumHelpers;
     switch (s)
     {
-    case PublicStreams::Kline1m:  return Interval::Min1;
-    case PublicStreams::Kline3m:  return Interval::Min3;
-    case PublicStreams::Kline5m:  return Interval::Min5;
-    case PublicStreams::Kline15m: return Interval::Min15;
-    case PublicStreams::Kline30m: return Interval::Min30;
-    case PublicStreams::Kline1h:  return Interval::Hour1;
-    case PublicStreams::Kline2h:  return Interval::Hour2;
-    case PublicStreams::Kline4h:  return Interval::Hour4;
-    case PublicStreams::Kline6h:  return Interval::Hour6;
-    case PublicStreams::Kline12h: return Interval::Hour12;
-    case PublicStreams::Kline1D:  return Interval::Day;
-    case PublicStreams::Kline1W:  return Interval::Week;
-    case PublicStreams::Kline1M:  return Interval::Month;
-    default:                      return Interval::Unknown;
+    case PublicStreams::Kline1m:  return EnumHelpers::Interval::Min1;
+    case PublicStreams::Kline3m:  return EnumHelpers::Interval::Min3;
+    case PublicStreams::Kline5m:  return EnumHelpers::Interval::Min5;
+    case PublicStreams::Kline15m: return EnumHelpers::Interval::Min15;
+    case PublicStreams::Kline30m: return EnumHelpers::Interval::Min30;
+    case PublicStreams::Kline1h:  return EnumHelpers::Interval::Hour1;
+    case PublicStreams::Kline2h:  return EnumHelpers::Interval::Hour2;
+    case PublicStreams::Kline4h:  return EnumHelpers::Interval::Hour4;
+    case PublicStreams::Kline6h:  return EnumHelpers::Interval::Hour6;
+    case PublicStreams::Kline12h: return EnumHelpers::Interval::Hour12;
+    case PublicStreams::Kline1D:  return EnumHelpers::Interval::Day;
+    case PublicStreams::Kline1W:  return EnumHelpers::Interval::Week;
+    case PublicStreams::Kline1M:  return EnumHelpers::Interval::Month;
+    default:                      return EnumHelpers::Interval::Unknown;
     }
 }
 
-inline bool isKlineStream(PublicStreams s) { return klineInterval(s) != Core::Tools::Interval::Unknown; }
+inline bool isKlineStream(PublicStreams s) { return klineInterval(s) != Core::Tools::EnumHelpers::Interval::Unknown; }
 
 inline int orderbookDepth(PublicStreams s)
 {

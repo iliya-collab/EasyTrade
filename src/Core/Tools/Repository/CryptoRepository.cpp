@@ -68,7 +68,7 @@ namespace Core::Tools {
                             base_coin = excluded.base_coin,
                             quote_coin = excluded.quote_coin
                     )",
-                    { Tools::marketTypeToString(item.m_category), item.m_symbol, item.m_baseCoin, item.m_quoteCoin }))
+                    { Tools::EnumHelpers::marketTypeToApiString(item.m_category), item.m_symbol, item.m_baseCoin, item.m_quoteCoin }))
             {
                 m_dbManager.rollbackTransaction(m_dbPath);
                 return false;
@@ -81,7 +81,7 @@ namespace Core::Tools {
         while (query.next())
         {
             TradeInfo item;
-            item.m_category = Tools::stringToMarketType(query.value(0).toString());
+            item.m_category = Tools::EnumHelpers::apiStringToMarketType(query.value(0).toString());
             item.m_symbol = query.value(1).toString();
             item.m_baseCoin = query.value(2).toString();
             item.m_quoteCoin = query.value(3).toString();
@@ -89,24 +89,24 @@ namespace Core::Tools {
         }
     }
 
-    bool CryptoRepository::selectTrades(MarketType type) {
+    bool CryptoRepository::selectTrades(Tools::EnumHelpers::MarketType type) {
         m_data.clear();
         return m_dbManager.executePrepared(m_dbPath,
             R"(SELECT category, symbol, base_coin, quote_coin
                 FROM crypto WHERE category = ?)",
-            {Tools::marketTypeToString(type)},
+            {Tools::EnumHelpers::marketTypeToApiString(type)},
             [this](QSqlQuery& query)
         {
             handleSelectedTrades(query);
         });
     }
 
-    bool CryptoRepository::selectTrades(MarketType type, const QString& quoteCoin) {
+    bool CryptoRepository::selectTrades(Tools::EnumHelpers::MarketType type, const QString& quoteCoin) {
         m_data.clear();
         return m_dbManager.executePrepared(m_dbPath,
            R"(SELECT category, symbol, base_coin, quote_coin
                 FROM crypto WHERE category = ? AND quote_coin = ?)",
-            {Tools::marketTypeToString(type), quoteCoin},
+            {Tools::EnumHelpers::marketTypeToApiString(type), quoteCoin},
            [this](QSqlQuery& query)
         {
             handleSelectedTrades(query);

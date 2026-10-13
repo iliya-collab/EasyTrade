@@ -32,7 +32,7 @@ Window {
         property bool symbolSelected: currentSymbol !== null && currentSymbol !== ""
     }
 
-    signal tradeSelected(string symbol)
+    signal tradeSelected(string category, string symbol)
 
     ColumnLayout {
         id: contentLayout
@@ -43,10 +43,10 @@ Window {
             id: tabsBar
             Layout.fillWidth: true
             modelTabs: [
-                { text: "spot",     type: Tools.MarketType.Spot },
-                { text: "linear",   type: Tools.MarketType.Linear },
-                { text: "inverse",  type: Tools.MarketType.Inverse },
-                { text: "option",   type: Tools.MarketType.Option }
+                { text: "spot",     type: EnumHelpers.MarketType.Spot },
+                { text: "linear",   type: EnumHelpers.MarketType.Linear },
+                { text: "inverse",  type: EnumHelpers.MarketType.Inverse },
+                { text: "option",   type: EnumHelpers.MarketType.Option }
             ]
             onCurrentIndexChanged: {
                 internal.currentCategory = modelTabs[currentIndex].text
@@ -140,9 +140,7 @@ Window {
                     }
 
                     onClicked: {
-                        console.info("clicked symbol:", symbol, "type:", typeof symbol)
                         internal.currentSymbol = symbol
-                        console.info("currentSymbol now:", internal.currentSymbol)
                     }
                 }
 
@@ -185,7 +183,7 @@ Window {
                 enabled: internal.symbolSelected
                 implicitHeight: 30
                 onClicked: {
-                    root.tradeSelected(internal.currentSymbol)
+                    root.tradeSelected(internal.currentCategory, internal.currentSymbol)
                     root.close()
                 }
             }

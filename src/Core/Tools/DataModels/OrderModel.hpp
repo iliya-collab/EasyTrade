@@ -45,6 +45,7 @@ namespace Core::Tools
         void upsertOrder(const OrderInfo& order);
 
         // Пакетная загрузка
+        void upsertOrders(const QList<OrderInfo>& orders);
         void resetOrders(const QList<OrderInfo>& orders);
 
         // Удаляет ордер из модели (например, когда терминальный статус больше не нужно держать в UI).

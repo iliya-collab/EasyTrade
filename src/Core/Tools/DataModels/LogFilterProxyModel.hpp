@@ -17,6 +17,9 @@ public:
     QString getLogLevel() const { return m_logLevel; }
     void setLogLevel(const QString &text);
 
+    Q_INVOKABLE QString lineAt(int row) const;
+    Q_INVOKABLE QString levelAt(int row) const;
+
 signals:
     void logLevelChanged();
 
@@ -26,7 +29,6 @@ protected:
 private:
 
     QString m_logLevel = "";
-
 };
 
 }

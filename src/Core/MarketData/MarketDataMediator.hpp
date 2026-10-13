@@ -25,11 +25,11 @@ public:
     void restartStreamer();
     void subscribe(const QString& symbol);
 
-    bool loadAllTradePairFromRepository(Tools::MarketType type);
+    bool loadAllTradePairFromRepository(Tools::EnumHelpers::MarketType type);
     bool loadKlinesFromRepository(const Tools::KlinesRequest& req);
-    void loadPublicTradesFromRepository(Tools::MarketType type, const QString& symbol);
+    void loadPublicTradesFromRepository(Tools::EnumHelpers::MarketType type, const QString& symbol);
 
-    void loadTradePairsFromNetwork(Tools::MarketType type);
+    void loadTradePairsFromNetwork(Tools::EnumHelpers::MarketType type);
     void loadKlinesFromNetwork(const Tools::KlinesRequest& req);
 
     void init(bool isTestnet);

@@ -17,7 +17,7 @@ void Core::Markets::BybitKlineStreamHandler::handle(const QJsonObject &obj, IMar
     for (const auto& val : std::as_const(arrData))
     {
         QJsonObject data = val.toObject();
-        kline.m_category = Tools::stringToMarketType(streamer->id());
+        kline.m_category = Tools::EnumHelpers::apiStringToMarketType(streamer->id());
         kline.m_open = data["open"].toString();
         kline.m_close = data["close"].toString();
         kline.m_high = data["high"].toString();
@@ -25,7 +25,7 @@ void Core::Markets::BybitKlineStreamHandler::handle(const QJsonObject &obj, IMar
         kline.m_confirm = data["confirm"].toBool();
         kline.m_start = data["start"].toVariant().toLongLong();
         kline.m_end = data["end"].toVariant().toLongLong();
-        kline.m_interval = Tools::stringToInterval(data["interval"].toString());
+        kline.m_interval = Tools::EnumHelpers::stringToInterval(data["interval"].toString());
         kline.m_volume = data["volume"].toString();
         kline.m_turnover = data["turnover"].toString();
     }

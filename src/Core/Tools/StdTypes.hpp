@@ -1,5 +1,5 @@
 #pragma once
-#include "StdEnums.hpp"
+#include "EnumHelpers.hpp"
 #include <QString>
 #include <QList>
 #include <QMap>
@@ -31,7 +31,7 @@ using OrderbookSide = QMap<QString, QString>; // уровни (цена, объ�
 
 struct Orderbook {
 
-    MarketType m_category = MarketType::Unknown;
+    EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
     QString m_symbol = ""; // Название пары
     OrderbookSide m_bids{}; // Покупки
     OrderbookSide m_asks{}; // Продажи
@@ -46,20 +46,20 @@ struct Ticker {
     Q_GADGET
     QML_VALUE_TYPE(Ticker)
 
-    Q_PROPERTY(Core::Tools::MarketType category MEMBER m_category FINAL)
-    Q_PROPERTY(QString symbol MEMBER m_symbol FINAL)
-    Q_PROPERTY(QString lastPrice MEMBER m_lastPrice FINAL)
-    Q_PROPERTY(QString usdIndexPrice MEMBER m_usdIndexPrice FINAL)
-    Q_PROPERTY(QString high24h MEMBER m_high24h FINAL)
-    Q_PROPERTY(QString low24h MEMBER m_low24h FINAL)
-    Q_PROPERTY(QString volCcy24h MEMBER m_volCcy24h FINAL)
-    Q_PROPERTY(QString vol24h MEMBER m_vol24h FINAL)
-    Q_PROPERTY(QString prevPrice24h MEMBER m_prevPrice24h FINAL)
-    Q_PROPERTY(QString price24hPcnt MEMBER m_price24hPcnt FINAL)
+    Q_PROPERTY(Core::Tools::EnumHelpers::MarketType     category        MEMBER m_category FINAL)
+    Q_PROPERTY(QString                                  symbol          MEMBER m_symbol FINAL)
+    Q_PROPERTY(QString                                  lastPrice       MEMBER m_lastPrice FINAL)
+    Q_PROPERTY(QString                                  usdIndexPrice   MEMBER m_usdIndexPrice FINAL)
+    Q_PROPERTY(QString                                  high24h         MEMBER m_high24h FINAL)
+    Q_PROPERTY(QString                                  low24h          MEMBER m_low24h FINAL)
+    Q_PROPERTY(QString                                  volCcy24h       MEMBER m_volCcy24h FINAL)
+    Q_PROPERTY(QString                                  vol24h          MEMBER m_vol24h FINAL)
+    Q_PROPERTY(QString                                  prevPrice24h    MEMBER m_prevPrice24h FINAL)
+    Q_PROPERTY(QString                                  price24hPcnt    MEMBER m_price24hPcnt FINAL)
 
 public:
 
-    MarketType m_category = MarketType::Unknown;
+    EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
     QString m_symbol = ""; // Название пары
     QString m_lastPrice {}; // Последняя цена сделки
     QString m_usdIndexPrice {}; // Индексная цена доллара США
@@ -78,9 +78,9 @@ public:
 
 struct Kline {
 
-    MarketType m_category = MarketType::Unknown;
+    EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
     QString m_symbol = "";
-    Interval m_interval = Interval::Unknown;
+    EnumHelpers::Interval m_interval = EnumHelpers::Interval::Unknown;
     QString m_open {};
     QString m_close {};
     QString m_high {};
@@ -99,9 +99,9 @@ struct Kline {
 
 struct PublicTradeItem {
 
-    MarketType m_category = MarketType::Unknown;
+    EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
     QString m_symbol = "";
-    OrderSide m_side = OrderSide::Unknown;
+    EnumHelpers::OrderSide m_side = EnumHelpers::OrderSide::Unknown;
     QString m_price {};
     QString m_volume {};
     QString m_turnover {};
@@ -256,7 +256,7 @@ public:
 
 struct TradeInfo {
 
-    MarketType m_category = MarketType::Unknown;
+    EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
     QString m_symbol = "";
     QString m_baseCoin = "";
     QString m_quoteCoin = "";
@@ -268,20 +268,20 @@ struct TradeInfo {
 // ==========================================================================================
 
 // Информация об ордере
-struct OrderInfo
+class OrderInfo
 {
     Q_GADGET
     QML_VALUE_TYPE(OrderInfo)
 
-    Q_PROPERTY(Core::Tools::MarketType category MEMBER m_category FINAL)
+    Q_PROPERTY(Core::Tools::EnumHelpers::MarketType category MEMBER m_category FINAL)
     Q_PROPERTY(QString orderId MEMBER m_orderId FINAL)
     Q_PROPERTY(QString orderLinkId MEMBER m_orderLinkId FINAL)
     Q_PROPERTY(QString symbol MEMBER m_symbol FINAL)
-    Q_PROPERTY(Core::Tools::OrderSide side MEMBER m_side FINAL)
-    Q_PROPERTY(Core::Tools::OrderType orderType MEMBER m_orderType FINAL)
+    Q_PROPERTY(Core::Tools::EnumHelpers::OrderSide side MEMBER m_side FINAL)
+    Q_PROPERTY(Core::Tools::EnumHelpers::OrderType orderType MEMBER m_orderType FINAL)
     Q_PROPERTY(QString price MEMBER m_price FINAL)
     Q_PROPERTY(QString qty MEMBER m_qty FINAL)
-    Q_PROPERTY(Core::Tools::OrderStatus status MEMBER m_status FINAL)
+    Q_PROPERTY(Core::Tools::EnumHelpers::OrderStatus status MEMBER m_status FINAL)
     Q_PROPERTY(int positionIdx MEMBER m_positionIdx FINAL)
     Q_PROPERTY(QString leavesQty MEMBER m_leavesQty FINAL)
     Q_PROPERTY(QString cumExecQty MEMBER m_cumExecQty FINAL)
@@ -293,15 +293,15 @@ struct OrderInfo
 
 public:
 
-    MarketType m_category = MarketType::Unknown; // Категория рынка
+    EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown; // Категория рынка
     QString m_orderId; // Уникальный идентификатор ордера, присвоенный биржей Bybit
     QString m_orderLinkId; // Клиентский идентификатор ордера (задается вами при отправке для локального трекинга).
     QString m_symbol; // Торговая пара (например, "BTCUSDT").
-    OrderSide m_side = OrderSide::Unknown; // Направление ордера (Buy или Sell).
-    OrderType m_orderType; // Тип ордера (Limit, Market).
+    EnumHelpers::OrderSide m_side = EnumHelpers::OrderSide::Unknown; // Направление ордера (Buy или Sell).
+    EnumHelpers::OrderType m_orderType; // Тип ордера (Limit, Market).
     QString m_price; // Цена, указанная при выставлении ордера (для рыночных ордеров обычно 0.0 или цена скольжения).
     QString m_qty; // Изначальный (заявленный) объем ордера в базовой валюте.
-    OrderStatus m_status = OrderStatus::Unknown; // Текущий статус ордера (New, Filled и т.д.).
+    EnumHelpers::OrderStatus m_status = EnumHelpers::OrderStatus::Unknown; // Текущий статус ордера (New, Filled и т.д.).
     int m_positionIdx = 0; // Режим позиции (0-OneWay, 1-Hedge Long, 2-Hedge Short); актуально для деривативов в хедж-режиме.
     QString m_leavesQty; // Сколько еще осталось исполнить.
     QString m_cumExecQty; // Сколько суммарно уже исполнено.
@@ -310,6 +310,55 @@ public:
     QString m_rejectReason; // Причина отклонения, если статус Rejected.
     qint64 m_createdTime = 0; // Таймстемп создания (мс).
     qint64 m_updatedTime = 0; // Таймстемп последнего изменения (мс).
+
+    bool isSameOrder(const OrderInfo& other) const
+    {
+        return (!m_orderId.isEmpty() && m_orderId == other.m_orderId) ||
+               (!m_orderLinkId.isEmpty() && m_orderLinkId == other.m_orderLinkId);
+    }
+
+    OrderInfo& operator=(const OrderInfo& other) {
+        if (this == &other)
+            return *this;
+
+        this->m_category = other.m_category;
+        this->m_orderId = other.m_orderId;
+        this->m_orderLinkId = other.m_orderLinkId;
+        this->m_symbol = other.m_symbol;
+        this->m_side= other.m_side;
+        this->m_orderType= other.m_orderType;
+        this->m_price= other.m_price;
+        this->m_qty= other.m_qty;
+        this->m_status= other.m_status;
+        this->m_positionIdx= other.m_positionIdx;
+        this->m_leavesQty= other.m_leavesQty;
+        this->m_cumExecQty= other.m_cumExecQty;
+        this->m_cumExecValue= other.m_cumExecValue;
+        this->m_cumExecFee= other.m_cumExecFee;
+        this->m_rejectReason= other.m_rejectReason;
+        this->m_createdTime= other.m_createdTime;
+        this->m_updatedTime= other.m_updatedTime;
+
+        return *this;
+    }
+
+    bool operator==(const OrderInfo& other) const
+    {
+        return std::tie(m_category, m_orderId, m_orderLinkId, m_symbol, m_side,
+                        m_orderType, m_price, m_qty, m_status, m_positionIdx,
+                        m_leavesQty, m_cumExecQty, m_cumExecValue, m_cumExecFee,
+                        m_rejectReason, m_createdTime, m_updatedTime)
+               == std::tie(other.m_category, other.m_orderId, other.m_orderLinkId, other.m_symbol, other.m_side,
+                           other.m_orderType, other.m_price, other.m_qty, other.m_status, other.m_positionIdx,
+                           other.m_leavesQty, other.m_cumExecQty, other.m_cumExecValue, other.m_cumExecFee,
+                           other.m_rejectReason, other.m_createdTime, other.m_updatedTime);
+    }
+
+    bool operator!=(const OrderInfo& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 struct ExecutionInfo
@@ -317,16 +366,16 @@ struct ExecutionInfo
     Q_GADGET
     QML_VALUE_TYPE(ExecutionInfo)
 
-    Q_PROPERTY(Core::Tools::MarketType category MEMBER m_category FINAL)
+    Q_PROPERTY(Core::Tools::EnumHelpers::MarketType category MEMBER m_category FINAL)
     Q_PROPERTY(QString symbol MEMBER m_symbol FINAL)
     Q_PROPERTY(QString execId MEMBER m_execId FINAL)
     Q_PROPERTY(QString orderId MEMBER m_orderId FINAL)
     Q_PROPERTY(QString orderLinkId MEMBER m_orderLinkId FINAL)
-    Q_PROPERTY(Core::Tools::OrderSide side MEMBER m_side FINAL)
+    Q_PROPERTY(Core::Tools::EnumHelpers::OrderSide side MEMBER m_side FINAL)
     Q_PROPERTY(QString execPrice MEMBER m_execPrice FINAL)
     Q_PROPERTY(QString execQty MEMBER m_execQty FINAL)
     Q_PROPERTY(QString execValue MEMBER m_execValue FINAL)
-    Q_PROPERTY(Core::Tools::ExecType execType MEMBER m_execType FINAL)
+    Q_PROPERTY(Core::Tools::EnumHelpers::ExecType execType MEMBER m_execType FINAL)
     Q_PROPERTY(QString execFee MEMBER m_execFee FINAL)
     Q_PROPERTY(QString feeCurrency MEMBER m_feeCurrency FINAL)
     Q_PROPERTY(bool isMaker MEMBER m_isMaker FINAL)
@@ -334,18 +383,18 @@ struct ExecutionInfo
 
 public:
 
-    MarketType m_category = MarketType::Unknown; // Категория рынка
+    EnumHelpers::EnumHelpers::MarketType m_category = EnumHelpers::EnumHelpers::MarketType::Unknown; // Категория рынка
     QString m_symbol; // Торговая пара
     QString m_execId; // Уникальный ID транзакции (филла)
     QString m_orderId; // ID родительского ордера
     QString m_orderLinkId; // Ваш клиентский ID
-    OrderSide m_side = OrderSide::Unknown; // Buy, Sell
+    EnumHelpers::EnumHelpers::OrderSide m_side = EnumHelpers::EnumHelpers::OrderSide::Unknown; // Buy, Sell
 
     QString m_execPrice; // Цена этой конкретной сделки
     QString m_execQty; // Объем этой конкретной сделки
     QString m_execValue; // Стоимость этой конкретной сделки
 
-    ExecType m_execType = ExecType::Unknown; // Trade, Adl, Funding, Liquidation
+    EnumHelpers::EnumHelpers::ExecType m_execType = EnumHelpers::EnumHelpers::ExecType::Unknown; // Trade, Adl, Funding, Liquidation
     QString m_execFee; // Комиссия за эту сделку (отрицательная = рибейт)
     QString m_feeCurrency; // Валюта комиссии (USDT, BTC и т.д.)
     bool m_isMaker = false; // true = Maker, false = Taker
@@ -357,26 +406,26 @@ struct PositionInfo
     Q_GADGET
     QML_VALUE_TYPE(PositionInfo)
 
-    Q_PROPERTY(Core::Tools::MarketType category MEMBER m_category FINAL)
-    Q_PROPERTY(QString symbol MEMBER m_symbol FINAL)
-    Q_PROPERTY(Core::Tools::OrderSide side MEMBER m_side FINAL)
-    Q_PROPERTY(QString size MEMBER m_size FINAL)
-    Q_PROPERTY(int positionIdx MEMBER m_positionIdx FINAL)
-    Q_PROPERTY(QString avgPrice MEMBER m_avgPrice FINAL)
-    Q_PROPERTY(QString liqPrice MEMBER m_liqPrice FINAL)
-    Q_PROPERTY(QString markPrice MEMBER m_markPrice FINAL)
-    Q_PROPERTY(QString leverage MEMBER m_leverage FINAL)
-    Q_PROPERTY(QString positionIM MEMBER m_positionIM FINAL)
-    Q_PROPERTY(QString positionMM MEMBER m_positionMM FINAL)
-    Q_PROPERTY(QString unrealisedPnl MEMBER m_unrealisedPnl FINAL)
-    Q_PROPERTY(QString cumRealisedPnl MEMBER m_cumRealisedPnl FINAL)
-    Q_PROPERTY(int adlRankIndicator MEMBER m_adlRankIndicator FINAL)
+    Q_PROPERTY(Core::Tools::EnumHelpers::MarketType     category            MEMBER m_category           FINAL)
+    Q_PROPERTY(QString                                  symbol              MEMBER m_symbol             FINAL)
+    Q_PROPERTY(Core::Tools::EnumHelpers::OrderSide      side                MEMBER m_side               FINAL)
+    Q_PROPERTY(QString                                  size                MEMBER m_size               FINAL)
+    Q_PROPERTY(int                                      positionIdx         MEMBER m_positionIdx        FINAL)
+    Q_PROPERTY(QString                                  avgPrice            MEMBER m_avgPrice           FINAL)
+    Q_PROPERTY(QString                                  liqPrice            MEMBER m_liqPrice           FINAL)
+    Q_PROPERTY(QString                                  markPrice           MEMBER m_markPrice          FINAL)
+    Q_PROPERTY(QString                                  leverage            MEMBER m_leverage           FINAL)
+    Q_PROPERTY(QString                                  positionIM          MEMBER m_positionIM         FINAL)
+    Q_PROPERTY(QString                                  positionMM          MEMBER m_positionMM         FINAL)
+    Q_PROPERTY(QString                                  unrealisedPnl       MEMBER m_unrealisedPnl      FINAL)
+    Q_PROPERTY(QString                                  cumRealisedPnl      MEMBER m_cumRealisedPnl     FINAL)
+    Q_PROPERTY(int                                      adlRankIndicator    MEMBER m_adlRankIndicator   FINAL)
 
 public:
 
-    MarketType m_category = MarketType::Unknown; // Категория рынка (linear, inverse)
+    EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown; // Категория рынка (linear, inverse)
     QString m_symbol; // Торговая пара
-    OrderSide m_side = OrderSide::Unknown; // Buy=Long, Sell=Short, Unknown=нет позиции
+    EnumHelpers::OrderSide m_side = EnumHelpers::OrderSide::Unknown; // Buy=Long, Sell=Short, Unknown=нет позиции
     QString m_size; // Текущий размер открытой позиции (0 если закрыта)
     int m_positionIdx = 0; // Режим: 0-OneWay, 1-Hedge Long, 2-Hedge Short
 

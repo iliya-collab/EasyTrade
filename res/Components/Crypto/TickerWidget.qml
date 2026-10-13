@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Shapes 1.15
 import Application.Core 1.0
+import Theme 1.0
 
 Rectangle {
     id: root
@@ -12,23 +13,46 @@ Rectangle {
     readonly property Ticker tckr : AppCore.marketState.ticker
 
     // === Данные ===
-    property string symbol : tckr.symbol ? tckr.symbol : "Unknown"
-    property real low: tckr.low24h ? tckr.low24h : 0
-    property real high: tckr.high24h ? tckr.high24h : 1000
-    property real current: tckr.lastPrice ? tckr.lastPrice : high * 0.25
+    property string symbol:     tckr.symbol ? tckr.symbol : "Unknown"
+    property real low:          tckr.low24h ? tckr.low24h : 0
+    property real high:         tckr.high24h ? tckr.high24h : 1000
+    property real current:      tckr.lastPrice ? tckr.lastPrice : high * 0.25
 
-    readonly property real currentFrac:
-        Math.max(0, Math.min(1, (current - low) / (high - low)))
+    readonly property real currentFrac: high > low
+        ? Math.max(0, Math.min(1, (current - low) / (high - low)))
+        : 0.5
+
+    // === Направление движения ===
+    //  1 — цена движется вправо (к 24h High)
+    // -1 — цена движется влево (к 24h Low)
+    //  0 — направление ещё неизвестно
+    property real prevCurrent: 0
+    property int  direction: 0
+
+    onCurrentChanged: {
+        if (prevCurrent !== 0 && current !== prevCurrent)
+            direction = current > prevCurrent ? 1 : -1
+        prevCurrent = current
+    }
+
+    // При смене пары старое направление не имеет смысла
+    onSymbolChanged: {
+        prevCurrent = 0
+        direction = 0
+    }
 
     // === Цвета ===
     readonly property color bgColor:      "#1e222b"
     readonly property color trackColor:   "#5b8def"
-    readonly property color lowColor:     "#f0a04b"
-    readonly property color highColor:    "#5b8def"
-    readonly property color currentColor: "#e83e8c"
+    readonly property color lowColor:     Theme.downColor
+    readonly property color highColor:    Theme.upColor
     readonly property color textColor:    "#c8ccd6"
     readonly property color titleColor:   "#f5f6fa"
     readonly property color axisColor:    "#8b91a1"
+
+    // Цвет текущей цены: зелёный — к High, красный — к Low
+    readonly property color directionColor:
+        direction > 0 ? Theme.upColor : (direction < 0 ? Theme.downColor : Theme.currentColor)
 
     ColumnLayout {
         anchors.fill: parent
@@ -65,14 +89,16 @@ Rectangle {
             readonly property real trackCenterY: trackY0 + trackH / 2
 
             // --- Координаты маркеров ---
-            readonly property real lowX:
-                padL + trackW * root.low / (root.high - root.low)
-            readonly property real highX:
-                padL + trackW * root.high / (root.high - root.low)
-            readonly property real currentX:
-                padL + trackW * root.currentFrac
+            // Low всегда на левом краю шкалы, High — на правом
+            readonly property real lowX:     padL
+            readonly property real highX:    padL + trackW
+            readonly property real currentX: padL + trackW * root.currentFrac
 
-            // Единый Shape: трек + маркеры + вертикаль Current
+            // --- Стрелка направления рядом с точкой Current ---
+            readonly property real arrowBaseX: currentX + root.direction * 12
+            readonly property real arrowTipX:  arrowBaseX + root.direction * 8
+
+            // Единый Shape: трек + маркеры + вертикаль Current + стрелка
             Shape {
                 anchors.fill: parent
                 layer.enabled: true
@@ -170,7 +196,7 @@ Rectangle {
                 // --- Current: вертикальная линия ---
                 ShapePath {
                     strokeWidth: 2
-                    strokeColor: root.lowColor
+                    strokeColor: root.directionColor
                     fillColor: "transparent"
                     capStyle: ShapePath.FlatCap
 
@@ -184,11 +210,11 @@ Rectangle {
                     }
                 }
 
-                // --- Current: розовая точка ---
+                // --- Current: точка ---
                 ShapePath {
                     strokeWidth: 2
                     strokeColor: root.bgColor
-                    fillColor: root.currentColor
+                    fillColor: root.directionColor
 
                     PathAngleArc {
                         centerX: scaleArea.currentX
@@ -199,21 +225,43 @@ Rectangle {
                         sweepAngle: 360
                     }
                 }
+
+                // --- Current: стрелка направления (вправо — к High, влево — к Low) ---
+                ShapePath {
+                    strokeWidth: 0
+                    fillColor: root.direction === 0 ? "transparent" : root.directionColor
+
+                    startX: scaleArea.arrowBaseX
+                    startY: scaleArea.trackCenterY - 5
+
+                    PathLine {
+                        x: scaleArea.arrowTipX
+                        y: scaleArea.trackCenterY
+                    }
+                    PathLine {
+                        x: scaleArea.arrowBaseX
+                        y: scaleArea.trackCenterY + 5
+                    }
+                    PathLine {
+                        x: scaleArea.arrowBaseX
+                        y: scaleArea.trackCenterY - 5
+                    }
+                }
             }
 
-            // 3.2 Подписи над треком
+            // Подписи над треком
             Text {
                 x: scaleArea.lowX
                 y: 0
                 text: "24h Low: " + root.low
-                color: root.textColor
+                color: root.lowColor
                 font.pixelSize: 12
             }
             Text {
                 x: scaleArea.currentX - width / 2
                 y: 0
                 text: "Current: " + root.current
-                color: root.titleColor
+                color: root.directionColor
                 font.pixelSize: 12
                 font.bold: true
             }
@@ -221,12 +269,12 @@ Rectangle {
                 x: scaleArea.highX - width
                 y: 0
                 text: "24h High: " + root.high
-                color: root.textColor
+                color: root.highColor
                 font.pixelSize: 12
             }
         }
 
-        // 4. Ось X
+        // Ось X
         Item {
             id: axis
             Layout.fillWidth: true

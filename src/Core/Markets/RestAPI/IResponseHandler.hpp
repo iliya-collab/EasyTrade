@@ -1,20 +1,20 @@
 #pragma once
-#include "IMarketDataService.hpp"
-#include "IPrivateService.hpp"
+#include "MarketDataServiceSignals.hpp"
+#include "PrivateServiceSignals.hpp"
 
 namespace Core::Markets
 {
 
-template <typename TService>
+template <typename TServiceSignaller>
 class IResponseHandler
 {
 public:
     virtual ~IResponseHandler() = default;
     // Метод, который принимает сырой JSON и выполняет парсинг
-    virtual void handle(const QJsonObject& data, const QVariant& requestContext, TService* service) = 0;
+    virtual void handle(const QJsonObject& data, const QVariant& requestContext, TServiceSignaller* signaller) = 0;
 };
 
-using IMarketDataResponseHandler = IResponseHandler<IMarketDataService>;
-using IPrivateResponseHandler = IResponseHandler<IPrivateService>;
+using IMarketDataResponseHandler = IResponseHandler<MarketDataServiceSignals>;
+using IPrivateResponseHandler = IResponseHandler<PrivateServiceSignals>;
 
 }

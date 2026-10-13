@@ -24,12 +24,11 @@ namespace Core::Markets
         return localTime.toString("yyyy-MM-dd");
     }
 
-    void GetBybitInfoAboutAPIHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
+    void GetBybitInfoAboutAPIHandler::handle(const QJsonObject &data, const QVariant& requestContext, PrivateServiceSignals *signaller)
     {
         if (!data.contains("retCode") || data["retCode"].toInt() != 0)
         {
-            emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " +
-                                                data["retMsg"].toString()).arg(endpoint()));
+            emit signaller->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
             return;
         }
 
@@ -109,7 +108,7 @@ namespace Core::Markets
                                            hasField(walletArr, "SubMemberTransferList");
         }
 
-        emit service->infoAboutApiReceived(info);
+        emit signaller->infoAboutApiReceived(info);
     }
 
 }

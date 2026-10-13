@@ -24,7 +24,7 @@ namespace Core::Markets
         m_currentApi->init(api, isTestnet);
     }
 
-    void BybitMarketDataService::requestTradePairs(Tools::MarketType type)
+    void BybitMarketDataService::requestTradePairs(Tools::EnumHelpers::MarketType type)
     {
         qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
 

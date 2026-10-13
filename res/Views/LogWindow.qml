@@ -19,6 +19,66 @@ Window {
         logLevel: ""
     }
 
+    property int appliedCount: 0
+
+    function esc(s) {
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    }
+
+    function colorFor(level) {
+        return level === "error"   ? "#ff5555"
+             : level === "warning" ? "#FFD700"
+             :                       "#dddddd"
+    }
+
+    function lineHtml(row) {
+        return "<span style='color:" + colorFor(logModel.levelAt(row)) + "'>"
+             + esc(logModel.lineAt(row)) + "</span>"
+    }
+
+    function isAtEnd() {
+        var bar = scroll.ScrollBar.vertical
+        return bar.position + bar.size >= 0.999
+    }
+
+    function scrollToEnd() {
+        var bar = scroll.ScrollBar.vertical
+        bar.position = 1.0 - bar.size
+    }
+
+    function rebuild() {
+        var stick = isAtEnd()
+        var parts = []
+        var n = logModel.rowCount()
+        for (var i = 0; i < n; ++i)
+            parts.push(lineHtml(i))
+        logView.text = parts.join("<br>")
+        appliedCount = n
+        if (stick) Qt.callLater(scrollToEnd)
+    }
+
+    function appendRows(first, last) {
+        var stick = isAtEnd()
+        for (var i = first; i <= last; ++i)
+            logView.append(lineHtml(i))
+        appliedCount = logModel.rowCount()
+        if (stick) Qt.callLater(scrollToEnd)
+    }
+
+    Connections {
+        target: root.logModel
+
+        function onRowsInserted(parent, first, last) {
+            if (first === root.appliedCount) root.appendRows(first, last)
+            else root.rebuild()
+        }
+        function onRowsRemoved()   { root.rebuild() }
+        function onModelReset()    { root.rebuild() }
+        function onLayoutChanged() { root.rebuild() }
+    }
+
+    Component.onCompleted: rebuild()
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 6
@@ -35,6 +95,7 @@ Window {
                 onCurrentIndexChanged: {
                     var logLevel = modelTabs[currentIndex].level
                     logModel.logLevel = logLevel
+                    Qt.callLater(root.rebuild)
                 }
             }
             Item { Layout.fillWidth: true }
@@ -44,32 +105,23 @@ Window {
             }
         }
 
-        ListView {
-            id: list
+        ScrollView {
+            id: scroll
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: logModel
-            property bool stick: true
 
-            ScrollBar.vertical: ScrollBar {}
-
-            onMovementEnded: stick = atYEnd
-            onCountChanged: if (stick) Qt.callLater(positionViewAtEnd)
-
-            delegate: Text {
-                required property string time
-                required property string level
-                required property string category
-                required property string message
-
-                height: implicitHeight
-                width: ListView.view.width
-                wrapMode: Text.WordWrap
-                color:  level === "error" ? "#ff5555" :
-                        level === "warning" ? "#FFD700"
-                        : "#dddddd"
-                text: "[" + time + "] " + category + ": " + message
+            TextArea {
+                id: logView
+                readOnly: true
+                selectByMouse: true
+                persistentSelection: true
+                wrapMode: TextEdit.WordWrap
+                textFormat: TextEdit.RichText
+                color: "#dddddd"
+                selectionColor: "#264f78"
+                selectedTextColor: "white"
+                background: null
             }
         }
     }

@@ -15,7 +15,7 @@ QVariant Core::Tools::OrderModel::data(const QModelIndex &index, int role) const
     switch (role)
     {
     case CategoryRole:
-        return QVariant::fromValue(o.m_category);
+        return EnumHelpers::marketTypeToApiString(o.m_category);
     case OrderIdRole:
         return o.m_orderId;
     case OrderLinkIdRole:
@@ -23,15 +23,15 @@ QVariant Core::Tools::OrderModel::data(const QModelIndex &index, int role) const
     case SymbolRole:
         return o.m_symbol;
     case SideRole:
-        return QVariant::fromValue(o.m_side);
+        return EnumHelpers::orderSideToString(o.m_side);
     case OrderTypeRole:
-        return QVariant::fromValue(o.m_orderType);
+        return EnumHelpers::orderTypeToString(o.m_orderType);
     case PriceRole:
         return o.m_price;
     case QtyRole:
         return o.m_qty;
     case StatusRole:
-        return QVariant::fromValue(o.m_status);
+        return EnumHelpers::orderStatusToString(o.m_status);
     case PositionIdxRole:
         return o.m_positionIdx;
     case LeavesQtyRole:
@@ -95,6 +95,89 @@ void Core::Tools::OrderModel::upsertOrder(const OrderInfo &order)
     m_orders.append(order);
     m_orderIdToRow.insert(order.m_orderId, row);
     endInsertRows();
+}
+
+void Core::Tools::OrderModel::upsertOrders(const QList<OrderInfo> &orders)
+{
+    if (orders.isEmpty())
+        return;
+
+    if (orders.size() == 1)
+    {
+        upsertOrder(orders.first());
+        qInfo() << "Size:" << m_orders.size();
+        return;
+    }
+
+    std::vector<int> changedRows{};
+    changedRows.reserve(orders.size());
+
+    std::vector<OrderInfo> newOrders{};
+    newOrders.reserve(orders.size());
+
+    for (const auto& o : orders)
+    {
+        auto it = m_orderIdToRow.find(o.m_orderId);
+        if (it != m_orderIdToRow.end())
+        {
+            int row = it.value();
+            m_orders[row] = o;
+            changedRows.push_back(row);
+        }
+        else
+        {
+            auto it = find_if(newOrders.begin(), newOrders.end(), [&o](const OrderInfo& other) { return o.isSameOrder(other); });
+            if (it != newOrders.end())
+                *it = o;
+            else
+                newOrders.push_back(o);
+        }
+    }
+
+    if (!changedRows.empty())
+    {
+        std::sort(changedRows.begin(), changedRows.end());
+
+        int first = changedRows[0];
+        int last  = first;
+
+        auto flush = [&]() {
+            const QModelIndex tl = index(first, 0);
+            const QModelIndex br = index(last, 0);
+            emit dataChanged(tl, br);
+        };
+
+        for (int i = 1; i < changedRows.size(); ++i)
+        {
+            const int r = changedRows[i];
+            if (r == last + 1)
+            {
+                last = r;
+            }
+            else
+            {
+                flush();
+                first = last = r;
+            }
+        }
+        flush();
+    }
+
+    if (!newOrders.empty())
+    {
+        const int firstIdx = m_orders.size();
+        const int lastIdx = m_orders.size() + newOrders.size() - 1;
+
+        beginInsertRows(QModelIndex(), firstIdx, lastIdx);
+        for (const auto& o : newOrders)
+        {
+            m_orderIdToRow.insert(o.m_orderId, m_orders.size());
+            m_orders.push_back(o);
+        }
+        endInsertRows();
+    }
+
+    qInfo() << "Size:" << m_orders.size();
 }
 
 void Core::Tools::OrderModel::resetOrders(const QList<OrderInfo> &orders)

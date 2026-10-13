@@ -9,7 +9,7 @@
 namespace Core::Markets
 {
 
-    BybitMarketDataStreamer::BybitMarketDataStreamer(Tools::MarketType type, QObject* parent)
+    BybitMarketDataStreamer::BybitMarketDataStreamer(Tools::EnumHelpers::MarketType type, QObject* parent)
         : BaseMarketDataStreamer(
             Tools::BybitWebSocketCreator::create(Tools::SocketType::Public, type, Tools::Api(), parent),
             parent
@@ -99,10 +99,10 @@ namespace Core::Markets
             .arg(symbol);
     }
 
-    QString BybitMarketDataStreamer::createKlineStream(const QString &symbol, Tools::Interval interval) const
+    QString BybitMarketDataStreamer::createKlineStream(const QString &symbol, Tools::EnumHelpers::Interval interval) const
     {
         return QString("kline.%1.%2")
-            .arg(Tools::intervalToString(interval))
+            .arg(Tools::EnumHelpers::intervalToString(interval))
             .arg(symbol);
     }
 

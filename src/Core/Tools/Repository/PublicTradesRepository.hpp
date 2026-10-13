@@ -24,7 +24,7 @@ public:
     bool clear() override;
 
     bool insertPublicTrades(const PublicTrades& newPublicTrades);
-    bool selectKlines(Tools::MarketType type, const QString& symbol);
+    bool selectKlines(Tools::EnumHelpers::MarketType type, const QString& symbol);
 
 };
 

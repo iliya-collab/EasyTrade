@@ -27,6 +27,48 @@ Item {
 
     visible: asks && bids
 
+    // ==========================================================================================
+    //  Логика определения hover-строки под курсором
+    // ==========================================================================================
+    function updateHover(absX, absY) {
+        if (!bidsView || !asksView)
+            return
+
+        var bPos = bidsView.mapFromItem(root, absX, absY)
+        var aPos = asksView.mapFromItem(root, absX, absY)
+
+        var insideBids = bPos.x >= 0 && bPos.x < bidsView.width &&
+                         bPos.y >= 0 && bPos.y < bidsView.height
+        var insideAsks = aPos.x >= 0 && aPos.x < asksView.width &&
+                         aPos.y >= 0 && aPos.y < asksView.height
+
+        var bidIdx = insideBids
+            ? bidsView.indexAt(bPos.x + bidsView.contentX, bPos.y + bidsView.contentY)
+            : -1
+        var askIdx = insideAsks
+            ? asksView.indexAt(aPos.x + asksView.contentX, aPos.y + asksView.contentY)
+            : -1
+
+        if (bidIdx < 0 && askIdx < 0) {
+            root.hoveredBidIndex = -1
+            root.hoveredAskIndex = -1
+            root.tooltipData = null
+            return
+        }
+
+        if (bidIdx >= 0) {
+            root.hoveredBidIndex = bidIdx
+            root.hoveredAskIndex = -1
+            root.tooltipData = bids.get(bidIdx)
+            root.tooltipIsBid = true
+        } else {
+            root.hoveredBidIndex = -1
+            root.hoveredAskIndex = askIdx
+            root.tooltipData = asks.get(askIdx)
+            root.tooltipIsBid = false
+        }
+    }
+
     // Заголовки
     Row {
         id: rowHeader
@@ -81,34 +123,6 @@ Item {
                 hoveredIndex: root.hoveredBidIndex
                 maxVolume: root.maxVolume
             }
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-
-                onPositionChanged: function(mouse) {
-                    var p = mapToItem(root, mouse.x, mouse.y)
-                    root.mouseX = p.x
-                    root.mouseY = p.y
-
-                    var idx = bidsView.indexAt(mouse.x + bidsView.contentX,
-                                                mouse.y + bidsView.contentY)
-
-                    if (idx >= 0) {
-                        root.hoveredBidIndex = idx
-                        root.hoveredAskIndex = -1
-                        root.tooltipData = bids.get(idx)
-                        root.tooltipIsBid = true
-                    } else {
-                        root.hoveredBidIndex = -1
-                        root.tooltipData = null
-                    }
-                }
-                onExited: {
-                    root.hoveredBidIndex = -1
-                    root.tooltipData = null
-                }
-            }
         } // bidsView
 
         // Разделитель
@@ -134,55 +148,68 @@ Item {
                 hoveredIndex: root.hoveredAskIndex
                 maxVolume: root.maxVolume
             }
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-
-                onPositionChanged: function(mouse) {
-                    var p = mapToItem(root, mouse.x, mouse.y)
-                    root.mouseX = p.x
-                    root.mouseY = p.y
-
-                    var idx = asksView.indexAt(mouse.x + asksView.contentX,
-                                                mouse.y + asksView.contentY)
-
-                    if (idx >= 0) {
-                        root.hoveredAskIndex = idx
-                        root.hoveredBidIndex = -1
-                        root.tooltipData = asks.get(idx)
-                        root.tooltipIsBid = false
-                    } else {
-                        root.hoveredAskIndex = -1
-                        root.tooltipData = null
-                    }
-                }
-                onExited: {
-                    root.hoveredAskIndex = -1
-                    root.tooltipData = null
-                }
-            }
         } // asksView
     } // listsRow
+
+    // ==========================================================================================
+    //  Единый MouseArea поверх всего — перехватывает движение курсора
+    // ==========================================================================================
+    MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        acceptedButtons: Qt.NoButton
+
+        onPositionChanged: function(mouse) {
+            var p = mapToItem(root, mouse.x, mouse.y)
+            root.mouseX = p.x
+            root.mouseY = p.y
+            root.updateHover(p.x, p.y)
+        }
+
+        onExited: {
+            root.hoveredBidIndex = -1
+            root.hoveredAskIndex = -1
+            root.tooltipData = null
+        }
+    }
 
     // Tooltip
     Popup {
         id: tooltip
-        x: root.mouseX + 12
-        y: root.mouseY - 10
-        width: tooltipText.implicitWidth + 16
+
+        width: 220
         height: tooltipText.implicitHeight + 16
         padding: 8
         modal: false
         focus: false
         closePolicy: Popup.NoAutoClose
-        visible: root.tooltipData !== null
+
+        // Зазор между курсором и tooltip
+        readonly property int gap: 14
+
+        // Пытаемся рисовать справа от курсора; если не влезает — слева
+        readonly property real desiredX: (root.mouseX + gap + width <= root.width)
+                                         ? root.mouseX + gap
+                                         : root.mouseX - gap - width
+
+        // Пытаемся рисовать снизу от курсора; если не влезает — сверху
+        readonly property real desiredY: (root.mouseY + gap + height <= root.height)
+                                         ? root.mouseY + gap
+                                         : root.mouseY - gap - height
+
+        // Ограничиваем окном, но с учётом уже выбранной стороны
+        x: Math.round(Math.max(5, Math.min(desiredX, root.width  - width  - 5)))
+        y: Math.round(Math.max(5, Math.min(desiredY, root.height - height - 5)))
+
+        visible: root.tooltipData !== null && root.tooltipData !== undefined
+
         background: Rectangle {
             color: Qt.rgba(30 / 255, 30 / 255, 40 / 255, 0.92)
             border.color: root.tooltipIsBid ? "#8bc34a" : "#ef5350"
             border.width: 1
             radius: 2
         }
+
         contentItem: Text {
             id: tooltipText
             color: "white"
@@ -192,24 +219,10 @@ Item {
                 if (!root.tooltipData)
                     return ""
                 var d = root.tooltipData
-                return "Avg. Price:     " + Number(d.avgPrice).toFixed(2) + "\n"
+                return "Avg. Price:     " + formatNum(d.avgPrice) + "\n"
                      + "Total Volume:   " + formatNum(d.totalVolume) + "\n"
                      + "Total Turnover: " + formatNum(d.totalTurnover)
             }
-        }
-
-        // Корректировка, чтобы не выходить за границы окна
-        onXChanged: {
-            if (x + width > root.width)
-                x = root.mouseX - width - 12
-            if (x < 0)
-                x = 5
-        }
-        onYChanged: {
-            if (y + height > root.height)
-                y = root.height - height - 5
-            if (y < 0)
-                y = 5
         }
     } // tooltip
 
@@ -220,7 +233,9 @@ Item {
         return v.toFixed(2)
     }
 
-    // Делегат BIDS
+    // ==========================================================================================
+    //  Делегат BIDS
+    // ==========================================================================================
     component BidDelegate: Item {
         id: bidDel
         required property int index
@@ -234,7 +249,6 @@ Item {
         property int hoveredIndex: -1
         property real maxVolume: 0
 
-        // Градиентный бар объёма, растёт справа налево
         Rectangle {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
@@ -245,12 +259,12 @@ Item {
                 GradientStop {
                     position: 0.0
                     color: index <= bidDel.hoveredIndex ? Qt.rgba(76 / 255, 175 / 255, 80 / 255, 0.10)
-                                                          : Qt.rgba(76 / 255, 175 / 255, 80 / 255, 0.05)
+                                                        : Qt.rgba(76 / 255, 175 / 255, 80 / 255, 0.05)
                 }
                 GradientStop {
                     position: 1.0
                     color: index <= bidDel.hoveredIndex ? Qt.rgba(76 / 255, 175 / 255, 80 / 255, 0.80)
-                                                          : Qt.rgba(76 / 255, 175 / 255, 80 / 255, 0.30)
+                                                        : Qt.rgba(76 / 255, 175 / 255, 80 / 255, 0.30)
                 }
             }
         }
@@ -263,7 +277,6 @@ Item {
             border.width: 1
         }
 
-        // Тексты: Turnover 30% | Volume 30% | Price 40% (price прижат к центру)
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 5
@@ -296,11 +309,14 @@ Item {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
                 Layout.alignment: Qt.AlignVCenter
+                elide: Text.ElideRight
             }
         }
     } // bidDel
 
-    // Делегат ASKS
+    // ==========================================================================================
+    //  Делегат ASKS
+    // ==========================================================================================
     component AskDelegate: Item {
         id: askDel
         required property int index
@@ -314,7 +330,6 @@ Item {
         property int hoveredIndex: -1
         property real maxVolume: 0
 
-        // Градиентный бар, растёт слева направо
         Rectangle {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
@@ -325,12 +340,12 @@ Item {
                 GradientStop {
                     position: 0.0
                     color: index <= askDel.hoveredIndex ? Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.80)
-                                                          : Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.30)
+                                                        : Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.30)
                 }
                 GradientStop {
                     position: 1.0
                     color: index <= askDel.hoveredIndex ? Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.10)
-                                                          : Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.05)
+                                                        : Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.05)
                 }
             }
         }
@@ -343,7 +358,6 @@ Item {
             border.width: 1
         }
 
-        // Тексты: Price 30% | Volume 30% | Turnover 40%
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 5

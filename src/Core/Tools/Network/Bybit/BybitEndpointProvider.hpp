@@ -11,14 +11,14 @@ namespace Core::Tools
     public:
 
         // Для WebSocket
-        static QString webSocketUrl(SocketType socketType, MarketType marketType, bool isTestnet)
+        static QString webSocketUrl(SocketType socketType, EnumHelpers::MarketType marketType, bool isTestnet)
         {
             const QString base = isTestnet ? "wss://stream-testnet.bybit.com" : "wss://stream.bybit.com";
 
             if (socketType == SocketType::Private)
                 return base + "/v5/private";
 
-            return base + "/v5/public/" + marketTypeToString(marketType);
+            return base + "/v5/public/" + EnumHelpers::marketTypeToApiString(marketType);
         }
 
         // Для REST API

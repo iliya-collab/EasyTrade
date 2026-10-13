@@ -12,6 +12,12 @@ namespace Core {
         m_trades = std::make_shared<Tools::PublicTradesModel>();
     }
 
+    void MarketDataState::setCurrentCategory(Tools::EnumHelpers::MarketType category)
+    {
+        m_currentCategory = category;
+        emit currentCategoryChanged();
+    }
+
     void MarketDataState::setCurrentSymbol(const QString &symbol)
     {
         m_currentSymbol = symbol;

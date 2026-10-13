@@ -1,6 +1,6 @@
 #pragma once
 #include "Markets/RestAPI/IResponseHandler.hpp"
-#include "Tools/StdTypes.hpp"
+#include "Tools/QueryStructures.hpp"
 
 namespace Core::Markets
 {
@@ -14,7 +14,7 @@ public:
 
     static QByteArray buildRequestBody(const Tools::OrderAmendRequest& req);
 
-    void handle(const QJsonObject& data, const QVariant& requestContext, IPrivateService* service) override;
+    void handle(const QJsonObject& data, const QVariant& requestContext, PrivateServiceSignals* signaller) override;
 
 };
 

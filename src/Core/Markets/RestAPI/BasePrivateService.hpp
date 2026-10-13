@@ -1,6 +1,7 @@
 #pragma once
 #include <Tools/Network/BaseRestAPI.hpp>
 #include "IResponseHandler.hpp"
+#include "IPrivateService.hpp"
 #include "ServiceConcepts.hpp"
 #include <QObject>
 
@@ -12,7 +13,9 @@ class BasePrivateService : public IPrivateService
     Q_OBJECT
 
 private:
+
     std::map<QString, std::unique_ptr<IPrivateResponseHandler>> m_handlers;
+    PrivateServiceSignals* m_signaller;
 
 protected:
 
@@ -87,12 +90,16 @@ public:
     explicit BasePrivateService(std::unique_ptr<Tools::BaseRestAPI> api, QObject* parent = nullptr)
         : IPrivateService(parent), m_currentApi(std::move(api))
     {
-        connect(m_currentApi.get(), &Tools::BaseRestAPI::downloadProgress, this, &BasePrivateService::downloadProgress, Qt::UniqueConnection);
-        connect(m_currentApi.get(), &Tools::BaseRestAPI::errorOccurred, this, &BasePrivateService::errorOccurred, Qt::UniqueConnection);
+        m_signaller = new PrivateServiceSignals(this);
+
+        connect(m_currentApi.get(), &Tools::BaseRestAPI::downloadProgress, m_signaller, &PrivateServiceSignals::downloadProgress, Qt::UniqueConnection);
+        connect(m_currentApi.get(), &Tools::BaseRestAPI::errorOccurred, m_signaller, &PrivateServiceSignals::errorOccurred, Qt::UniqueConnection);
         connect(m_currentApi.get(), &Tools::BaseRestAPI::dataReceived, this, &BasePrivateService::onDataReceived, Qt::UniqueConnection);
     }
 
     virtual ~BasePrivateService() {}
+
+    PrivateServiceSignals* signaller() override { return m_signaller; }
 
 protected slots:
 
@@ -104,9 +111,9 @@ protected slots:
         QString path = reqUrl.path();
 
         if (m_handlers.contains(path))
-            m_handlers[path]->handle(QJsonDocument::fromJson(data).object(), context, this);
+            m_handlers[path]->handle(QJsonDocument::fromJson(data).object(), context, m_signaller);
         else
-            emit errorOccurred("Unknown endpoint: " + path);
+            emit m_signaller->errorOccurred("Unknown endpoint: " + path);
     }
 
 };

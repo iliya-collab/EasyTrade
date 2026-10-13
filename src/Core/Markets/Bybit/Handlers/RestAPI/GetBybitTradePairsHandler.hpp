@@ -14,14 +14,14 @@ namespace Core::Markets
 
         static QString endpoint() { return "/v5/market/instruments-info"; }
 
-        static QUrlQuery buildRequest(Tools::MarketType type)
+        static QUrlQuery buildRequest(Tools::EnumHelpers::MarketType type)
         {
             QUrlQuery params;
-            params.addQueryItem("category", Tools::marketTypeToString(type));
+            params.addQueryItem("category", Tools::EnumHelpers::marketTypeToApiString(type));
             return params;
         }
 
-        void handle(const QJsonObject& data, const QVariant& requestContext, IMarketDataService* service) override;
+        void handle(const QJsonObject& data, const QVariant& requestContext, MarketDataServiceSignals* signaller) override;
     };
 
 }

@@ -29,7 +29,7 @@ MarketDataRepository::MarketDataRepository(QObject* parent) : QObject(parent)
     }
 }
 
-QList<Tools::TradeInfo> MarketDataRepository::loadFromCryptoRepository(Tools::MarketType type)
+QList<Tools::TradeInfo> MarketDataRepository::loadFromCryptoRepository(Tools::EnumHelpers::MarketType type)
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
     QMutexLocker locker(&m_mutex);
@@ -41,7 +41,7 @@ QList<Tools::TradeInfo> MarketDataRepository::loadFromCryptoRepository(Tools::Ma
     return m_cryptoRep->getData();
 }
 
-QList<Tools::Kline> MarketDataRepository::loadFromKlinesRepository(Tools::MarketType type, const QString &symbol, Tools::Interval interval, std::optional<qint64> start, std::optional<qint64> end)
+QList<Tools::Kline> MarketDataRepository::loadFromKlinesRepository(Tools::EnumHelpers::MarketType type, const QString &symbol, Tools::EnumHelpers::Interval interval, std::optional<qint64> start, std::optional<qint64> end)
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
     QMutexLocker locker(&m_mutex);
@@ -56,7 +56,7 @@ QList<Tools::Kline> MarketDataRepository::loadFromKlinesRepository(Tools::Market
     return m_klinesRep->getData();
 }
 
-Tools::PublicTrades MarketDataRepository::loadFromPublicTradesRepository(Tools::MarketType type, const QString &symbol)
+Tools::PublicTrades MarketDataRepository::loadFromPublicTradesRepository(Tools::EnumHelpers::MarketType type, const QString &symbol)
 {
     // TODO
     return {};

@@ -8,9 +8,9 @@ namespace Core::Tools
         while (query.next())
         {
             Kline k;
-            k.m_category = Tools::stringToMarketType(query.value(0).toString());
+            k.m_category = Tools::EnumHelpers::apiStringToMarketType(query.value(0).toString());
             k.m_symbol   = query.value(1).toString();
-            k.m_interval = Tools::stringToInterval(query.value(2).toString());
+            k.m_interval = Tools::EnumHelpers::stringToInterval(query.value(2).toString());
             k.m_start    = query.value(3).toLongLong();
             k.m_end      = query.value(4).toLongLong();
             k.m_open     = query.value(5).toString();
@@ -102,8 +102,8 @@ namespace Core::Tools
                         volume = EXCLUDED.volume,
                         turnover = EXCLUDED.turnover;
                 )",
-                { Tools::marketTypeToString(item.m_category), item.m_symbol,
-                    Tools::intervalToString(item.m_interval), item.m_start,
+                { Tools::EnumHelpers::marketTypeToApiString(item.m_category), item.m_symbol,
+                    Tools::EnumHelpers::intervalToString(item.m_interval), item.m_start,
                     item.m_end, item.m_open, item.m_close,
                     item.m_high, item.m_low, item.m_volume, item.m_turnover }))
             {
@@ -128,13 +128,13 @@ namespace Core::Tools
                         volume = EXCLUDED.volume,
                         turnover = EXCLUDED.turnover;
             )",
-            { Tools::marketTypeToString(newKline.m_category), newKline.m_symbol,
-                Tools::intervalToString(newKline.m_interval), newKline.m_start,
+            { Tools::EnumHelpers::marketTypeToApiString(newKline.m_category), newKline.m_symbol,
+                Tools::EnumHelpers::intervalToString(newKline.m_interval), newKline.m_start,
                 newKline.m_end, newKline.m_open, newKline.m_close,
                 newKline.m_high, newKline.m_low, newKline.m_volume, newKline.m_turnover });
     }
 
-    bool KlinesRepository::selectKlines(MarketType type, const QString &symbol, Interval interval)
+    bool KlinesRepository::selectKlines(EnumHelpers::MarketType type, const QString &symbol, EnumHelpers::Interval interval)
     {
         m_data.clear();
         return m_dbManager.executePrepared(m_dbPath,
@@ -144,11 +144,11 @@ namespace Core::Tools
                 WHERE category = ? AND symbol = ? AND interval = ?
                 ORDER BY start ASC
             )",
-            {Tools::marketTypeToString(type), symbol, Tools::intervalToString(interval)},
+            {EnumHelpers::marketTypeToApiString(type), symbol, EnumHelpers::intervalToString(interval)},
             [this](QSqlQuery& query) { handleSelectedKlines(query); });
     }
 
-    bool KlinesRepository::selectKlines(MarketType type, const QString &symbol, Interval interval, qint64 start, qint64 end)
+    bool KlinesRepository::selectKlines(EnumHelpers::MarketType type, const QString &symbol, EnumHelpers::Interval interval, qint64 start, qint64 end)
     {
         m_data.clear();
         return m_dbManager.executePrepared(m_dbPath,
@@ -159,7 +159,7 @@ namespace Core::Tools
                     AND start >= ? AND end <= ?
                 ORDER BY start ASC
             )",
-           { Tools::marketTypeToString(type), symbol, Tools::intervalToString(interval), start, end },
+           { EnumHelpers::marketTypeToApiString(type), symbol, EnumHelpers::intervalToString(interval), start, end },
            [this](QSqlQuery& query) { handleSelectedKlines(query); });
     }
 }

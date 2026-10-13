@@ -10,7 +10,7 @@ void Core::Markets::BybitPublicTradeStreamHandler::handle(const QJsonObject &obj
 
     QJsonArray arrData = obj["data"].toArray();
     QString symbol = obj["topic"].toString().section('.', -1);
-    Tools::MarketType category = Tools::stringToMarketType(streamer->id());
+    Tools::EnumHelpers::MarketType category = Tools::EnumHelpers::apiStringToMarketType(streamer->id());
 
     Tools::PublicTrades publicTrades{};
 
@@ -21,7 +21,7 @@ void Core::Markets::BybitPublicTradeStreamHandler::handle(const QJsonObject &obj
         Tools::PublicTradeItem publicTradeItem{};
         publicTradeItem.m_category = category;
         publicTradeItem.m_symbol = symbol;
-        publicTradeItem.m_side = Tools::stringToOrderSide(itemData["S"].toString());
+        publicTradeItem.m_side = Tools::EnumHelpers::stringToOrderSide(itemData["S"].toString());
         publicTradeItem.m_price = itemData["p"].toString();
         publicTradeItem.m_volume = itemData["v"].toString();
         publicTradeItem.m_turnover = QString::number(publicTradeItem.m_price.toDouble() * publicTradeItem.m_volume.toDouble());

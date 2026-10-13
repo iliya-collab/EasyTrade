@@ -13,11 +13,11 @@ namespace Core::Tools {
 
     public:
 
-        explicit BybitWebSocket(SocketType socketType, MarketType marketType = MarketType::Spot, QObject* parent = nullptr);
+        explicit BybitWebSocket(SocketType socketType, EnumHelpers::MarketType marketType = EnumHelpers::MarketType::Spot, QObject* parent = nullptr);
         ~BybitWebSocket() = default;
 
-        void setMarketType(MarketType type) { m_marketType = type; }
-        QString getMarketType() const { return marketTypeToString(m_marketType); }
+        void setMarketType(EnumHelpers::MarketType type) { m_marketType = type; }
+        QString getMarketType() const { return EnumHelpers::marketTypeToApiString(m_marketType); }
 
         void init(const Api& api = Api(), bool isTestnet = false) override;
 
@@ -45,8 +45,8 @@ namespace Core::Tools {
         // Криптография для приватного канала
         QString generateSignature(const QString& apiKey, const QString& apiSecret, const QString& expires);
 
-        MarketType m_marketType;                    // Тип рынка
-        QMap<QString, qint64> m_pingTimestamps; // req_id -> timestamp отправки
+        EnumHelpers::MarketType m_marketType;       // Тип рынка
+        QMap<QString, qint64> m_pingTimestamps;     // req_id -> timestamp отправки
         double m_pingMs = 0;
         const int ACTIVE_PING_INTERVAL = 20000;
 

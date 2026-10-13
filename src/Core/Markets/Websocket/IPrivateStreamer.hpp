@@ -37,7 +37,7 @@ namespace Core::Markets
 
     signals:
 
-        void walletUpdated(const Core::Tools::AccountBalance& newAccountBalance);
+        void accountBalanceUpdated(const Core::Tools::AccountBalance& newAccountBalance);
         void orderUpdated(const Core::Tools::OrderInfo& order);
         void executionUpdated(const Core::Tools::ExecutionInfo& exec);
         void positionUpdated(const Core::Tools::PositionInfo& position);

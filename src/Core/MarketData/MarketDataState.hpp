@@ -1,10 +1,8 @@
 #pragma once
 #include "Tools/DataModels/TradePairsModel.hpp"
-#include "Tools/DataModels/KlineSeriesModel.hpp"
+#include "Tools/DataModels/KlineStore.hpp"
 #include "Tools/DataModels/OrderbookSideModel.hpp"
 #include "Tools/DataModels/PublicTradesModel.hpp"
-#include "Tools/DataModels/ReversedProxyModel.hpp"
-#include "Tools/DataModels/TradePairsFilterProxyModel.hpp"
 #include <QObject>
 
 namespace Core {
@@ -14,18 +12,20 @@ namespace Core {
         Q_OBJECT
 
         // Readonly свойства
-        Q_PROPERTY(QString                          currentSymbol   READ getCurrentSymbol   NOTIFY currentSymbolChanged FINAL)
-        Q_PROPERTY(Core::Tools::TradePairsModel*    tradePairs      READ getTradePairs      NOTIFY tradePairsChanged    FINAL)
-        Q_PROPERTY(Core::Tools::KlineStore*         klineStore      READ getKlineStore      NOTIFY klineStoreChanged    FINAL)
-        Q_PROPERTY(qint64                           pingMs          READ getPingMs          NOTIFY pingMsChanged        FINAL)
-        Q_PROPERTY(Core::Tools::Ticker              ticker          READ getTicker          NOTIFY tickerChanged        FINAL)
-        Q_PROPERTY(Core::Tools::OrderbookSideModel* asks            READ getAsks            NOTIFY asksChanged          FINAL)
-        Q_PROPERTY(Core::Tools::OrderbookSideModel* bids            READ getBids            NOTIFY bidsChanged          FINAL)
-        Q_PROPERTY(Core::Tools::PublicTradesModel*  trades          READ getTrades          NOTIFY tradesChanged        FINAL)
+        Q_PROPERTY(Tools::EnumHelpers::MarketType   currentCategory READ getCurrentCategory NOTIFY currentCategoryChanged   FINAL)
+        Q_PROPERTY(QString                          currentSymbol   READ getCurrentSymbol   NOTIFY currentSymbolChanged     FINAL)
+        Q_PROPERTY(Core::Tools::TradePairsModel*    tradePairs      READ getTradePairs      NOTIFY tradePairsChanged        FINAL)
+        Q_PROPERTY(Core::Tools::KlineStore*         klineStore      READ getKlineStore      NOTIFY klineStoreChanged        FINAL)
+        Q_PROPERTY(qint64                           pingMs          READ getPingMs          NOTIFY pingMsChanged            FINAL)
+        Q_PROPERTY(Core::Tools::Ticker              ticker          READ getTicker          NOTIFY tickerChanged            FINAL)
+        Q_PROPERTY(Core::Tools::OrderbookSideModel* asks            READ getAsks            NOTIFY asksChanged              FINAL)
+        Q_PROPERTY(Core::Tools::OrderbookSideModel* bids            READ getBids            NOTIFY bidsChanged              FINAL)
+        Q_PROPERTY(Core::Tools::PublicTradesModel*  trades          READ getTrades          NOTIFY tradesChanged            FINAL)
 
     private:
 
         // Рыночные данные
+        Tools::EnumHelpers::MarketType m_currentCategory;
         QString m_currentSymbol{};
         Tools::Ticker m_ticker{};
         std::shared_ptr<Tools::KlineStore> m_klineStore{};
@@ -41,6 +41,7 @@ namespace Core {
         explicit MarketDataState(QObject *parent = nullptr);
 
         // Методы обновления
+        void setCurrentCategory(Tools::EnumHelpers::MarketType category);
         void setCurrentSymbol(const QString& symbol);
         void updateTradePairs(const QList<Tools::TradeInfo>& pairs);
         void updateKline(const Tools::Kline& kline);
@@ -51,6 +52,7 @@ namespace Core {
         void updatePingMs(qint64 pingMs);
 
         // READ-методы
+        Tools::EnumHelpers::MarketType getCurrentCategory() const { return m_currentCategory; }
         QString getCurrentSymbol() const { return m_currentSymbol; }
         Tools::KlineStore* getKlineStore() const { return m_klineStore.get(); }
         Tools::Ticker getTicker() const { return m_ticker; }
@@ -62,6 +64,7 @@ namespace Core {
 
     signals:
 
+        void currentCategoryChanged();
         void currentSymbolChanged();
         void tradePairsChanged();
         void klineStoreChanged();

@@ -18,33 +18,33 @@ void Core::Markets::BybitOrderStreamHandler::handle(const QJsonObject &data, IPr
 
         Tools::OrderInfo order{};
 
-        order.m_category    = Tools::stringToMarketType(dataObj["category"].toString());
+        order.m_category    = Tools::EnumHelpers::apiStringToMarketType(dataObj["category"].toString());
         order.m_orderId     = dataObj["orderId"].toString();
         order.m_orderLinkId = dataObj["orderLinkId"].toString();
         order.m_symbol      = dataObj["symbol"].toString();
-        order.m_orderType   = Tools::stringToOrderType(dataObj["orderType"].toString());
+        order.m_orderType   = Tools::EnumHelpers::stringToOrderType(dataObj["orderType"].toString());
 
         QString strSide = dataObj["side"].toString();
         if (strSide == "Buy")
-            order.m_side = Tools::OrderSide::Buy;
+            order.m_side = Tools::EnumHelpers::OrderSide::Buy;
         else if (strSide == "Sell")
-            order.m_side = Tools::OrderSide::Sell;
+            order.m_side = Tools::EnumHelpers::OrderSide::Sell;
         else
-            order.m_side = Tools::OrderSide::Unknown;
+            order.m_side = Tools::EnumHelpers::OrderSide::Unknown;
 
         QString strStatus = dataObj["orderStatus"].toString();
         if (strStatus == "New")
-            order.m_status = Tools::OrderStatus::New;
+            order.m_status = Tools::EnumHelpers::OrderStatus::New;
         else if (strStatus == "PartiallyFilled")
-            order.m_status = Tools::OrderStatus::PartiallyFilled;
+            order.m_status = Tools::EnumHelpers::OrderStatus::PartiallyFilled;
         else if (strStatus == "Filled")
-            order.m_status = Tools::OrderStatus::Filled;
+            order.m_status = Tools::EnumHelpers::OrderStatus::Filled;
         else if (strStatus == "Cancelled" || strStatus == "Deactivated")
-            order.m_status = Tools::OrderStatus::Cancelled;
+            order.m_status = Tools::EnumHelpers::OrderStatus::Cancelled;
         else if (strStatus == "Rejected")
-            order.m_status = Tools::OrderStatus::Rejected;
+            order.m_status = Tools::EnumHelpers::OrderStatus::Rejected;
         else
-            order.m_status = Tools::OrderStatus::Unknown;
+            order.m_status = Tools::EnumHelpers::OrderStatus::Unknown;
 
         order.m_price        = dataObj["price"].toString();
         order.m_qty          = dataObj["qty"].toString();

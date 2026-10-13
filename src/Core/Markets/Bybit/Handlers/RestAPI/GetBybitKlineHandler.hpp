@@ -1,5 +1,6 @@
 #pragma once
 #include "Markets/RestAPI/IResponseHandler.hpp"
+#include "Tools/QueryStructures.hpp"
 
 namespace Core::Markets
 {
@@ -8,7 +9,7 @@ namespace Core::Markets
     {
     private:
 
-        void processRequestKlines(QList<Tools::Kline>& klines, Tools::Interval interval, const QJsonObject& data);
+        void processRequestKlines(QList<Tools::Kline>& klines, Tools::EnumHelpers::Interval interval, const QJsonObject& data);
 
     public:
 
@@ -16,7 +17,7 @@ namespace Core::Markets
 
         static QUrlQuery buildRequest(const Tools::KlinesRequest& req);
 
-        void handle(const QJsonObject& data, const QVariant& requestContext, IMarketDataService* service) override;
+        void handle(const QJsonObject& data, const QVariant& requestContext, MarketDataServiceSignals* signaller) override;
 
     };
 }

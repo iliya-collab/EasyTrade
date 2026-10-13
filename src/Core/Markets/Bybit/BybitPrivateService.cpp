@@ -8,6 +8,7 @@
 #include "Handlers/RestAPI/PostBybitAmendOrderHandler.hpp"
 #include "Handlers/RestAPI/PostBybitCancelOrderHandler.hpp"
 #include "Handlers/RestAPI/PostBybitCancelAllOrdersHandler.hpp"
+#include "Handlers/RestAPI/GetBybitTradeHistoryHandler.hpp"
 
 Core::Markets::BybitPrivateService::BybitPrivateService(QObject *parent)
     : BasePrivateService(std::make_unique<Tools::BybitRestAPI>(parent), parent)
@@ -20,19 +21,18 @@ Core::Markets::BybitPrivateService::BybitPrivateService(QObject *parent)
     registerHandler<PostBybitAmendOrderHandler>();
     registerHandler<PostBybitCancelOrderHandler>();
     registerHandler<PostBybitCancelAllOrdersHandler>();
+    registerHandler<GetBybitTradeHistoryHandler>();
 }
 
 void Core::Markets::BybitPrivateService::requestInfoAboutApi()
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
     send<GetBybitInfoAboutAPIHandler>(QVariant());
 }
 
 void Core::Markets::BybitPrivateService::requestAccountBalance()
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
     send<GetBybitAccountBalanceHandler>(QVariant());
 }
 
@@ -49,59 +49,51 @@ void Core::Markets::BybitPrivateService::init(const Tools::Api &api, bool isTest
 void Core::Markets::BybitPrivateService::requestCreateOrder(const Tools::OrderRequest &request)
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
-    if (!m_currentApi)
-        return;
-
     send<PostBybitCreateOrderHandler>(QVariant::fromValue(request), request);
 }
 
 void Core::Markets::BybitPrivateService::requestAmendOrder(const Tools::OrderAmendRequest &request)
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
-    if (!m_currentApi)
-        return;
-
     send<PostBybitAmendOrderHandler>(QVariant::fromValue(request), request);
 }
 
 void Core::Markets::BybitPrivateService::requestCancelOrder(const Tools::OrderCancelRequest &request)
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
-    if (!m_currentApi)
-        return;
-
     send<PostBybitCancelOrderHandler>(QVariant::fromValue(request), request);
 }
 
 void Core::Markets::BybitPrivateService::requestCancelAllOrders(const Tools::OrderCancelAllRequest &request)
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
-    if (!m_currentApi)
-        return;
-
     send<PostBybitCancelAllOrdersHandler>(QVariant::fromValue(request), request);
 }
 
 void Core::Markets::BybitPrivateService::requestOpenOrders(const Tools::OpenOrdersRequest &request)
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
-    if (!m_currentApi)
-        return;
-
     send<GetBybitOpenOrdersHandler>(QVariant::fromValue(request), request);
 }
 
 void Core::Markets::BybitPrivateService::requestOrderHistory(const Tools::OrderHistoryRequest &request)
 {
     qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
-    if (!m_currentApi)
-        return;
-
     send<GetBybitOrderHistoryHandler>(QVariant::fromValue(request), request);
+}
+
+void Core::Markets::BybitPrivateService::requestTradeHistory(const Tools::TradeHistoryRequest &request)
+{
+    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
+    send<GetBybitTradeHistoryHandler>(QVariant::fromValue(request), request);
+}
+
+void Core::Markets::BybitPrivateService::onOpenOrdersReceived(const QList<Tools::OrderInfo> &orders, const QString &nextPageCursor)
+{
+
+}
+
+void Core::Markets::BybitPrivateService::onOrderHistoryReceived(const QList<Tools::OrderInfo> &orders, const QString &nextPageCursor)
+{
+
 }

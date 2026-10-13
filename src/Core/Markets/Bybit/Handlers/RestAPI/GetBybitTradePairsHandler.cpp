@@ -13,7 +13,7 @@ namespace Core::Markets
         {
             QJsonObject item = obj.toObject();
             Tools::TradeInfo info;
-            info.m_category = Tools::stringToMarketType(category);
+            info.m_category = Tools::EnumHelpers::apiStringToMarketType(category);
             info.m_symbol = item["symbol"].toString();
             info.m_baseCoin = item["baseCoin"].toString();
             info.m_quoteCoin = item["quoteCoin"].toString();
@@ -21,17 +21,17 @@ namespace Core::Markets
         }
     }
 
-    void GetBybitTradePairsHandler::handle(const QJsonObject &data, const QVariant& requestContext, IMarketDataService *service)
+    void GetBybitTradePairsHandler::handle(const QJsonObject &data, const QVariant& requestContext, MarketDataServiceSignals *signaller)
     {
         if (!data.contains("retCode") || data["retCode"].toInt() != 0)
         {
-            emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
+            emit signaller->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
             return;
         }
 
         QList<Tools::TradeInfo> pairs;
         processRequestTradePairs(pairs, data);
-        emit service->tradePairsReceived(pairs);
+        emit signaller->tradePairsReceived(pairs);
     }
 
 }

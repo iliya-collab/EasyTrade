@@ -17,7 +17,7 @@ private slots:
 
 public:
 
-    explicit BybitMarketDataStreamer(Tools::MarketType type, QObject* parent = nullptr);
+    explicit BybitMarketDataStreamer(Tools::EnumHelpers::MarketType type, QObject* parent = nullptr);
     ~BybitMarketDataStreamer();
 
     QString id() override;
@@ -34,7 +34,7 @@ private:
 
     QString createTickerStream(const QString& symbol) const override;
     QString createOrderbookStream(const QString& symbol, int depth) const override;
-    QString createKlineStream(const QString& symbol, Tools::Interval interval) const override;
+    QString createKlineStream(const QString& symbol, Tools::EnumHelpers::Interval interval) const override;
     QString createPublicTradeStream(const QString& symbol) const override;
 
     QString m_lastPair = "";

@@ -11,7 +11,7 @@ namespace Core::Markets
 
     BybitPrivateStreamer::BybitPrivateStreamer(QObject* parent)
         : BasePrivateStreamer(
-          Tools::BybitWebSocketCreator::create(Tools::SocketType::Private, Tools::MarketType::Unknown, Tools::Api(), parent),
+          Tools::BybitWebSocketCreator::create(Tools::SocketType::Private, Tools::EnumHelpers::MarketType::Unknown, Tools::Api(), parent),
           parent
         )
     {

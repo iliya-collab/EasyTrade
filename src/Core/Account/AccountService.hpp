@@ -25,7 +25,10 @@ namespace Core
             if (!res.has_value())
             {
                 const QString orderLinkId = params.value("orderLinkId").toString();
-                emit errorOccurred("orderLinkId : " + orderLinkId + " - " + res.error());
+                if (!orderLinkId.isEmpty())
+                    emit errorOccurred("orderLinkId : " + orderLinkId + " - " + res.error());
+                else
+                    emit errorOccurred(res.error());
                 return;
             }
             send(res.value());

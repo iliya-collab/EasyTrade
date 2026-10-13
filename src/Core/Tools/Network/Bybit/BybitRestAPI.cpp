@@ -99,7 +99,7 @@ namespace Core::Tools {
         if (timeoutMs > 0)
             request.setTransferTimeout(timeoutMs);
 
-        QNetworkReply* reply = m_manager->get(request);
+        QNetworkReply* reply = m_manager->post(request, jsonBody);
         reply->setProperty("requestContext", context);
 
         connect(reply, &QNetworkReply::finished, this, &BybitRestAPI::onHandleResponse, Qt::UniqueConnection);

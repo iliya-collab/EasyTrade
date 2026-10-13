@@ -4,7 +4,7 @@ QByteArray Core::Markets::PostBybitCancelAllOrdersHandler::buildRequestBody(cons
 {
     QJsonObject body;
 
-    body["category"] = Tools::marketTypeToString(req.m_category);
+    body["category"] = Tools::EnumHelpers::marketTypeToApiString(req.m_category);
 
     if (req.m_symbol.has_value() && !req.m_symbol->isEmpty())
         body["symbol"] = req.m_symbol.value();
@@ -16,11 +16,11 @@ QByteArray Core::Markets::PostBybitCancelAllOrdersHandler::buildRequestBody(cons
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
 
-void Core::Markets::PostBybitCancelAllOrdersHandler::handle(const QJsonObject &data, const QVariant& requestContext, IPrivateService *service)
+void Core::Markets::PostBybitCancelAllOrdersHandler::handle(const QJsonObject &data, const QVariant& requestContext, PrivateServiceSignals *signaller)
 {
     if (!data.contains("retCode") || data["retCode"].toInt() != 0)
     {
-        emit service->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
+        emit signaller->errorOccurred(QString("Error processing request [endpoint = %1]: " + data["retMsg"].toString()).arg(endpoint()));
         return;
     }
 
@@ -35,5 +35,5 @@ void Core::Markets::PostBybitCancelAllOrdersHandler::handle(const QJsonObject &d
         lstIds.append(orderId);
     }
 
-    emit service->allOrdersCancelled(lstIds);
+    emit signaller->allOrdersCancelled(lstIds);
 }

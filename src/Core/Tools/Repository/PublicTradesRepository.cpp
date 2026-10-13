@@ -7,9 +7,9 @@ void PublicTradesRepository::handleSelectedPublicTrades(QSqlQuery &query)
     while (query.next())
     {
         Tools::PublicTradeItem t;
-        t.m_category        = Tools::stringToMarketType(query.value(0).toString());
+        t.m_category        = EnumHelpers::apiStringToMarketType(query.value(0).toString());
         t.m_symbol          = query.value(1).toString();
-        t.m_side            = Tools::stringToOrderSide(query.value(2).toString());
+        t.m_side            = EnumHelpers::stringToOrderSide(query.value(2).toString());
         t.m_price           = query.value(3).toString();
         t.m_volume          = query.value(4).toString();
         t.m_tradeTime       = query.value(5).toLongLong();
@@ -87,8 +87,8 @@ bool PublicTradesRepository::insertPublicTrades(const PublicTrades &newPublicTra
                 INSERT INTO trades (category, symbol, side, price, volume, time)
                 VALUES (?, ?, ?, ?, ?, ?)
             )",
-            { Tools::marketTypeToString(item.m_category), item.m_symbol,
-                Tools::orderSideToString(item.m_side), item.m_price,
+            { EnumHelpers::marketTypeToApiString(item.m_category), item.m_symbol,
+                EnumHelpers::orderSideToString(item.m_side), item.m_price,
                 item.m_volume, item.m_tradeTime }))
         {
             m_dbManager.rollbackTransaction(m_dbPath);
@@ -98,7 +98,7 @@ bool PublicTradesRepository::insertPublicTrades(const PublicTrades &newPublicTra
     return m_dbManager.commitTransaction(m_dbPath);
 }
 
-bool PublicTradesRepository::selectKlines(MarketType type, const QString &symbol)
+bool PublicTradesRepository::selectKlines(EnumHelpers::MarketType type, const QString &symbol)
 {
     m_data.clear();
     return m_dbManager.executePrepared(m_dbPath,
@@ -108,7 +108,7 @@ bool PublicTradesRepository::selectKlines(MarketType type, const QString &symbol
             WHERE category = ? AND symbol = ?
             ORDER BY time ASC
         )",
-       { Tools::marketTypeToString(type), symbol },
+       { EnumHelpers::marketTypeToApiString(type), symbol },
        [this](QSqlQuery& query) { handleSelectedPublicTrades(query); });
 }
 

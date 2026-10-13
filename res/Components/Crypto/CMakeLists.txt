@@ -12,6 +12,9 @@ qt_add_qml_module(CryptoComponents
         KlineChart.qml
         PingIndicator.qml
         PublicTradesWidget.qml
-        OrdersPanel.qml
         OrderbookView.qml
+        OpenedOrdersPanel.qml
+        HistoricalOrdersPanel.qml
+        PositionsPanel.qml
+        TradeHistoryPanel.qml
 )

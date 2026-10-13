@@ -24,8 +24,8 @@ namespace Core::Tools {
 
         bool insertKlines(const QList<Kline>& newKlines);
         bool insertKline(const Kline& newKline);
-        bool selectKlines(Tools::MarketType type, const QString& symbol, Tools::Interval interval);
-        bool selectKlines(Tools::MarketType type, const QString& symbol, Tools::Interval interval, qint64 start, qint64 end);
+        bool selectKlines(Tools::EnumHelpers::MarketType type, const QString& symbol, Tools::EnumHelpers::Interval interval);
+        bool selectKlines(Tools::EnumHelpers::MarketType type, const QString& symbol, Tools::EnumHelpers::Interval interval, qint64 start, qint64 end);
 
     };
 
