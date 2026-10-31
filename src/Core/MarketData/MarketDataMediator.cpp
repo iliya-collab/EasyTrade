@@ -1,185 +1,136 @@
 #include "MarketDataMediator.hpp"
 #include "Markets/Bybit/BybitMarketDataService.hpp"
 #include "Markets/Bybit/BybitMarketDataStreamer.hpp"
-#include "Markets/Repository/MarketDataRepository.hpp"
 
 namespace Core {
 
-    MarketDataMediator::MarketDataMediator(QObject* parent) : QObject(parent)
-    {
-        m_service = std::make_unique<Core::Markets::BybitMarketDataService>();
-        m_publicStreamer = std::make_unique<Core::Markets::BybitMarketDataStreamer>(Tools::EnumHelpers::MarketType::Spot);
-        m_repository = std::make_unique<Core::Markets::MarketDataRepository>();
+MarketDataMediator::MarketDataMediator(QObject* parent) : BaseMediator(parent)
+{
+    m_publicService = std::make_unique<BybitMarketDataService>();
+    m_publicStreamer = std::make_unique<BybitMarketDataStreamer>(Tools::EnumHelpers::MarketType::Spot);
+    m_marketDataRep = std::make_unique<Repository::MarketDataRepository>();
 
-        connect(m_repository.get(), &Markets::MarketDataRepository::errorOccurred,
-                this, &MarketDataMediator::errorOccurred, Qt::UniqueConnection);
+    bindService(m_publicService->signaller());
+    bindStreamer(m_publicStreamer->signaller());
 
-        // Связываем Сеть (REST)
-        connect(m_service->signaller(), &Markets::MarketDataServiceSignals::errorOccurred,
-                this, &MarketDataMediator::errorOccurred, Qt::UniqueConnection);
+    connect(m_marketDataRep.get(), &Repository::MarketDataRepository::errorOccurred,
+            this, &MarketDataMediator::errorOccurred);
 
-        connect(m_service->signaller(), &Markets::MarketDataServiceSignals::downloadProgress,
-                this, &MarketDataMediator::downloadProgress, Qt::UniqueConnection);
+    // Связываем Сеть (REST)
+    connect(m_publicService->signaller(), &Service::MarketDataServiceSignals::allInstrumentsInfoReceived,
+            this, &MarketDataMediator::onInstrumentsReady);
 
-        connect(m_service->signaller(), &Markets::MarketDataServiceSignals::tradePairsReceived,
-                this, &MarketDataMediator::onTradePairsReady, Qt::UniqueConnection);
+    connect(m_publicService->signaller(), &Service::MarketDataServiceSignals::klinesReceived,
+            this, &MarketDataMediator::onKlinesReady);
 
-        connect(m_service->signaller(), &Markets::MarketDataServiceSignals::klinesReceived,
-                this, &MarketDataMediator::onKlinesReady, Qt::UniqueConnection);
+    // Связываем публичный стрим
+    connect(m_publicStreamer->signaller(), &Streamer::MarketDataStreamerSignals::klineUpdated,
+            this, &MarketDataMediator::onKlineReceived);
 
-        // Связываем публичный стрим
-        connect(m_publicStreamer.get(), &Markets::IMarketDataStreamer::errorOccurred,
-                this, &MarketDataMediator::errorOccurredWithId, Qt::UniqueConnection);
+    connect(m_publicStreamer->signaller(), &Streamer::MarketDataStreamerSignals::tickerUpdated,
+            this, &MarketDataMediator::tickerReady);
 
-        connect(m_publicStreamer.get(), &Markets::IMarketDataStreamer::started,
-                this, &MarketDataMediator::streamerStarted, Qt::UniqueConnection);
+    connect(m_publicStreamer->signaller(), &Streamer::MarketDataStreamerSignals::orderbookUpdated,
+            this, &MarketDataMediator::orderbookReady);
 
-        connect(m_publicStreamer.get(), &Markets::IMarketDataStreamer::stopped,
-                this, &MarketDataMediator::streamerStopped, Qt::UniqueConnection);
+    connect(m_publicStreamer->signaller(), &Streamer::MarketDataStreamerSignals::publicTradeUpdated,
+            this, &MarketDataMediator::onPublicTradesReceived);
 
-        connect(m_publicStreamer.get(), &Markets::IMarketDataStreamer::pingMeasured,
-                this, &MarketDataMediator::pingMeasured, Qt::UniqueConnection);
+}
 
-        connect(m_publicStreamer.get(), &Markets::IMarketDataStreamer::klineUpdated,
-                this, &MarketDataMediator::onKlineReceived, Qt::UniqueConnection);
+void MarketDataMediator::subscribe(const QString &symbol)
+{
+    m_publicStreamer->subscribeSymbol(symbol, {
+        Streamer::PublicStreams::Ticker,
+        Streamer::PublicStreams::Orderbook50,
+        Streamer::PublicStreams::Kline1m,
+        Streamer::PublicStreams::Kline3m,
+        Streamer::PublicStreams::Kline5m,
+        Streamer::PublicStreams::Kline15m,
+        Streamer::PublicStreams::Kline30m,
+        Streamer::PublicStreams::Kline1h,
+        Streamer::PublicStreams::Kline2h,
+        Streamer::PublicStreams::Kline4h,
+        Streamer::PublicStreams::Kline6h,
+        Streamer::PublicStreams::Kline12h,
+        Streamer::PublicStreams::Kline1D,
+        Streamer::PublicStreams::Kline1W,
+        Streamer::PublicStreams::Kline1M,
+        Streamer::PublicStreams::PublicTrade
+    });
+}
 
-        connect(m_publicStreamer.get(), &Markets::IMarketDataStreamer::tickerUpdated,
-                this, &MarketDataMediator::tickerReady, Qt::UniqueConnection);
+Tools::Instruments MarketDataMediator::readInstrumentsFromRepository(Tools::EnumHelpers::MarketType type)
+{
+    return m_marketDataRep->loadInstruments(type);
+}
 
-        connect(m_publicStreamer.get(), &Markets::IMarketDataStreamer::orderbookUpdated,
-                this, &MarketDataMediator::orderbookReady, Qt::UniqueConnection);
+QList<Tools::Kline> MarketDataMediator::readKlinesFromRepository(const Tools::StdExport &std, const Tools::SpecialExportKlines &special)
+{
+    return m_marketDataRep->loadKlines(std.m_category,
+                                       std.m_symbol,
+                                       special.m_interval,
+                                       special.m_start,
+                                       special.m_end);
+}
 
-        connect(m_publicStreamer.get(), &Markets::IMarketDataStreamer::publicTradeUpdated,
-                this, &MarketDataMediator::onTradesReady, Qt::UniqueConnection);
+Tools::PublicTrades MarketDataMediator::readPublicTradesFromRepository(const Tools::StdExport& std)
+{
+    return m_marketDataRep->loadPublicTrades(std.m_category, std.m_symbol);
+}
 
+void MarketDataMediator::loadInstrumentsFromNetwork(Tools::EnumHelpers::MarketType type)
+{
+    emit messageSent("Loading instruments from network...");
+    Tools::InstrumentsInfoRequest req;
+    req.m_category = type;
+    m_publicService->requestInstruments(req);
+}
+
+void MarketDataMediator::loadKlinesFromNetwork(const Tools::KlinesRequest& req)
+{
+    emit messageSent("Loading klines from network...");
+    m_publicService->requestKlines(req);
+}
+
+void MarketDataMediator::init(bool isTestnet)
+{
+    m_publicService->init(isTestnet);
+    m_publicStreamer->init(isTestnet);
+    try {
+        m_marketDataRep->init(isTestnet);
+    } catch (const std::exception& e) {
+        qCritical() << e.what();
     }
+}
 
-    void MarketDataMediator::runStreamer()
+void MarketDataMediator::onInstrumentsReady(const Tools::Instruments &instruments)
+{
+    emit messageSent("Instruments ready: " + QString::number(instruments.size()));
+    m_marketDataRep->saveInstruments(instruments);
+    emit instrumentsReady(instruments);
+}
+
+void MarketDataMediator::onKlineReceived(const Tools::Kline& kline)
+{
+    if (kline.m_confirm)
     {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-        m_publicStreamer->start();
+        m_marketDataRep->saveKlines(kline);
     }
+    emit klineUpdated(kline);
+}
 
-    void MarketDataMediator::stopStreamer()
-    {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-        m_publicStreamer->stop();
-    }
+void MarketDataMediator::onKlinesReady(const QList<Tools::Kline>& klines)
+{
+    emit messageSent("Klines ready: " + QString::number(klines.size()));
+    m_marketDataRep->saveKlines(klines);
+    emit historicalKlinesReady(klines);
+}
 
-    bool MarketDataMediator::isStreamerRunning()
-    {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-        return m_publicStreamer->isRunning();
-    }
-
-    void MarketDataMediator::restartStreamer()
-    {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-        m_publicStreamer->restart();
-    }
-
-    void MarketDataMediator::subscribe(const QString &symbol)
-    {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-        m_publicStreamer->subscribeSymbol(symbol, {
-            Markets::PublicStreams::Ticker,
-            Markets::PublicStreams::Orderbook50,
-            Markets::PublicStreams::Kline1m,
-            Markets::PublicStreams::Kline3m,
-            Markets::PublicStreams::Kline5m,
-            Markets::PublicStreams::Kline15m,
-            Markets::PublicStreams::Kline30m,
-            Markets::PublicStreams::Kline1h,
-            Markets::PublicStreams::Kline2h,
-            Markets::PublicStreams::Kline4h,
-            Markets::PublicStreams::Kline6h,
-            Markets::PublicStreams::Kline12h,
-            Markets::PublicStreams::Kline1D,
-            Markets::PublicStreams::Kline1W,
-            Markets::PublicStreams::Kline1M,
-            Markets::PublicStreams::PublicTrade
-        });
-    }
-
-    bool MarketDataMediator::loadAllTradePairFromRepository(Tools::EnumHelpers::MarketType type)
-    {
-        emit messageSent("Loading trade pairs from repository...");
-        auto pairs = m_repository->loadFromCryptoRepository(type);
-
-        if (!pairs.isEmpty())
-        {
-            emit messageSent("Trade pairs ready");
-            emit tradePairsReady(pairs);
-            return true;
-        }
-
-        return false;
-    }
-
-    bool MarketDataMediator::loadKlinesFromRepository(const Tools::KlinesRequest& req)
-    {
-        emit messageSent("Loading klines from repository...");
-        auto klines = m_repository->loadFromKlinesRepository(req.m_category, req.m_symbol, req.m_interval, req.m_start, req.m_end);
-
-        if (!klines.isEmpty())
-        {
-            emit messageSent("Klines ready");
-            emit historicalKlinesReady(klines);
-            return true;
-        }
-
-        return false;
-    }
-
-    void MarketDataMediator::loadPublicTradesFromRepository(Tools::EnumHelpers::MarketType type, const QString &symbol)
-    {
-        // TODO
-    }
-
-    void MarketDataMediator::loadTradePairsFromNetwork(Tools::EnumHelpers::MarketType type)
-    {
-        emit messageSent("Loading trade pairs from network...");
-        m_service->requestTradePairs(type);
-    }
-
-    void MarketDataMediator::loadKlinesFromNetwork(const Tools::KlinesRequest& req)
-    {
-        m_service->requestKlines(req);
-    }
-
-    void MarketDataMediator::init(bool isTestnet)
-    {
-        m_service->init(isTestnet);
-        m_publicStreamer->init(isTestnet);
-    }
-
-    void MarketDataMediator::onTradePairsReady(const QList<Tools::TradeInfo> &pairs)
-    {
-        emit messageSent("Trade pairs ready: " + QString::number(pairs.size()));
-        m_repository->saveToCryptoRepository(pairs);
-        emit tradePairsReady(pairs);
-    }
-
-    void MarketDataMediator::onKlineReceived(const Tools::Kline& kline)
-    {
-        if (kline.m_confirm)
-        {
-            m_repository->saveToKlinesRepository(kline);
-        }
-        emit klineUpdated(kline);
-    }
-
-    void MarketDataMediator::onKlinesReady(const QList<Tools::Kline>& klines)
-    {
-        emit messageSent("Klines ready");
-        m_repository->saveToKlinesRepository(klines);
-        emit historicalKlinesReady(klines);
-    }
-
-    void MarketDataMediator::onTradesReady(const Tools::PublicTrades& trades)
-    {
-        m_repository->saveToPublicTradesRepository(trades);
-        emit tradesReady(trades);
-    }
+void MarketDataMediator::onPublicTradesReceived(const Tools::PublicTrades& trades)
+{
+    m_marketDataRep->savePublicTrades(trades);
+    emit tradesReady(trades);
+}
 
 }

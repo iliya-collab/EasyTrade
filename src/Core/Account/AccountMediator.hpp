@@ -1,27 +1,31 @@
 #pragma once
-#include "Markets/RestAPI/IPrivateService.hpp"
-#include "Markets/Websocket/IPrivateStreamer.hpp"
-#include <QObject>
+#include "BaseMediator.hpp"
+#include "Repository/AccountDataRepository.hpp"
+#include "Service/IPrivateService.hpp"
+#include "Streamer/IPrivateStreamer.hpp"
+#include "Tools/ExportStructures.hpp"
 
-namespace Core {
+namespace Core
+{
 
-class AccountMediator : public QObject
+class AccountMediator : public BaseMediator
 {
     Q_OBJECT
 private:
 
-    std::unique_ptr<Markets::IPrivateService> m_privateService;
-    std::unique_ptr<Markets::IPrivateStreamer> m_privateStreamer;
+    std::unique_ptr<Service::IPrivateService> m_privateService{};
+    std::unique_ptr<Streamer::IPrivateStreamer> m_privateStreamer{};
+    std::unique_ptr<Repository::AccountDataRepository> m_accountDataRep{};
+    bool m_testnet{};
 
 public:
 
     explicit AccountMediator(QObject* parent = nullptr);
 
-    void runStreamer();
-    void stopStreamer();
-    bool isStreamerRunning();
-    void restartStreamer();
     void subscribe();
+
+    Tools::Orders readOrdersFromRepository(const Tools::StdExport& req);
+    Tools::Executions readExecsFromRepository(const Tools::StdExport& req);
 
     void requestAccountBalance();
     void requestInfoAboutApi();
@@ -32,22 +36,15 @@ public:
     void requestCancelAllOrders(const Tools::OrderCancelAllRequest& request);
     void requestOpenOrders(const Tools::OpenOrdersRequest& request);
     void requestOrderHistory(const Tools::OrderHistoryRequest& request);
+    void requestTradeHistory(const Tools::TradeHistoryRequest& request);
 
     void init(const Tools::Api& api, bool isTestnet);
 
+protected:
+
+    Streamer::IStreamer* streamer() override { return m_privateStreamer.get(); }
+
 signals:
-
-    // Уведомляет об ошибке
-    void errorOccurredWithId(const QString& id, const QString& error);
-    void errorOccurred(const QString& error);
-    // Уведомляет об прогрессе загрузки запроса
-    void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
-    // Уведомляет о старте потоковых данных
-    void streamerStarted(const QString& id);
-    // Уведомляет о остановке потоковых данных
-    void streamerStopped(const QString& id);
-
-    void messageSent(const QString& msg);
 
     // Уведомляет о получении данных
     void accountVerificationReady(bool isValid = true);
@@ -60,6 +57,7 @@ signals:
     void allOrdersCancelled(const QList<QString>& cancelledOrderIds);
     void openOrdersReady(const QList<Core::Tools::OrderInfo>& orders);
     void orderHistoryReady(const QList<Core::Tools::OrderInfo>& orders);
+    void tradeHistoryReady(const QList<Core::Tools::ExecutionInfo>& execs);
     void orderRequestRejected(const QString& orderLinkId, const QString& reason);
 
     void orderReady(const Core::Tools::OrderInfo& order);
@@ -75,8 +73,10 @@ private slots:
     void onOrderAmended(const QString& orderId, const QString& orderLinkId);
     void onOrderCancelled(const QString& orderId, const QString& orderLinkId);
     void onAllOrdersCancelled(const QList<QString>& cancelledOrderIds);
-    void onOpenOrdersReceived(const QList<Core::Tools::OrderInfo>& orders);
-    void onOrderHistoryReceived(const QList<Core::Tools::OrderInfo>& orders);
+    void onOpenOrdersReady(const QList<Core::Tools::OrderInfo>& orders);
+    void onOrderHistoryReady(const QList<Core::Tools::OrderInfo>& orders);
+    void onTradeHistoryReady(const QList<Core::Tools::ExecutionInfo>& execs);
+    void onExecutionUpdated(const Core::Tools::ExecutionInfo& exec);
     void onOrderRequestRejected(const QString& orderLinkId, const QString& reason);
 
 };

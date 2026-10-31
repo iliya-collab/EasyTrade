@@ -5,7 +5,8 @@
 #include <QFile>
 #include <QMutex>
 
-namespace Core::Tools {
+namespace Core::Tools
+{
 
 struct LogEntry
 {

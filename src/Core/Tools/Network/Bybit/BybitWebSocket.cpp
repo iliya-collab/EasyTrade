@@ -5,6 +5,7 @@
 #include <QJsonArray>
 #include <QCryptographicHash>
 #include <QMessageAuthenticationCode>
+#include "Tools/Logging.hpp"
 
 namespace Core::Tools {
 
@@ -32,8 +33,6 @@ namespace Core::Tools {
 
     void BybitWebSocket::onDisconnected()
     {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
         if (m_pingTimer && m_pingTimer->isActive())
             m_pingTimer->stop();
 
@@ -42,15 +41,11 @@ namespace Core::Tools {
 
     void BybitWebSocket::onError(QAbstractSocket::SocketError error)
     {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
         emit errorOccurred(m_webSocket->errorString());
     }
 
     void BybitWebSocket::onSslErrors(const QList<QSslError> &errors)
     {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
         QStringList errorStrings;
         bool fatal = false;
 
@@ -71,8 +66,6 @@ namespace Core::Tools {
 
     void BybitWebSocket::onTextMessageReceived(const QString &message)
     {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
         auto jsonObj = parseTextMessage(message);
         if (jsonObj.has_value())
             processMessage(jsonObj.value());
@@ -82,13 +75,10 @@ namespace Core::Tools {
 
     void BybitWebSocket::onBytesWritten(qint64 bytes)
     {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
     }
 
     void BybitWebSocket::onPing()
     {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
         if (isOpen())
         {
             sendPingMessage();
@@ -157,9 +147,6 @@ namespace Core::Tools {
 
     void BybitWebSocket::processMessage(const QJsonObject &obj)
     {
-        //QJsonDocument doc(obj);
-        //qDebug() << doc.toJson(QJsonDocument::Compact);
-
         // Обработа ping
         if (obj.contains("op") && obj["op"].toString() == "ping")
         {

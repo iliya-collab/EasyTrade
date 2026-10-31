@@ -26,10 +26,11 @@ public:
     virtual bool saveToFile(const ExportRows& data, const QString& path) const
     {
         QFile f(path);
-        if (!f.open(QIODevice::WriteOnly | QIODevice::Text))
+        if (!f.open(QIODevice::WriteOnly))
             return false;
 
         QTextStream out(&f);
+        out.setEncoding(QStringConverter::Utf8);
         out << exportData(data);
         return true;
     }

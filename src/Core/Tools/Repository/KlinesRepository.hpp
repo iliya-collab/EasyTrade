@@ -17,15 +17,19 @@ namespace Core::Tools {
         ~KlinesRepository() = default;
 
         bool init() override;
-        bool open() override;
-        void close() override;
-        QString error() override;
         bool clear() override;
 
-        bool insertKlines(const QList<Kline>& newKlines);
-        bool insertKline(const Kline& newKline);
-        bool selectKlines(Tools::EnumHelpers::MarketType type, const QString& symbol, Tools::EnumHelpers::Interval interval);
-        bool selectKlines(Tools::EnumHelpers::MarketType type, const QString& symbol, Tools::EnumHelpers::Interval interval, qint64 start, qint64 end);
+        bool insert(const QList<Kline>& newKlines);
+        bool insert(const Kline& newKline);
+
+        bool select(Tools::EnumHelpers::MarketType type,
+                          const QString& symbol,
+                          Tools::EnumHelpers::Interval interval);
+
+        bool select(Tools::EnumHelpers::MarketType type,
+                          const QString& symbol,
+                          Tools::EnumHelpers::Interval interval,
+                          qint64 start, qint64 end);
 
     };
 

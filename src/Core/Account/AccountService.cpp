@@ -1,5 +1,6 @@
 #include "AccountService.hpp"
 #include "Tools/RequestBuilders.hpp"
+#include "Tools/ExportBuilders.hpp"
 
 Core::AccountService::AccountService(std::shared_ptr<AccountState> state, std::shared_ptr<AccountMediator> mediator, QObject *parent)
     : m_state(state), m_mediator(mediator), QObject(parent)
@@ -14,7 +15,7 @@ Core::AccountService::AccountService(std::shared_ptr<AccountState> state, std::s
             state.get(), &AccountState::updateApiInfo);
 
     connect(mediator.get(), &AccountMediator::accountBalanceReady,
-            state.get(), &AccountState::updateBalance);
+            state.get(), &AccountState::upsertBalance);
 
     connect(mediator.get(), &AccountMediator::orderReady,
             state.get(), &AccountState::updateOrder);
@@ -30,6 +31,9 @@ Core::AccountService::AccountService(std::shared_ptr<AccountState> state, std::s
 
     connect(mediator.get(), &AccountMediator::openOrdersReady,
             state.get(), &AccountState::updateOrders);
+
+    connect(mediator.get(), &AccountMediator::tradeHistoryReady,
+            state.get(), &AccountState::updateExecutions);
 
     connect(mediator.get(), &AccountMediator::messageSent,
             this, &AccountService::messageReceived);
@@ -57,33 +61,29 @@ void Core::AccountService::init(const Tools::Api &api, bool isTestnet)
 
 void Core::AccountService::run()
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
     m_mediator->runStreamer();
 }
 
 void Core::AccountService::restart()
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
     m_mediator->restartStreamer();
 }
 
 void Core::AccountService::shutdown()
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
     m_mediator->stopStreamer();
 
     QEventLoop loop;
     QTimer::singleShot(5000, &loop, &QEventLoop::quit);
 
-    connect(m_mediator.get(), &Core::AccountMediator::streamerStopped, &loop, &QEventLoop::quit, Qt::SingleShotConnection);
+    connect(m_mediator.get(), &Core::AccountMediator::streamerStopped,
+            &loop, &QEventLoop::quit, Qt::SingleShotConnection);
 
     loop.exec();
 }
 
 void Core::AccountService::subscribe()
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
     m_mediator->subscribe();
 }
 
@@ -100,35 +100,29 @@ void Core::AccountService::requestInfoAboutApi()
 void Core::AccountService::onErrorOccurredWithId(const QString& id, const QString &error)
 {
     QString errMsg = id + " : " + error;
-    qCritical().noquote() << errMsg;
     emit errorOccurred(errMsg);
 }
 
 void Core::AccountService::onErrorOccurred(const QString &error)
 {
-    qCritical().noquote() << error;
     emit errorOccurred(error);
 }
 
 void Core::AccountService::onStreamerStarted(const QString& id)
 {
-    qDebug().noquote() << QString("%1 : started").arg(id);
+    subscribe();
     emit streamerStarted(id);
 }
 
 void Core::AccountService::onStreamerStopped(const QString& id)
 {
-    qDebug().noquote() << QString("%1 : stopped").arg(id);
     emit streamerStopped(id);
 }
 
 void Core::AccountService::createOrder(const QVariantMap& params)
 {
     if (!m_enableTrades)
-    {
-        qWarning().noquote() << "Trading was disabled";
         return;
-    }
 
     validateAndSend(params, Tools::buildOrderRequest,
                     [this](const Tools::OrderRequest& req) { m_mediator->requestCreateOrder(req); });
@@ -137,10 +131,7 @@ void Core::AccountService::createOrder(const QVariantMap& params)
 void Core::AccountService::amendOrder(const QVariantMap& params)
 {
     if (!m_enableTrades)
-    {
-        qWarning().noquote() << "Trading was disabled";
         return;
-    }
 
     validateAndSend(params, Tools::buildOrderAmendRequest,
                     [this](const Tools::OrderAmendRequest& req) { m_mediator->requestAmendOrder(req); });
@@ -149,10 +140,7 @@ void Core::AccountService::amendOrder(const QVariantMap& params)
 void Core::AccountService::cancelOrder(const QVariantMap& params)
 {
     if (!m_enableTrades)
-    {
-        qWarning().noquote() << "Trading was disabled";
         return;
-    }
 
     validateAndSend(params, Tools::buildOrderCancelRequest,
                     [this](const Tools::OrderCancelRequest& req) { m_mediator->requestCancelOrder(req); });
@@ -161,10 +149,7 @@ void Core::AccountService::cancelOrder(const QVariantMap& params)
 void Core::AccountService::cancelAllOrders(const QVariantMap& params)
 {
     if (!m_enableTrades)
-    {
-        qWarning().noquote() << "Trading was disabled";
         return;
-    }
 
     validateAndSend(params, Tools::buildOrderCancelAllRequest,
                     [this](const Tools::OrderCancelAllRequest& req) { m_mediator->requestCancelAllOrders(req); });
@@ -180,4 +165,54 @@ void Core::AccountService::requestOrderHistory(const QVariantMap& params)
 {
     validateAndSend(params, Tools::buildOrderHistoryRequest,
                     [this](const Tools::OrderHistoryRequest& req) { m_mediator->requestOrderHistory(req); });
+}
+
+void Core::AccountService::requestTradeHistory(const QVariantMap &params)
+{
+    validateAndSend(params, Tools::buildTradeHistoryRequest,
+                    [this](const Tools::TradeHistoryRequest& req) { m_mediator->requestTradeHistory(req); });
+}
+
+void Core::AccountService::exportOrders(const QString &path, Tools::Exporter::ExportFormat format, const QVariantMap &opts, const QVariantMap &params)
+{
+    auto req = Tools::buildStdExport(params);
+    if (!req.has_value())
+    {
+        emit errorOccurred(req.error());
+        return;
+    }
+
+    auto orders = m_mediator->readOrdersFromRepository(req.value());
+    if (orders.isEmpty())
+    {
+        emit errorOccurred("export: no orders in repository");
+        return;
+    }
+
+    const QUrl url(path);
+    const QString localPath = url.isLocalFile() ? url.toLocalFile() : path;
+
+    doExport(orders, format, localPath, [](const Tools::OrderInfo& o) { return Tools::Exporter::toField(o); }, opts);
+}
+
+void Core::AccountService::exportExecs(const QString &path, Tools::Exporter::ExportFormat format, const QVariantMap &opts, const QVariantMap &params)
+{
+    auto req = Tools::buildStdExport(params);
+    if (!req.has_value())
+    {
+        emit errorOccurred(req.error());
+        return;
+    }
+
+    auto execs = m_mediator->readExecsFromRepository(req.value());
+    if (execs.isEmpty())
+    {
+        emit errorOccurred("export: no execs in repository");
+        return;
+    }
+
+    const QUrl url(path);
+    const QString localPath = url.isLocalFile() ? url.toLocalFile() : path;
+
+    doExport(execs, format, localPath, [](const Tools::ExecutionInfo& e) { return Tools::Exporter::toField(e); }, opts);
 }

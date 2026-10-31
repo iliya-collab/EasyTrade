@@ -1,42 +1,58 @@
 #include "BybitMarketDataService.hpp"
 #include "Tools/Network/Bybit/BybitRestAPI.hpp"
-#include "Handlers/RestAPI/GetBybitTradePairsHandler.hpp"
-#include "Handlers/RestAPI/GetBybitKlineHandler.hpp"
+#include "Tools/PagedJob.hpp"
+#include "Handlers/Service/GetBybitInstrumentsInfoHandler.hpp"
+#include "Handlers/Service/GetBybitKlineHandler.hpp"
 
-namespace Core::Markets
+using InstrumentsInfoJob = Core::Tools::PagedJob<
+    Core::Tools::InstrumentsInfoRequest,
+    Core::Tools::InstrumentInfo>;
+
+namespace Core
 {
 
-    BybitMarketDataService::BybitMarketDataService(QObject* parent)
-        : BaseMarketDataService(std::make_unique<Tools::BybitRestAPI>(parent), parent)
+BybitMarketDataService::BybitMarketDataService(QObject* parent)
+    : BaseMarketDataService(std::make_unique<Tools::BybitRestAPI>(parent), parent)
+{
+    registerHandler<Handlers::GetBybitInstrumentsInfoHandler>();
+    registerHandler<Handlers::GetBybitKlineHandler>();
+}
+
+void BybitMarketDataService::init(bool isTestnet)
+{
+    if (!m_currentApi)
+        return;
+
+    Tools::Api api {"", ""};
+    m_currentApi->init(api, isTestnet);
+}
+
+void BybitMarketDataService::requestInstruments(const Tools::InstrumentsInfoRequest& req)
+{
+    InstrumentsInfoJob job;
+    job.setRequest(req);
+    send<Handlers::GetBybitInstrumentsInfoHandler>(QVariant::fromValue(job), job.getRequest());
+}
+
+void BybitMarketDataService::requestKlines(const Tools::KlinesRequest& req)
+{
+    send<Handlers::GetBybitKlineHandler>(QVariant::fromValue(req), req);
+}
+
+void BybitMarketDataService::onInstrumentsInfoPageReceived(const Tools::Instruments &instruments, const QString &nextPageCursor, const QVariant &context)
+{
+    if (context.metaType() != QMetaType::fromType<InstrumentsInfoJob>())
     {
-        registerHandler<GetBybitTradePairsHandler>();
-        registerHandler<GetBybitKlineHandler>();
+        emit signaller()->instrumentsInfoPageReceived(instruments, nextPageCursor, context);
+        return;
     }
 
-    void BybitMarketDataService::init(bool isTestnet)
-    {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
-        if (!m_currentApi)
-            return;
-
-        Tools::Api api {"", ""};
-        m_currentApi->init(api, isTestnet);
-    }
-
-    void BybitMarketDataService::requestTradePairs(Tools::EnumHelpers::MarketType type)
-    {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
-        requestGetImpl<GetBybitTradePairsHandler>(QVariant(), type);
-    }
-
-    void BybitMarketDataService::requestKlines(const Tools::KlinesRequest& req)
-    {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
-        requestGetImpl<GetBybitKlineHandler>(QVariant::fromValue(req), req);
-    }
+    auto job = context.value<InstrumentsInfoJob>();
+    if (job.addPage(instruments, nextPageCursor))
+        send<Handlers::GetBybitInstrumentsInfoHandler>(QVariant::fromValue(job), job.getRequest());
+    else
+        emit signaller()->allInstrumentsInfoReceived(job.get(), job.wasTruncated());
+}
 
 }
 

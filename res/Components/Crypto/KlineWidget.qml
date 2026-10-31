@@ -4,6 +4,7 @@ import QtQuick.Controls 2.15
 import Components.Crypto 1.0
 import Components.Custom 1.0
 import Application.Core 1.0
+import Theme 1.0
 
 Item {
     id: root
@@ -11,6 +12,7 @@ Item {
     property string currentCategory: "spot"
     property string currentTrade: ""
     property string currentInterval: "1"
+    property int limit: 200
     property alias enableVolumeChart: chart.enableShowVolumes
 
     // Список таймфреймов для панели: подпись -> значение interval для Bybit API
@@ -57,7 +59,7 @@ Item {
                 "category": currentCategory,
                 "symbol": currentTrade,
                 "interval": interval,
-                "limit": 200
+                "limit": limit
             }
         )
     }
@@ -106,7 +108,7 @@ Item {
 
             // Панель зума
             Rectangle {
-               color: "#2a2a2a"
+               color: Theme.windowColor
                Layout.preferredHeight: 30
                Layout.preferredWidth: 300
 
@@ -147,8 +149,74 @@ Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
             klineSeries: seriesModel
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                onTapped: {
+                    var p = root.mapFromItem(chart, point.position.x, point.position.y)
+                    chartMenu.popup(p.x, p.y)
+                }
+            }
+        }
+    } // ColumnLayout
+
+    // Контекстное меню настроек графика
+    Menu {
+        id: chartMenu
+
+        background: Rectangle {
+            implicitWidth: 220
+            color: chart.config.background
+            border.width: 1
+            border.color: chart.config.border
         }
 
-    } // ColumnLayout
+        MenuItem {
+            text: qsTr("Autoscroll")
+            checkable: true
+            checked: chart.enableAutoScroll
+            onToggled: chart.enableAutoScroll = checked
+        }
+        MenuItem {
+            text: qsTr("Show volumes")
+            checkable: true
+            checked: chart.enableShowVolumes
+            onToggled: chart.enableShowVolumes = checked
+        }
+        MenuItem {
+            text: qsTr("Display open price")
+            checkable: true
+            checked: chart.enableDisplayOpenPrice
+            onToggled: chart.enableDisplayOpenPrice = checked
+        }
+
+        MenuSeparator {}
+
+        MenuItem {
+            text: qsTr("Cursor info")
+            checkable: true
+            checked: chart.enableCursorInfo
+            onToggled: chart.enableCursorInfo = checked
+        }
+        MenuItem {
+            text: qsTr("Cursor time")
+            checkable: true
+            checked: chart.enableCursorTime
+            onToggled: chart.enableCursorTime = checked
+        }
+        MenuItem {
+            text: qsTr("Cursor price")
+            checkable: true
+            checked: chart.enableCursorPrice
+            onToggled: chart.enableCursorPrice = checked
+        }
+        MenuItem {
+            text: qsTr("Cursor volume")
+            checkable: true
+            checked: chart.enableCursorVolume
+            onToggled: chart.enableCursorVolume = checked
+        }
+    } // chartMenu
+
 } // root
 

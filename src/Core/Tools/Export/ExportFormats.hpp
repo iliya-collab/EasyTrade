@@ -1,9 +1,11 @@
 #pragma once
-#include <qobject.h>
+#include <QtQmlIntegration>
 
 namespace Core::Tools::Exporter
 {
 Q_NAMESPACE
+//QML_NAMESPACE
+QML_NAMED_ELEMENT(ExportFormat)
 
 enum class ExportFormat
 {

@@ -14,13 +14,19 @@ namespace Core::Tools
 //  Баланс аккаунта
 // ==========================================================================================
 
+struct Asset
+{
+    QString name;
+    QString amount;
+    QString value;
+
+    bool isSameAsset(const Asset& other) const { return name == other.name; }
+};
+
 struct AccountBalance
 {
-public:
-
     double m_totalWalletBalance = 0; // Общий баланс кошелька аккаунта в USD
-    std::vector<std::tuple<QString, QString, QString>> m_assets{}; // активы (монета, кол-во, стоимость)
-
+    std::vector<Asset> m_assets{}; // активы (монета, кол-во, стоимость)
 };
 
 // ==========================================================================================
@@ -29,20 +35,20 @@ public:
 
 using OrderbookSide = QMap<QString, QString>; // уровни (цена, объем)
 
-struct Orderbook {
-
+struct Orderbook
+{
     EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
     QString m_symbol = ""; // Название пары
     OrderbookSide m_bids{}; // Покупки
     OrderbookSide m_asks{}; // Продажи
-
 };
 
 // ==========================================================================================
 //  Тикер
 // ==========================================================================================
 
-struct Ticker {
+struct Ticker
+{
     Q_GADGET
     QML_VALUE_TYPE(Ticker)
 
@@ -76,8 +82,8 @@ public:
 //  Свеча
 // ==========================================================================================
 
-struct Kline {
-
+struct Kline
+{
     EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
     QString m_symbol = "";
     EnumHelpers::Interval m_interval = EnumHelpers::Interval::Unknown;
@@ -90,15 +96,16 @@ struct Kline {
     QString m_volume {};
     QString m_turnover {};
     bool m_confirm = false;
-
 };
+
+using Klines = QList<Kline>;
 
 // ==========================================================================================
 //  Публичная лента сделок
 // ==========================================================================================
 
-struct PublicTradeItem {
-
+struct PublicTradeItem
+{
     EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
     QString m_symbol = "";
     EnumHelpers::OrderSide m_side = EnumHelpers::OrderSide::Unknown;
@@ -106,7 +113,6 @@ struct PublicTradeItem {
     QString m_volume {};
     QString m_turnover {};
     qint64 m_tradeTime = 0;
-
 };
 
 using PublicTrades = QList<PublicTradeItem>;
@@ -115,7 +121,8 @@ using PublicTrades = QList<PublicTradeItem>;
 //  API-ключ и информация о нём
 // ==========================================================================================
 
-struct ApiInfo {
+struct ApiInfo
+{
     Q_GADGET
     QML_VALUE_TYPE(ApiInfo)
 
@@ -141,7 +148,6 @@ struct ApiInfo {
     Q_PROPERTY(QString kycLevel MEMBER m_kycLevel FINAL)
     Q_PROPERTY(QString userId MEMBER m_userId FINAL)
 
-    // Вычисляемые свойства для UI/Логики
     Q_PROPERTY(bool isPublic READ isPublic FINAL)
     Q_PROPERTY(bool isDangerous READ isDangerous FINAL)
     Q_PROPERTY(bool canTrade READ canTrade FINAL)
@@ -221,26 +227,24 @@ public:
 
 };
 
-struct Api {
+struct Api
+{
     Q_GADGET
     QML_VALUE_TYPE(Api)
 
     Q_PROPERTY(QString apiKey MEMBER m_apiKey FINAL)
     Q_PROPERTY(QString secretKey MEMBER m_secretKey FINAL)
-    //Q_PROPERTY(bool isTestnet MEMBER m_isTestnet FINAL)
     Q_PROPERTY(ApiInfo info MEMBER m_info FINAL)
 
 public:
 
-    QString m_apiKey = "";              // Api ключ
-    QString m_secretKey = "";           // Секретный Api ключ
-    //bool m_isTestnet = false;           // Тип сети
+    QString m_apiKey = "";                  // Api ключ
+    QString m_secretKey = "";               // Секретный Api ключ
     ApiInfo m_info{};
 
     bool operator==(const Api &other) const noexcept {
         return m_apiKey       == other.m_apiKey
                && m_secretKey == other.m_secretKey
-               //&& m_isTestnet == other.m_isTestnet
                && m_info      == other.m_info;
     }
 
@@ -251,17 +255,18 @@ public:
 };
 
 // ==========================================================================================
-//  Торговая пара как инструмент
+//  Инструмент
 // ==========================================================================================
 
-struct TradeInfo {
-
+struct InstrumentInfo
+{
     EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
     QString m_symbol = "";
     QString m_baseCoin = "";
     QString m_quoteCoin = "";
-
 };
+
+using Instruments = QList<InstrumentInfo>;
 
 // ==========================================================================================
 //  Ордер / исполнение / позиция (приватный WS-стрим)
@@ -361,6 +366,8 @@ public:
 
 };
 
+using Orders = QList<OrderInfo>;
+
 struct ExecutionInfo
 {
     Q_GADGET
@@ -400,6 +407,8 @@ public:
     bool m_isMaker = false; // true = Maker, false = Taker
     qint64 m_execTime = 0; // Время совершения сделки (мс)
 };
+
+using Executions = QList<ExecutionInfo>;
 
 struct PositionInfo
 {
@@ -455,7 +464,7 @@ Q_DECLARE_METATYPE(Core::Tools::PublicTradeItem)
 Q_DECLARE_METATYPE(Core::Tools::PublicTrades)
 Q_DECLARE_METATYPE(Core::Tools::Api)
 Q_DECLARE_METATYPE(Core::Tools::ApiInfo)
-Q_DECLARE_METATYPE(Core::Tools::TradeInfo)
+Q_DECLARE_METATYPE(Core::Tools::InstrumentInfo)
 Q_DECLARE_METATYPE(Core::Tools::OrderInfo)
 Q_DECLARE_METATYPE(Core::Tools::ExecutionInfo)
 Q_DECLARE_METATYPE(Core::Tools::PositionInfo)

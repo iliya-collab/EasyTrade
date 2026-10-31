@@ -22,9 +22,9 @@ Window {
         id: internal
 
         property bool isComponentReady: false
-        readonly property var tradePairList: TradePairsFilterProxyModel
+        readonly property var tradePairList: InstrumentFilterProxyModel
         {
-            sourceModel: AppCore.marketState.tradePairs
+            sourceModel: AppCore.marketState.instruments
             symbolFilter: ""
         }
         property var currentCategory: null
@@ -51,7 +51,7 @@ Window {
             onCurrentIndexChanged: {
                 internal.currentCategory = modelTabs[currentIndex].text
                 internal.currentSymbol = null
-                AppCore.marketService.loadTradePairs(modelTabs[currentIndex].type)
+                AppCore.marketService.loadInstruments(modelTabs[currentIndex].type)
             }
         }
 
@@ -111,36 +111,62 @@ Window {
                 anchors.fill: parent
                 clip: true
 
-                delegate: ItemDelegate {
+                delegate: Item {
                     id: lstItem
                     width: lstTrades.width
-                    text: symbol
+                    height: 34
 
                     property string symbolName: symbol
                     readonly property bool isSelected: internal.currentSymbol === symbolName
 
-                    background: Rectangle {
+                    Rectangle {
+                        id: itemBg
+                        anchors.fill: parent
+                        radius: Theme.radius
                         color: lstItem.isSelected
                                ? Theme.selectColor
-                               : (lstItem.pressed ? Theme.pressColor
-                               : (lstItem.hovered ? Theme.hoverColor : "transparent"))
-                        radius: Theme.radius
+                               : (mouseArea.containsMouse ? Theme.hoverColor : "transparent")
                         border.color: lstItem.isSelected ? Theme.accentColor : "transparent"
                         border.width: lstItem.isSelected ? Theme.borderWidth : 0
                     }
 
-                    contentItem: Text {
-                        text: lstItem.text
+                    Text {
+                        anchors.fill: parent
+                        anchors.leftMargin: Theme.padding
+                        anchors.rightMargin: Theme.padding
+                        text: lstItem.symbolName
                         font.pixelSize: Theme.fontSizeBody
                         font.family: Theme.fontFamily
                         font.bold: lstItem.isSelected
-                        leftPadding: Theme.padding
                         color: lstItem.isSelected ? Theme.selectTextColor : Theme.textColor
                         verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
                     }
 
-                    onClicked: {
-                        internal.currentSymbol = symbol
+                    MouseArea {
+                        id: mouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton
+
+                        onClicked: {
+                            internal.currentSymbol = lstItem.symbolName
+                            singleClickTimer.restart()
+                        }
+
+                        onDoubleClicked: {
+                            singleClickTimer.stop()
+                            internal.currentSymbol = lstItem.symbolName
+                            root.tradeSelected(internal.currentCategory, internal.currentSymbol)
+                            root.close()
+                        }
+                    }
+
+                    Timer {
+                        id: singleClickTimer
+                        interval: 250
+                        repeat: false
+                        onTriggered: {}
                     }
                 }
 

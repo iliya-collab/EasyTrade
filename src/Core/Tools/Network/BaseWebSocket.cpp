@@ -1,4 +1,5 @@
 #include "BaseWebSocket.hpp"
+#include "Tools/Logging.hpp"
 
 namespace Core::Tools
 {
@@ -22,7 +23,6 @@ namespace Core::Tools
 
     void BaseWebSocket::sendMessage(const QString& message)
     {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
         if (isOpen())
             m_webSocket->sendTextMessage(message);
     }
@@ -101,7 +101,7 @@ namespace Core::Tools
     {
         if (!m_isManualClose && !isOpen())
         {
-            qDebug() << "Attempting to reconnect to" << m_connectUrl;
+            coreWarn() << "Attempting to reconnect to" << m_connectUrl;
             m_webSocket->open(m_connectUrl);
         }
     }

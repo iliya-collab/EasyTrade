@@ -12,14 +12,12 @@ Item {
     Layout.fillWidth: true
     Layout.fillHeight: true
 
-    property alias enableVolumeChart: candleChart.enableVolumeChart
+    AmendOrderDialog {
+        id: amendDialog
 
-    function showRecentTrades() {
-        stackWidgets.replace("qrc:/qt/qml/Components/Crypto/PublicTradesWidget.qml")
-    }
-
-    function showOrderbook() {
-        stackWidgets.replace("qrc:/qt/qml/Components/Crypto/OrderbookWidget.qml")
+        onAmendRequested: function(request) {
+            AppCore.accountService.amendOrder(request)
+        }
     }
 
     Item {
@@ -93,7 +91,6 @@ Item {
 
                     KlineWidget {
                         id: candleChart
-                        //SplitView.fillWidth: true
                         SplitView.fillHeight: true
                         SplitView.preferredWidth: chartSplit.width * 0.90
                         SplitView.minimumWidth: chartSplit.width * 0.70
@@ -107,12 +104,9 @@ Item {
                         SplitView.minimumWidth: 350
                         clip: true
 
-                        StackView {
-                            id: stackWidgets
+                        MarketDataWidget {
                             anchors.fill: parent
                             anchors.margins: Theme.margins
-
-                            initialItem: OrderbookWidget {}
                         }
                     }
                 } // chartSplit
@@ -152,10 +146,45 @@ Item {
                         ]
                     }
 
-                    Component { id: openedOrdersComp; OpenedOrdersPanel {} }
-                    Component { id: positionsComp; PositionsPanel {} }
-                    Component { id: historyOrdersComp; HistoricalOrdersPanel {} }
-                    Component { id: tradeHistoryComp; TradeHistoryPanel {} }
+                    Component {
+                        id: openedOrdersComp
+
+                        OpenedOrdersWidget {
+                            id: openedOrders
+                            Connections {
+                                target: openedOrders
+                                ignoreUnknownSignals: true
+
+                                function onClickedCancelOrder(category, symbol, orderId, orderLinkId) {
+                                    AppCore.accountService.cancelOrder({
+                                        "category": category,
+                                        "symbol": symbol,
+                                        "orderId": orderId,
+                                        "orderLinkId": orderLinkId
+                                    })
+                                }
+
+                                function onClickedAmendOrder(category, symbol, orderType, orderId, orderLinkId) {
+                                    amendDialog.category = category
+                                    amendDialog.symbol = symbol
+                                    amendDialog.orderType = orderType
+                                    amendDialog.orderId = orderId
+                                    amendDialog.orderLinkId = orderLinkId
+                                    amendDialog.open()
+                                }
+
+                                function onClickedCancelAllOrder() {
+                                    AppCore.accountService.cancelAllOrders({
+                                        "category":  EnumHelpers.marketTypeToApiString(AppCore.marketState.currentCategory),
+                                        "symbol": AppCore.marketState.currentSymbol
+                                    })
+                                }
+                            }
+                        } // openedOrders
+                    }
+                    Component { id: positionsComp; PositionsWidget {} }
+                    Component { id: historyOrdersComp; HistoricalOrdersWidget {} }
+                    Component { id: tradeHistoryComp; TradeHistoryWidget {} }
 
                 }
             } // bottomContent

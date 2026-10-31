@@ -38,8 +38,7 @@ inline ExportRow toField(const Kline &k)
         { "start",    static_cast<qint64>(k.m_start) },
         { "end",      static_cast<qint64>(k.m_end) },
         { "volume",   k.m_volume },
-        { "turnover", k.m_turnover },
-        { "confirm",  k.m_confirm }
+        { "turnover", k.m_turnover }
     };
 }
 

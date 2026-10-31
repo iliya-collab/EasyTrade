@@ -1,19 +1,12 @@
 #pragma once
-#include "Markets/Websocket/BaseMarketDataStreamer.hpp"
+#include "Streamer/BaseMarketDataStreamer.hpp"
  
-namespace Core::Markets
+namespace Core
 {
 
-class BybitMarketDataStreamer : public BaseMarketDataStreamer
+class BybitMarketDataStreamer : public Streamer::BaseMarketDataStreamer
 {
     Q_OBJECT
-
-private slots:
-
-    void onStarted() override;
-    void onStopped() override;
-    void onPingMeasured(qint64 pingMs) override;
-    void onErrorOccurred(const QString& error) override;
 
 public:
 
@@ -22,10 +15,6 @@ public:
 
     QString id() override;
     void init(bool isTestnet) override;
-    void start() override;
-    void stop() override;
-    void restart() override;
-    bool isRunning() override;
 
 private:
 
@@ -36,9 +25,6 @@ private:
     QString createOrderbookStream(const QString& symbol, int depth) const override;
     QString createKlineStream(const QString& symbol, Tools::EnumHelpers::Interval interval) const override;
     QString createPublicTradeStream(const QString& symbol) const override;
-
-    QString m_lastPair = "";
-    const int MAX_STREAMS_PER_SUBSCRIPTION = 10;
 
 };
 

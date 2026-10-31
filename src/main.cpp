@@ -2,7 +2,8 @@
 #include <QQmlApplicationEngine>
 #include <QIcon>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     //qputenv("QT_QPA_PLATFORM", "xcb");
     qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
 
@@ -10,10 +11,15 @@ int main(int argc, char *argv[]) {
 
     app.setWindowIcon(QIcon("://icons/icon_app.png"));
 
+    QCoreApplication::setOrganizationName("EasyTrade");
+    QCoreApplication::setOrganizationDomain("easytrade.local");
+    QCoreApplication::setApplicationName("EasyTrade");
+
     QQmlApplicationEngine qmlEngine;
 
     // Пути поиска
-    qDebug() << "Import paths:" << qmlEngine.importPathList();
+    //qDebug() << "Available drivers:" << QSqlDatabase::drivers();
+    //qDebug() << "Import paths:" << qmlEngine.importPathList();
 
     QObject::connect(&qmlEngine, &QQmlApplicationEngine::objectCreationFailed, &app, []() {
         QCoreApplication::exit(-1);

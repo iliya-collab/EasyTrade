@@ -1,4 +1,5 @@
 #include "AccountState.hpp"
+#include "Tools/Logging.hpp"
 
 namespace Core {
 
@@ -9,7 +10,6 @@ namespace Core {
         m_executions = std::make_shared<Tools::ExecutionModel>();
         m_positions = std::make_shared<Tools::PositionModel>();
     }
-
 
     void AccountState::updateApi(const Tools::Api& api)
     {
@@ -30,10 +30,10 @@ namespace Core {
         emit validAccountChanged();
     }
 
-    void AccountState::updateBalance(const Tools::AccountBalance &balance)
+    void AccountState::upsertBalance(const Tools::AccountBalance &balance)
     {
         m_overallAssetsBalance = balance.m_totalWalletBalance;
-        m_assets->updateAssets(balance.m_assets);
+        m_assets->upsertAssets(balance.m_assets);
 
         emit overallAssetsBalanceChanged();
         emit assetsChanged();
@@ -54,6 +54,12 @@ namespace Core {
     void AccountState::updateExecution(const Tools::ExecutionInfo &execution)
     {
         m_executions->addExecution(execution);
+        emit executionsChanged();
+    }
+
+    void AccountState::updateExecutions(const QList<Tools::ExecutionInfo> &executions)
+    {
+        m_executions->addExecutionBatch(executions);
         emit executionsChanged();
     }
 

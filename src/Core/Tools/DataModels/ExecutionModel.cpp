@@ -15,7 +15,7 @@ QVariant Core::Tools::ExecutionModel::data(const QModelIndex &index, int role) c
     switch (role)
     {
     case CategoryRole:
-        return QVariant::fromValue(e.m_category);
+        return EnumHelpers::marketTypeToApiString(e.m_category);
     case SymbolRole:
         return e.m_symbol;
     case ExecIdRole:
@@ -25,7 +25,7 @@ QVariant Core::Tools::ExecutionModel::data(const QModelIndex &index, int role) c
     case OrderLinkIdRole:
         return e.m_orderLinkId;
     case SideRole:
-        return QVariant::fromValue(e.m_side);
+        return EnumHelpers::orderSideToString(e.m_side);
     case ExecPriceRole:
         return e.m_execPrice;
     case ExecQtyRole:
@@ -33,7 +33,7 @@ QVariant Core::Tools::ExecutionModel::data(const QModelIndex &index, int role) c
     case ExecValueRole:
         return e.m_execValue;
     case ExecTypeRole:
-        return QVariant::fromValue(e.m_execType);
+        return EnumHelpers::execTypeToString(e.m_execType);
     case ExecFeeRole:
         return e.m_execFee;
     case FeeCurrencyRole:
@@ -96,15 +96,6 @@ void Core::Tools::ExecutionModel::addExecutionBatch(const QList<ExecutionInfo> &
     endInsertRows();
 
     trimIfNeeded();
-}
-
-QList<Core::Tools::ExecutionInfo> Core::Tools::ExecutionModel::executionsForOrder(const QString &orderId) const
-{
-    QList<ExecutionInfo> result;
-    for (const auto& e : m_executions)
-        if (e.m_orderId == orderId)
-            result.append(e);
-    return result;
 }
 
 void Core::Tools::ExecutionModel::setMaxItem(int max)

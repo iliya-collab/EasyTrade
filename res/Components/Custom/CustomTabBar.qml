@@ -24,7 +24,8 @@ TabBar {
                      : tabs.pressed ? Theme.pressColor
                      : tabs.hovered ? Theme.hoverColor
                      : "transparent"
-                radius: Theme.radius
+                topLeftRadius: Theme.radius
+                bottomRightRadius: Theme.radius
                 border.color: Theme.borderColor
                 border.width: Theme.borderWidth
 

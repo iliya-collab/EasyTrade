@@ -15,6 +15,32 @@ Item {
 
         CustomLabel { text: "General" }
 
+        CustomLabel { text: "Theme" }
+
+        ListModel {
+            id: themeModel
+            ListElement { label: "System"; value: "system" }
+            ListElement { label: "Dark";   value: "dark"   }
+            ListElement { label: "Light";  value: "light"  }
+        }
+
+        CustomComboBox {
+            id: themeCombo
+            Layout.fillWidth: true
+
+            model: themeModel
+            textRole: "label"
+            valueRole: "value"
+
+            currentIndex: indexOfValue(Theme.mode)
+            onActivated: Theme.mode = currentValue
+        }
+
+        CustomLabel {
+            visible: Theme.mode === "system"
+            text: "System theme: " + (Theme.systemIsDark ? "dark" : "light")
+        }
+
         CustomSwitch {
             id: autoConnCheck
             text: "Auto connection"

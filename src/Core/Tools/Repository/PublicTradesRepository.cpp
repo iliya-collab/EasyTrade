@@ -1,19 +1,53 @@
 #include "PublicTradesRepository.hpp"
 
-namespace Core::Tools {
+namespace {
 
-void PublicTradesRepository::handleSelectedPublicTrades(QSqlQuery &query)
+constexpr auto kTradesTable = "trades";
+
+constexpr auto kColumns =
+    "category, symbol, side, price, volume, time";
+
+const QString kSelectTradesSql = QStringLiteral(
+                                     "SELECT %1 FROM %2 "
+                                     "WHERE category = ? AND symbol = ? "
+                                     "ORDER BY time ASC"
+                                     ).arg(kColumns, kTradesTable);
+
+const QString kInsertTradeSql = QStringLiteral(R"(
+    INSERT INTO %1 (%2)
+    VALUES (?, ?, ?, ?, ?, ?)
+)").arg(kTradesTable, kColumns);
+
+QVariantList tradeBindings(const Core::Tools::PublicTradeItem& t)
+{
+    using Core::Tools::EnumHelpers;
+    return {
+        EnumHelpers::marketTypeToApiString(t.m_category),
+        t.m_symbol,
+        EnumHelpers::orderSideToString(t.m_side),
+        t.m_price,
+        t.m_volume,
+        t.m_tradeTime
+    };
+}
+
+} // namespace
+
+namespace Core::Tools
+{
+
+void PublicTradesRepository::handleSelectedPublicTrades(QSqlQuery& query)
 {
     while (query.next())
     {
-        Tools::PublicTradeItem t;
-        t.m_category        = EnumHelpers::apiStringToMarketType(query.value(0).toString());
-        t.m_symbol          = query.value(1).toString();
-        t.m_side            = EnumHelpers::stringToOrderSide(query.value(2).toString());
-        t.m_price           = query.value(3).toString();
-        t.m_volume          = query.value(4).toString();
-        t.m_tradeTime       = query.value(5).toLongLong();
-        t.m_turnover        = QString::number(t.m_price.toDouble() * t.m_volume.toDouble());
+        PublicTradeItem t;
+        t.m_category  = EnumHelpers::apiStringToMarketType(query.value("category").toString());
+        t.m_symbol    = query.value("symbol").toString();
+        t.m_side      = EnumHelpers::stringToOrderSide(query.value("side").toString());
+        t.m_price     = query.value("price").toString();
+        t.m_volume    = query.value("volume").toString();
+        t.m_tradeTime = query.value("time").toLongLong();
+        t.m_turnover  = QString::number(t.m_price.toDouble() * t.m_volume.toDouble());
         m_data.append(t);
     }
 }
@@ -23,20 +57,19 @@ PublicTradesRepository::PublicTradesRepository(const QString& dbPath, IDatabaseM
 
 bool PublicTradesRepository::init()
 {
-
     QStringList queries;
 
     queries << R"(
-        CREATE TABLE IF NOT EXISTS trades (
-            id INTEGER PRIMARY KEY,
-            category TEXT NOT NULL,
-            symbol TEXT NOT NULL,
-            side TEXT NOT NULL,
-            price REAL,
-            volume REAL,
-            time INTEGER
-        )
-    )";
+            CREATE TABLE IF NOT EXISTS trades (
+                id INTEGER PRIMARY KEY,
+                category TEXT NOT NULL,
+                symbol TEXT NOT NULL,
+                side TEXT NOT NULL,
+                price REAL,
+                volume REAL,
+                time INTEGER
+            )
+        )";
 
     queries << "CREATE INDEX IF NOT EXISTS idx_trades_category ON trades(category)";
     queries << "CREATE INDEX IF NOT EXISTS idx_trades_symbol ON trades(symbol)";
@@ -61,19 +94,10 @@ QString PublicTradesRepository::error()
 
 bool PublicTradesRepository::clear()
 {
-    if (!m_dbManager.beginTransaction(m_dbPath))
-        return false;
-
-    if (!m_dbManager.executeQuery(m_dbPath, "DELETE FROM trades"))
-    {
-        m_dbManager.rollbackTransaction(m_dbPath);
-        return false;
-    }
-
-    return m_dbManager.commitTransaction(m_dbPath);
+    return m_dbManager.executeQuery(m_dbPath, "DELETE FROM trades");
 }
 
-bool PublicTradesRepository::insertPublicTrades(const PublicTrades &newPublicTrades)
+bool PublicTradesRepository::insert(const PublicTrades& newPublicTrades)
 {
     if (newPublicTrades.isEmpty())
         return true;
@@ -82,34 +106,29 @@ bool PublicTradesRepository::insertPublicTrades(const PublicTrades &newPublicTra
         return false;
 
     for (const auto& item : newPublicTrades)
-        if (!m_dbManager.executePrepared(m_dbPath,
-            R"(
-                INSERT INTO trades (category, symbol, side, price, volume, time)
-                VALUES (?, ?, ?, ?, ?, ?)
-            )",
-            { EnumHelpers::marketTypeToApiString(item.m_category), item.m_symbol,
-                EnumHelpers::orderSideToString(item.m_side), item.m_price,
-                item.m_volume, item.m_tradeTime }))
+    {
+        if (!m_dbManager.executePrepared(m_dbPath, kInsertTradeSql, tradeBindings(item)))
         {
             m_dbManager.rollbackTransaction(m_dbPath);
             return false;
         }
+    }
 
     return m_dbManager.commitTransaction(m_dbPath);
 }
 
-bool PublicTradesRepository::selectKlines(EnumHelpers::MarketType type, const QString &symbol)
+bool PublicTradesRepository::select(EnumHelpers::MarketType type, const QString& symbol)
 {
     m_data.clear();
-    return m_dbManager.executePrepared(m_dbPath,
-        R"(
-            SELECT category, symbol, side, price, volume, time
-            FROM trades
-            WHERE category = ? AND symbol = ?
-            ORDER BY time ASC
-        )",
-       { EnumHelpers::marketTypeToApiString(type), symbol },
-       [this](QSqlQuery& query) { handleSelectedPublicTrades(query); });
+    return m_dbManager.executePrepared(
+        m_dbPath,
+        kSelectTradesSql,
+        {
+            EnumHelpers::marketTypeToApiString(type),
+            symbol
+        },
+        [this](QSqlQuery& query) { handleSelectedPublicTrades(query); }
+        );
 }
 
 }

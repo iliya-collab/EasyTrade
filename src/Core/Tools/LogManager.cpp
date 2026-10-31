@@ -3,7 +3,8 @@
 #include <QTime>
 #include <cstdio>
 
-namespace Core::Tools {
+namespace Core::Tools
+{
 
     LogManager& LogManager::instance()
     {
@@ -105,32 +106,44 @@ namespace Core::Tools {
     void LogManager::messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
     {
         LogManager& manager = LogManager::instance();
-
         QMutexLocker locker(&manager.m_mutex);
 
-        if (type == QtDebugMsg && !manager.m_debugEnabled)
-            return;
+        if (type == QtDebugMsg && !manager.m_debugEnabled) return;
+        if (type == QtInfoMsg && !manager.m_infoEnabled) return;
+        if (type == QtWarningMsg && !manager.m_warningEnabled) return;
 
-        if (type == QtInfoMsg && !manager.m_infoEnabled)
-            return;
+        QString contextStr;
+        if (context.file && context.function)
+        {
+            QString fileStr = QString::fromUtf8(context.file);
+            int lastSlash = qMax(fileStr.lastIndexOf('/'), fileStr.lastIndexOf('\\'));
+            if (lastSlash != -1) fileStr = fileStr.mid(lastSlash + 1);
 
-        if (type == QtWarningMsg && !manager.m_warningEnabled)
-            return;
+            contextStr = QString(" [%1:%2 (%3)]")
+                             .arg(fileStr)
+                             .arg(context.line)
+                             .arg(QString::fromUtf8(context.function));
+        }
 
-        QByteArray localMsg = msg.toLocal8Bit();
-        QString timeStamp = QDateTime::currentDateTime().toString("hh:mm:ss");
-        QByteArray timeBytes = timeStamp.toLocal8Bit();
+        QString categoryStr = QString::fromUtf8(context.category);
+
+        QString timeStamp = QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
+        QString formattedMsg = QString("[%1] [%2]%3: %4")
+                                   .arg(timeStamp)
+                                   .arg(categoryStr)
+                                   .arg(contextStr)
+                                   .arg(msg);
 
         if (manager.m_isLogFile && manager.m_logFile.isOpen())
         {
             QTextStream out(&manager.m_logFile);
-            out << "[" << timeStamp << "] " << msg << "\n";
+            out << formattedMsg << "\n";
             out.flush();
         }
 
         if (!manager.m_sinks.empty())
         {
-            LogEntry entry{ type, QString::fromUtf8(context.category), msg, timeStamp };
+            LogEntry entry{ type, categoryStr, msg, timeStamp };
             for (const auto& [id, sink] : manager.m_sinks)
                 sink(entry);
         }
@@ -138,26 +151,29 @@ namespace Core::Tools {
         if (!manager.m_isStdLog)
             return;
 
+        QByteArray localFormattedMsg = formattedMsg.toLocal8Bit();
+
         switch (type)
         {
         case QtDebugMsg:
-            fprintf(stderr, "[%s] Debug: %s\n", timeBytes.constData(), localMsg.constData());
+            fprintf(stderr, "%s\n", localFormattedMsg.constData());
             break;
         case QtInfoMsg:
-            fprintf(stderr, "[%s] Info: %s\n", timeBytes.constData(), localMsg.constData());
+            fprintf(stderr, "%s\n", localFormattedMsg.constData());
             break;
         case QtWarningMsg:
-            fprintf(stderr, "[%s] Warning: %s\n", timeBytes.constData(), localMsg.constData());
+            fprintf(stderr, "%s\n", localFormattedMsg.constData());
             break;
         case QtCriticalMsg:
-            fprintf(stderr, "[%s] Critical: %s\n", timeBytes.constData(), localMsg.constData());
+            fprintf(stderr, "%s\n", localFormattedMsg.constData());
             break;
         case QtFatalMsg:
-            fprintf(stderr, "[%s] Fatal: %s\n", timeBytes.constData(), localMsg.constData());
+            fprintf(stderr, "%s\n", localFormattedMsg.constData());
             abort();
         }
 
         fflush(stderr);
     }
+
 
 }

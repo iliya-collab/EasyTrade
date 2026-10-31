@@ -4,7 +4,6 @@ qt_add_qml_module(CryptoComponents
     RESOURCE_PREFIX "/qt/qml"
     OUTPUT_DIRECTORY "${QML_MODULES}/Components/Crypto"
     QML_FILES
-        SelecterTradeWidget.qml
         OrderbookWidget.qml
         TickerWidget.qml
         KlineWidget.qml
@@ -13,8 +12,9 @@ qt_add_qml_module(CryptoComponents
         PingIndicator.qml
         PublicTradesWidget.qml
         OrderbookView.qml
-        OpenedOrdersPanel.qml
-        HistoricalOrdersPanel.qml
-        PositionsPanel.qml
-        TradeHistoryPanel.qml
+        OpenedOrdersWidget.qml
+        HistoricalOrdersWidget.qml
+        PositionsWidget.qml
+        TradeHistoryWidget.qml
+        MarketDataWidget.qml
 )

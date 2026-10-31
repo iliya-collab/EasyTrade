@@ -67,7 +67,7 @@ Window {
             initialItem: Item {}
 
             function showAPISettingsPage() {
-                contentStack.replace("APISettingsPage.qml", StackView.Immediate)
+                contentStack.replace("ApiSettingsPage.qml", StackView.Immediate)
             }
 
             function showGeneralSettingsPage() {

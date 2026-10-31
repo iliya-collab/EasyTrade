@@ -46,6 +46,7 @@ ApplicationWindow {
                 AppCore.marketService.subscribeSymbol(category, symbol)
                 AppCore.accountService.requestOrderHistory({ "category": category })
                 AppCore.accountService.requestOpenOrders({ "category": category })
+                AppCore.accountService.requestTradeHistory({ "category": category })
             })
         }
 
@@ -74,18 +75,73 @@ ApplicationWindow {
         }
     }
 
-    Loader {
-        id: orderWindowLoader
-        active: false
-        source: "Views/OrderManagementWindow.qml"
+    OrderCreateDialog {
+        id: orderDialog
+    }
 
-        Connections {
-            target: orderWindowLoader.item
-            ignoreUnknownSignals: true
-            function onVisibleChanged() {
-                if (orderWindowLoader.item && !orderWindowLoader.item.visible)
-                    Qt.callLater(function() { orderWindowLoader.active = false })
-            }
+    ExportDialog {
+        id: klinesExportDialog
+        title: qsTr("Export klines")
+        defaultName: "klines"
+
+        GridLayout {
+            columns: 2
+            Layout.fillWidth: true
+            CustomLabel { text: qsTr("Interval") }
+            CustomComboBox { id: kInterval; model: ["1","3","5","15","30","60","120","240","360","720","D","W","M"] }
+            CustomLabel { text: qsTr("From") }
+            CustomTextField { id: kStart; placeholderText: "2026-01-01 00:00"; Layout.fillWidth: true }
+            CustomLabel { text: qsTr("To") }
+            CustomTextField { id: kEnd; placeholderText: "2026-01-31 23:59"; Layout.fillWidth: true }
+        }
+
+        onExportRequested: function(path, format, opts) {
+            AppCore.marketService.exportKlines(path, format, opts, {
+                "category": EnumHelpers.marketTypeToApiString(AppCore.marketState.currentCategory),
+                "symbol":   AppCore.marketState.currentSymbol,
+                "interval": kInterval.currentText,
+                "start":    Date.parse(kStart.text),
+                "end":      Date.parse(kEnd.text)
+            })
+        }
+    }
+
+    ExportDialog {
+        id: tradesExportDialog
+        title: qsTr("Export trades")
+        defaultName: "trades"
+
+        onExportRequested: function(path, format, opts) {
+            AppCore.marketService.exportTrades(path, format, opts, {
+                "category": EnumHelpers.marketTypeToApiString(AppCore.marketState.currentCategory),
+                "symbol":   AppCore.marketState.currentSymbol
+            })
+        }
+    }
+
+    ExportDialog {
+        id: ordersExportDialog
+        title: qsTr("Export orders")
+        defaultName: "orders"
+
+        onExportRequested: function(path, format, opts) {
+            AppCore.accountService.exportOrders(path, format, opts, {
+                "category": EnumHelpers.marketTypeToApiString(AppCore.marketState.currentCategory),
+                "symbol":   AppCore.marketState.currentSymbol
+            })
+        }
+    }
+
+    ExportDialog {
+        id: execsExportDialog
+        title: qsTr("Export execs")
+        defaultName: "execs"
+
+        onExportRequested: function(path, format, opts) {
+            AppCore.accountService.exportExecs(path, format, opts, {
+                "category": EnumHelpers.marketTypeToApiString(AppCore.marketState.currentCategory),
+                "symbol":   AppCore.marketState.currentSymbol
+            })
         }
     }
 
@@ -95,91 +151,57 @@ ApplicationWindow {
     menuBar: CustomMenuBar {
         menuModel: [
             {
-                text: "Services",
+                text: qsTr("Services"),
                 items: [
                     {
-                        text: "User",
+                        text: qsTr("User"),
                         clicked: function() { mainStack.showUserScreen() }
                     },
                     {
-                        text: "Trade",
+                        text: qsTr("Trade"),
                         clicked: function() {
                             mainStack.showTradeScreen()
                         }
                     },
                     {
-                        text: "Available trades",
+                        text: qsTr("Instruments"),
                         clicked: function() {
                             selecterTradeWindowLoader.active = true
                         }
                     },
                     {
-                        text: "Orders",
+                        text: qsTr("Order"),
                         clicked: function() {
-                            orderWindowLoader.active = true
+                            orderDialog.open()
                         }
-                    }
-
-                ]
-            },
-            {
-                text: "Repository",
-                items: [
-                    {
-                        text: "Load",
-                        items: [
-                            {
-                                text: "Spot",
-                                clicked: function() { AppCore.marketService.loadTradePairs(Tools.MarketType.Spot) }
-                            },
-                            {
-                                text: "Linear",
-                                clicked: function() { AppCore.marketService.loadTradePairs(Tools.MarketType.Linear) }
-                            },
-                            {
-                                text: "Inverse",
-                                clicked: function() { AppCore.marketService.loadTradePairs(Tools.MarketType.Inverse) }
-                            },
-                            {
-                                text: "Option",
-                                clicked: function() { AppCore.marketService.loadTradePairs(Tools.MarketType.Option) }
-                            }
-                        ]
                     },
                     { text: "---" },
                     {
-                        text: "Export",
-                        items: [
-                            {
-                                text: "Klines"
-                            }
-                        ]
-                    },
-                ]
-            },
-            {
-                text: "View",
-                items: [
-                    {
-                        text: "Order book",
-                        clicked: function() { mainStack.currentItem.showOrderbook() }
-                    },
-                    {
-                        text: "Recent trades",
-                        clicked: function() { mainStack.currentItem.showRecentTrades() }
-                    },
-                    {
-                        text: "Volume chart",
-                        clicked: function() { mainStack.currentItem.enableVolumeChart = !mainStack.currentItem.enableVolumeChart }
+                        text: qsTr("Exit"),
+                        clicked: function() {
+                            Qt.quit()
+                        }
                     }
                 ]
             },
             {
-                text: "Settings",
+
+                text: qsTr("Export"),
+                items: [
+                    { text: qsTr("Klines"), clicked: function() { klinesExportDialog.open() } },
+                    { text: qsTr("Public trades"), clicked: function() { tradesExportDialog.open() } },
+                    { text: "---" },
+                    { text: qsTr("Orders"), clicked: function() { ordersExportDialog.open() } },
+                    { text: qsTr("Executions"), clicked: function() { execsExportDialog.open() } },
+                    { text: qsTr("Positions") }
+                ]
+            },
+            {
+                text: qsTr("Settings"),
                 clicked: function() { settingsWindowLoader.active = true }
             },
             {
-                text: "Logs",
+                text: qsTr("Logs"),
                 clicked: function() {
                     if (logWindowLoader.item)
                         logWindowLoader.item.raise()

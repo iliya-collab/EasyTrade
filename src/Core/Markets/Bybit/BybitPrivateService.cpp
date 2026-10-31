@@ -1,99 +1,134 @@
 #include "BybitPrivateService.hpp"
+#include "Tools/PagedJob.hpp"
 #include "Tools/Network/Bybit/BybitRestAPI.hpp"
-#include "Handlers/RestAPI/GetBybitAccountBalanceHandler.hpp"
-#include "Handlers/RestAPI/GetBybitInfoAboutAPIHandler.hpp"
-#include "Handlers/RestAPI/GetBybitOpenOrdersHandler.hpp"
-#include "Handlers/RestAPI/GetBybitOrderHistoryHandler.hpp"
-#include "Handlers/RestAPI/PostBybitCreateOrderHandler.hpp"
-#include "Handlers/RestAPI/PostBybitAmendOrderHandler.hpp"
-#include "Handlers/RestAPI/PostBybitCancelOrderHandler.hpp"
-#include "Handlers/RestAPI/PostBybitCancelAllOrdersHandler.hpp"
-#include "Handlers/RestAPI/GetBybitTradeHistoryHandler.hpp"
+#include "Handlers/Service/GetBybitAccountBalanceHandler.hpp"
+#include "Handlers/Service/GetBybitInfoAboutAPIHandler.hpp"
+#include "Handlers/Service/GetBybitOpenOrdersHandler.hpp"
+#include "Handlers/Service/GetBybitOrderHistoryHandler.hpp"
+#include "Handlers/Service/PostBybitCreateOrderHandler.hpp"
+#include "Handlers/Service/PostBybitAmendOrderHandler.hpp"
+#include "Handlers/Service/PostBybitCancelOrderHandler.hpp"
+#include "Handlers/Service/PostBybitCancelAllOrdersHandler.hpp"
+#include "Handlers/Service/GetBybitTradeHistoryHandler.hpp"
 
-Core::Markets::BybitPrivateService::BybitPrivateService(QObject *parent)
+using OrderHistoryJob = Core::Tools::PagedJob<Core::Tools::OrderHistoryRequest, Core::Tools::OrderInfo>;
+using OpenOrdersJob = Core::Tools::PagedJob<Core::Tools::OpenOrdersRequest, Core::Tools::OrderInfo>;
+using TradeHistoryJob = Core::Tools::PagedJob<Core::Tools::TradeHistoryRequest, Core::Tools::ExecutionInfo>;
+
+Core::BybitPrivateService::BybitPrivateService(QObject *parent)
     : BasePrivateService(std::make_unique<Tools::BybitRestAPI>(parent), parent)
 {
-    registerHandler<GetBybitInfoAboutAPIHandler>();
-    registerHandler<GetBybitAccountBalanceHandler>();
-    registerHandler<GetBybitOpenOrdersHandler>();
-    registerHandler<GetBybitOrderHistoryHandler>();
-    registerHandler<PostBybitCreateOrderHandler>();
-    registerHandler<PostBybitAmendOrderHandler>();
-    registerHandler<PostBybitCancelOrderHandler>();
-    registerHandler<PostBybitCancelAllOrdersHandler>();
-    registerHandler<GetBybitTradeHistoryHandler>();
+    registerHandler<Handlers::GetBybitInfoAboutAPIHandler>();
+    registerHandler<Handlers::GetBybitAccountBalanceHandler>();
+    registerHandler<Handlers::GetBybitOpenOrdersHandler>();
+    registerHandler<Handlers::GetBybitOrderHistoryHandler>();
+    registerHandler<Handlers::PostBybitCreateOrderHandler>();
+    registerHandler<Handlers::PostBybitAmendOrderHandler>();
+    registerHandler<Handlers::PostBybitCancelOrderHandler>();
+    registerHandler<Handlers::PostBybitCancelAllOrdersHandler>();
+    registerHandler<Handlers::GetBybitTradeHistoryHandler>();
 }
 
-void Core::Markets::BybitPrivateService::requestInfoAboutApi()
+void Core::BybitPrivateService::requestInfoAboutApi()
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-    send<GetBybitInfoAboutAPIHandler>(QVariant());
+    send<Handlers::GetBybitInfoAboutAPIHandler>(QVariant());
 }
 
-void Core::Markets::BybitPrivateService::requestAccountBalance()
+void Core::BybitPrivateService::requestAccountBalance()
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-    send<GetBybitAccountBalanceHandler>(QVariant());
+    send<Handlers::GetBybitAccountBalanceHandler>(QVariant());
 }
 
-void Core::Markets::BybitPrivateService::init(const Tools::Api &api, bool isTestnet)
+void Core::BybitPrivateService::init(const Tools::Api &api, bool isTestnet)
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-
     if (!m_currentApi)
         return;
-
     m_currentApi->init(api, isTestnet);
 }
 
-void Core::Markets::BybitPrivateService::requestCreateOrder(const Tools::OrderRequest &request)
+void Core::BybitPrivateService::requestCreateOrder(const Tools::OrderRequest &request)
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-    send<PostBybitCreateOrderHandler>(QVariant::fromValue(request), request);
+    send<Handlers::PostBybitCreateOrderHandler>(QVariant::fromValue(request), request);
 }
 
-void Core::Markets::BybitPrivateService::requestAmendOrder(const Tools::OrderAmendRequest &request)
+void Core::BybitPrivateService::requestAmendOrder(const Tools::OrderAmendRequest &request)
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-    send<PostBybitAmendOrderHandler>(QVariant::fromValue(request), request);
+    send<Handlers::PostBybitAmendOrderHandler>(QVariant::fromValue(request), request);
 }
 
-void Core::Markets::BybitPrivateService::requestCancelOrder(const Tools::OrderCancelRequest &request)
+void Core::BybitPrivateService::requestCancelOrder(const Tools::OrderCancelRequest &request)
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-    send<PostBybitCancelOrderHandler>(QVariant::fromValue(request), request);
+    send<Handlers::PostBybitCancelOrderHandler>(QVariant::fromValue(request), request);
 }
 
-void Core::Markets::BybitPrivateService::requestCancelAllOrders(const Tools::OrderCancelAllRequest &request)
+void Core::BybitPrivateService::requestCancelAllOrders(const Tools::OrderCancelAllRequest &request)
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-    send<PostBybitCancelAllOrdersHandler>(QVariant::fromValue(request), request);
+    send<Handlers::PostBybitCancelAllOrdersHandler>(QVariant::fromValue(request), request);
 }
 
-void Core::Markets::BybitPrivateService::requestOpenOrders(const Tools::OpenOrdersRequest &request)
+void Core::BybitPrivateService::requestOpenOrdersAll(const Tools::OpenOrdersRequest &request)
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-    send<GetBybitOpenOrdersHandler>(QVariant::fromValue(request), request);
+    OpenOrdersJob job;
+    job.setRequest(request);
+    send<Handlers::GetBybitOpenOrdersHandler>(QVariant::fromValue(job), job.getRequest());
 }
 
-void Core::Markets::BybitPrivateService::requestOrderHistory(const Tools::OrderHistoryRequest &request)
+void Core::BybitPrivateService::requestOrderHistoryAll(const Tools::OrderHistoryRequest &request)
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-    send<GetBybitOrderHistoryHandler>(QVariant::fromValue(request), request);
+    OrderHistoryJob job;
+    job.setRequest(request);
+    send<Handlers::GetBybitOrderHistoryHandler>(QVariant::fromValue(job), job.getRequest());
 }
 
-void Core::Markets::BybitPrivateService::requestTradeHistory(const Tools::TradeHistoryRequest &request)
+void Core::BybitPrivateService::requestTradeHistoryAll(const Tools::TradeHistoryRequest &request)
 {
-    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
-    send<GetBybitTradeHistoryHandler>(QVariant::fromValue(request), request);
+    TradeHistoryJob job;
+    job.setRequest(request);
+    send<Handlers::GetBybitTradeHistoryHandler>(QVariant::fromValue(job), job.getRequest());
 }
 
-void Core::Markets::BybitPrivateService::onOpenOrdersReceived(const QList<Tools::OrderInfo> &orders, const QString &nextPageCursor)
+void Core::BybitPrivateService::onOrderHistoryPageReceived(const QList<Tools::OrderInfo> &orders, const QString &nextPageCursor, const QVariant& context)
 {
+    if (context.metaType() != QMetaType::fromType<OrderHistoryJob>())
+    {
+        emit signaller()->orderHistoryPageReceived(orders, nextPageCursor, context);
+        return;
+    }
 
+    auto job = context.value<OrderHistoryJob>();
+    if (job.addPage(orders, nextPageCursor))
+        send<Handlers::GetBybitOrderHistoryHandler>(QVariant::fromValue(job), job.getRequest());
+    else
+        emit signaller()->allOrderHistoryReceived(job.get(), job.wasTruncated());
 }
 
-void Core::Markets::BybitPrivateService::onOrderHistoryReceived(const QList<Tools::OrderInfo> &orders, const QString &nextPageCursor)
+void Core::BybitPrivateService::onOpenOrdersPageReceived(const QList<Tools::OrderInfo> &orders, const QString &nextPageCursor, const QVariant& context)
 {
+    if (context.metaType() != QMetaType::fromType<OpenOrdersJob>())
+    {
+        emit signaller()->openOrdersPageReceived(orders, nextPageCursor, context);
+        return;
+    }
 
+    auto job = context.value<OpenOrdersJob>();
+    if (job.addPage(orders, nextPageCursor))
+        send<Handlers::GetBybitOpenOrdersHandler>(QVariant::fromValue(job), job.getRequest());
+    else
+        emit signaller()->allOpenOrdersReceived(job.get(), job.wasTruncated());
 }
+
+void Core::BybitPrivateService::onTradeHistoryPageReceived(const QList<Tools::ExecutionInfo> &execs, const QString &nextPageCursor, const QVariant& context)
+{
+    if (context.metaType() != QMetaType::fromType<TradeHistoryJob>())
+    {
+        emit signaller()->tradeHistoryPageReceived(execs, nextPageCursor, context);
+        return;
+    }
+
+    auto job = context.value<TradeHistoryJob>();
+    if (job.addPage(execs, nextPageCursor))
+        send<Handlers::GetBybitTradeHistoryHandler>(QVariant::fromValue(job), job.getRequest());
+    else
+        emit signaller()->allTradeHistoryReceived(job.get(), job.wasTruncated());
+}
+

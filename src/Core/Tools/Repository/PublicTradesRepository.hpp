@@ -23,8 +23,8 @@ public:
     QString error() override;
     bool clear() override;
 
-    bool insertPublicTrades(const PublicTrades& newPublicTrades);
-    bool selectKlines(Tools::EnumHelpers::MarketType type, const QString& symbol);
+    bool insert(const PublicTrades& newPublicTrades);
+    bool select(Tools::EnumHelpers::MarketType type, const QString& symbol);
 
 };
 

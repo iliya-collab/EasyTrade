@@ -1,24 +1,73 @@
 #include "KlinesRepository.hpp"
 
+namespace {
+
+constexpr auto kCandlesTable = "candles";
+
+constexpr auto kColumns =
+    "category, symbol, interval, start, end, "
+    "open, close, high, low, volume, turnover";
+
+const QString kSelectKlinesSql = QStringLiteral(
+    "SELECT %1 FROM %2 "
+    "WHERE category = ? AND symbol = ? AND interval = ? "
+    "ORDER BY start ASC"
+).arg(kColumns, kCandlesTable);
+
+const QString kSelectKlinesRangeSql = QStringLiteral(
+    "SELECT %1 FROM %2 "
+    "WHERE category = ? AND symbol = ? AND interval = ? "
+    "  AND start >= ? AND end <= ? "
+    "ORDER BY start ASC"
+).arg(kColumns, kCandlesTable);
+
+const QString kUpsertKlineSql = QStringLiteral(R"(
+    INSERT INTO %1 (%2)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(category, symbol, interval, start, end)
+    DO UPDATE SET
+        open     = EXCLUDED.open,
+        close    = EXCLUDED.close,
+        high     = EXCLUDED.high,
+        low      = EXCLUDED.low,
+        volume   = EXCLUDED.volume,
+        turnover = EXCLUDED.turnover;
+)").arg(kCandlesTable, kColumns);
+
+QVariantList klineBindings(const Core::Tools::Kline& k)
+{
+    using Core::Tools::EnumHelpers;
+    using Core::Tools::EnumHelpers;
+    return {
+        EnumHelpers::marketTypeToApiString(k.m_category), k.m_symbol,
+        EnumHelpers::intervalToString(k.m_interval),
+        k.m_start, k.m_end,
+        k.m_open, k.m_close, k.m_high, k.m_low,
+        k.m_volume, k.m_turnover
+    };
+}
+
+} // namespace
+
 namespace Core::Tools
 {
 
-    void KlinesRepository::handleSelectedKlines(QSqlQuery &query)
+    void KlinesRepository::handleSelectedKlines(QSqlQuery& query)
     {
         while (query.next())
         {
             Kline k;
-            k.m_category = Tools::EnumHelpers::apiStringToMarketType(query.value(0).toString());
-            k.m_symbol   = query.value(1).toString();
-            k.m_interval = Tools::EnumHelpers::stringToInterval(query.value(2).toString());
-            k.m_start    = query.value(3).toLongLong();
-            k.m_end      = query.value(4).toLongLong();
-            k.m_open     = query.value(5).toString();
-            k.m_close    = query.value(6).toString();
-            k.m_high     = query.value(7).toString();
-            k.m_low      = query.value(8).toString();
-            k.m_volume   = query.value(9).toString();
-            k.m_turnover = query.value(10).toString();
+            k.m_category = Tools::EnumHelpers::apiStringToMarketType(query.value("category").toString());
+            k.m_symbol   = query.value("symbol").toString();
+            k.m_interval = Tools::EnumHelpers::stringToInterval(query.value("interval").toString());
+            k.m_start    = query.value("start").toLongLong();
+            k.m_end      = query.value("end").toLongLong();
+            k.m_open     = query.value("open").toString();
+            k.m_close    = query.value("close").toString();
+            k.m_high     = query.value("high").toString();
+            k.m_low      = query.value("low").toString();
+            k.m_volume   = query.value("volume").toString();
+            k.m_turnover = query.value("turnover").toString();
             m_data.append(k);
         }
     }
@@ -48,40 +97,16 @@ namespace Core::Tools
             )
         )";
 
-        queries << "CREATE INDEX IF NOT EXISTS idx_candles_category ON candles(category)";
-        queries << "CREATE INDEX IF NOT EXISTS idx_candles_symbol ON candles(symbol)";
-        queries << "CREATE INDEX IF NOT EXISTS idx_candles_interval ON candles(interval)";
-        queries << "CREATE INDEX IF NOT EXISTS idx_candles_start ON candles(start)";
-        queries << "CREATE INDEX IF NOT EXISTS idx_candles_end ON candles(end)";
-
         return m_dbManager.executeTransaction(m_dbPath, queries);
     }
 
-    bool KlinesRepository::open() {
-        return m_dbManager.open(m_dbPath);
+    bool KlinesRepository::clear()
+    {
+        return m_dbManager.executeQuery(m_dbPath, "DELETE FROM candles");
     }
 
-    void KlinesRepository::close() {
-        m_dbManager.close(m_dbPath);
-    }
-
-    QString KlinesRepository::error() {
-        return m_dbManager.error();
-    }
-
-    bool KlinesRepository::clear() {
-        if (!m_dbManager.beginTransaction(m_dbPath))
-            return false;
-
-        if (!m_dbManager.executeQuery(m_dbPath, "DELETE FROM candles")) {
-            m_dbManager.rollbackTransaction(m_dbPath);
-            return false;
-        }
-
-        return m_dbManager.commitTransaction(m_dbPath);
-    }
-
-    bool KlinesRepository::insertKlines(const QList<Kline>& newKlines) {
+    bool KlinesRepository::insert(const QList<Kline>& newKlines)
+    {
         if (newKlines.isEmpty())
             return true;
 
@@ -89,77 +114,51 @@ namespace Core::Tools
             return false;
 
         for (const auto& item : newKlines)
-            if (!m_dbManager.executePrepared(m_dbPath,
-                R"(
-                    INSERT INTO candles (category, symbol, interval, start, end, open, close, high, low, volume, turnover)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(category, symbol, interval, start, end)
-                    DO UPDATE SET
-                        open = EXCLUDED.open,
-                        close = EXCLUDED.close,
-                        high = EXCLUDED.high,
-                        low = EXCLUDED.low,
-                        volume = EXCLUDED.volume,
-                        turnover = EXCLUDED.turnover;
-                )",
-                { Tools::EnumHelpers::marketTypeToApiString(item.m_category), item.m_symbol,
-                    Tools::EnumHelpers::intervalToString(item.m_interval), item.m_start,
-                    item.m_end, item.m_open, item.m_close,
-                    item.m_high, item.m_low, item.m_volume, item.m_turnover }))
+        {
+            if (!m_dbManager.executePrepared(m_dbPath, kUpsertKlineSql, klineBindings(item)))
             {
                 m_dbManager.rollbackTransaction(m_dbPath);
                 return false;
             }
+        }
 
         return m_dbManager.commitTransaction(m_dbPath);
     }
 
-    bool KlinesRepository::insertKline(const Kline& newKline) {
-        return m_dbManager.executePrepared(m_dbPath,
-            R"(
-                INSERT INTO candles (category, symbol, interval, start, end, open, close, high, low, volume, turnover)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(category, symbol, interval, start, end)
-                    DO UPDATE SET
-                        open = EXCLUDED.open,
-                        close = EXCLUDED.close,
-                        high = EXCLUDED.high,
-                        low = EXCLUDED.low,
-                        volume = EXCLUDED.volume,
-                        turnover = EXCLUDED.turnover;
-            )",
-            { Tools::EnumHelpers::marketTypeToApiString(newKline.m_category), newKline.m_symbol,
-                Tools::EnumHelpers::intervalToString(newKline.m_interval), newKline.m_start,
-                newKline.m_end, newKline.m_open, newKline.m_close,
-                newKline.m_high, newKline.m_low, newKline.m_volume, newKline.m_turnover });
+    bool KlinesRepository::insert(const Kline& newKline)
+    {
+        return m_dbManager.executePrepared(m_dbPath, kUpsertKlineSql, klineBindings(newKline));
     }
 
-    bool KlinesRepository::selectKlines(EnumHelpers::MarketType type, const QString &symbol, EnumHelpers::Interval interval)
+    bool KlinesRepository::select(EnumHelpers::MarketType type, const QString &symbol, EnumHelpers::Interval interval)
     {
         m_data.clear();
-        return m_dbManager.executePrepared(m_dbPath,
-            R"(
-                SELECT category, symbol, interval, start, end, open, close, high, low, volume, turnover
-                FROM candles
-                WHERE category = ? AND symbol = ? AND interval = ?
-                ORDER BY start ASC
-            )",
-            {EnumHelpers::marketTypeToApiString(type), symbol, EnumHelpers::intervalToString(interval)},
-            [this](QSqlQuery& query) { handleSelectedKlines(query); });
+        return m_dbManager.executePrepared(
+            m_dbPath,
+            kSelectKlinesSql,
+            {
+                EnumHelpers::marketTypeToApiString(type),
+                symbol,
+                EnumHelpers::intervalToString(interval)
+            },
+            [this](QSqlQuery& query) { handleSelectedKlines(query); }
+        );
     }
 
-    bool KlinesRepository::selectKlines(EnumHelpers::MarketType type, const QString &symbol, EnumHelpers::Interval interval, qint64 start, qint64 end)
+    bool KlinesRepository::select(EnumHelpers::MarketType type, const QString &symbol, EnumHelpers::Interval interval, qint64 start, qint64 end)
     {
         m_data.clear();
-        return m_dbManager.executePrepared(m_dbPath,
-            R"(
-                SELECT category, symbol, interval, start, end, open, close, high, low, volume, turnover
-                FROM candles
-                WHERE category = ? AND symbol = ? AND interval = ?
-                    AND start >= ? AND end <= ?
-                ORDER BY start ASC
-            )",
-           { EnumHelpers::marketTypeToApiString(type), symbol, EnumHelpers::intervalToString(interval), start, end },
-           [this](QSqlQuery& query) { handleSelectedKlines(query); });
+        return m_dbManager.executePrepared(
+            m_dbPath,
+            kSelectKlinesRangeSql,
+            {
+                EnumHelpers::marketTypeToApiString(type),
+                symbol,
+                EnumHelpers::intervalToString(interval),
+                start,
+                end
+            },
+            [this](QSqlQuery& query) { handleSelectedKlines(query); }
+        );
     }
 }

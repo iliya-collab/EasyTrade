@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
 import Application.Core 1.0
 import Components.Custom 1.0
+import Components.Crypto 1.0
 import Theme 1.0
 
 Window {
@@ -99,6 +100,9 @@ Window {
                 }
             }
             Item { Layout.fillWidth: true }
+            PingIndicator {
+                pingValue: AppCore.marketState.pingMs
+            }
             CustomButton {
                 text: "Clear"
                 onClicked: if (AppCore.logModel) AppCore.logModel.clear()
@@ -118,11 +122,12 @@ Window {
                 persistentSelection: true
                 wrapMode: TextEdit.WordWrap
                 textFormat: TextEdit.RichText
-                color: "#dddddd"
-                selectionColor: "#264f78"
-                selectedTextColor: "white"
+                color: Theme.textColor
+                selectionColor: Theme.selectColor
+                selectedTextColor: Theme.selectTextColor
                 background: null
             }
+
         }
     }
 }

@@ -1,12 +1,16 @@
 import QtQuick 2.15
 import Application.Core 1.0
+import Components.Configs 1.0
 
 Rectangle {
     id: root
 
-    color: "#1e1e1e"
+    // Глобальный синглтон с настройками (см. qmldir / QT_QML_SINGLETON_TYPE)
+    readonly property QtObject config: KlineChartConfig
+
+    color: config.background
     border.width: 1
-    border.color: "#3a3a3a"
+    border.color: config.border
 
     // Свойства
     property var klineSeries: null
@@ -19,8 +23,8 @@ Rectangle {
     property bool enableDisplayOpenPrice: true
     property bool enableShowVolumes: true
 
-    property int timeAutoScroll: 3000
-    property real volumeChartHeightRatio: 0.25
+    property int timeAutoScroll: config.autoScrollDelayMs
+    property real volumeChartHeightRatio: config.volumeChartHeightRatio
 
     function zoomIn() {
         var newWidth = Math.min(internal.candleWidth + internal.zoomStep, internal.maxCandleWidth);
@@ -76,7 +80,7 @@ Rectangle {
         var oldX = priceChartScrollView.contentX;
         internal.updatingScroll = true;
 
-        internal.candleWidth = 20;
+        internal.candleWidth = root.config.candleWidthDefault;
         priceChartScrollView.contentWidth = Math.max(root.width, internal.totalChartWidth);
 
         var maxScrollX = Math.max(0, priceChartScrollView.contentWidth - priceChartScrollView.width);
@@ -103,19 +107,20 @@ Rectangle {
     QtObject {
         id: internal
 
-        property int candleWidth: 20 // Ширина свечи
-        property int candleSpacing: 6 // Оступы между свечой
-        property int priceAxisWidth: 60 // Ширина оси цен
-        property int timeAxisHeight: 40 // Высота оси времени
+        property int candleWidth: root.config.candleWidthDefault // Ширина свечи
+        property int candleSpacing: root.config.candleSpacing // Оступы между свечой
+        property int priceAxisWidth: root.config.priceAxisWidth // Ширина оси цен
+        property int timeAxisHeight: root.config.timeAxisHeight // Высота оси времени
+
         property int totalChartWidth: klineSeries ? klineSeries.length * (candleWidth + candleSpacing) : 0 // Общая ширина графика
         property bool autoScrollEnabled: true // Флаг автоматической прокрутки к последней свече
         property bool isUserInteracting: false // Флаг, показывающий, что идет ручная прокрутка
         property bool isScrolling: false // Флаг скроллинга
 
         // Настройки зума
-        property int minCandleWidth: 2
-        property int maxCandleWidth: 80
-        property int zoomStep: 2
+        property int minCandleWidth: root.config.candleWidthMin
+        property int maxCandleWidth: root.config.candleWidthMax
+        property int zoomStep: root.config.zoomStep
 
         // Сохраняем позицию
         property real scrollPosition: 0.0
@@ -148,22 +153,17 @@ Rectangle {
             return null
         } //klineSeries ? klineSeries.get(hoveredCandleIndex) : null
         property color colorHoveredCandle: hoveredCandle ?
-            ((hoveredCandle.close > hoveredCandle.open) ? "#66BB6A" : "#EF5350") :
-            "#8a8a8a"
-        property var openHoveredCandle: hoveredCandle ? hoveredCandle.open.toFixed(2) : "-"
-        property var closeHoveredCandle: hoveredCandle ? hoveredCandle.close.toFixed(2) : "-"
-        property var highHoveredCandle: hoveredCandle ? hoveredCandle.high.toFixed(2) : "-"
-        property var lowHoveredCandle: hoveredCandle ? hoveredCandle.low.toFixed(2) : "-"
-        property var difHoveredCandle: hoveredCandle ? (hoveredCandle.close - hoveredCandle.open).toFixed(2) : "-"
-        property var difPercentHoveredCandle: hoveredCandle ? ((difHoveredCandle / hoveredCandle.open) * 100).toFixed(2) : "-"
-        property var volumeHoveredCandle: hoveredCandle ?
-            hoveredCandle.volume >= 1000000 ? (hoveredCandle.volume / 1000000).toFixed(2) + "M" :
-            hoveredCandle.volume >= 1000 ? (hoveredCandle.volume / 1000).toFixed(2) + "K" :
-            hoveredCandle.volume.toFixed(2) : "-"
-        property var turnoverHoveredCandle: hoveredCandle ?
-            hoveredCandle.turnover >= 1000000 ? (hoveredCandle.turnover / 1000000).toFixed(2) + "M" :
-            hoveredCandle.turnover >= 1000 ? (hoveredCandle.turnover / 1000).toFixed(2) + "K" :
-            hoveredCandle.turnover.toFixed(2) : "-"
+            ((hoveredCandle.close > hoveredCandle.open) ? root.config.bullUnconfirmed : root.config.bearUnconfirmed) :
+            root.config.axisText
+        property string openHoveredCandle: hoveredCandle ? root.config.formatPrice(hoveredCandle.open) : "-"
+        property string closeHoveredCandle: hoveredCandle ? root.config.formatPrice(hoveredCandle.close) : "-"
+        property string highHoveredCandle: hoveredCandle ? root.config.formatPrice(hoveredCandle.high) : "-"
+        property string lowHoveredCandle: hoveredCandle ? root.config.formatPrice(hoveredCandle.low) : "-"
+        property string difHoveredCandle: hoveredCandle ? root.config.formatPrice(hoveredCandle.close - hoveredCandle.open) : "-"
+        property string difPercentHoveredCandle: (hoveredCandle && hoveredCandle.open !== 0) ?
+            (((hoveredCandle.close - hoveredCandle.open) / hoveredCandle.open) * 100).toFixed(2) : "-"
+        property string volumeHoveredCandle: hoveredCandle ? root.config.formatVolume(hoveredCandle.volume) : "-"
+        property string turnoverHoveredCandle: hoveredCandle ? root.config.formatVolume(hoveredCandle.turnover) : "-"
 
         // Данные на осях
         property real priceAtCursor: 0
@@ -174,6 +174,28 @@ Rectangle {
         property real maxPrice: 100
         property real minPrice: 0
         property real maxVolume: 1
+
+        // Шрифты из конфига
+        function axisFont()    { return root.config.axisFontSize + "px " + root.config.fontFamily }
+        function tooltipFont() { return "bold " + root.config.tooltipFontSize + "px " + root.config.fontFamily }
+
+        // Полупрозрачный вариант цвета из конфига (для Canvas)
+        function alpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
+
+        // Скруглённая подпись (бокс + текст) на Canvas: единая отрисовка для курсора/цены
+        function roundedRectPath(ctx, x, y, w, h, r) {
+            ctx.beginPath()
+            ctx.moveTo(x + r, y)
+            ctx.lineTo(x + w - r, y)
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+            ctx.lineTo(x + w, y + h - r)
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+            ctx.lineTo(x + r, y + h)
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+            ctx.lineTo(x, y + r)
+            ctx.quadraticCurveTo(x, y, x + r, y)
+            ctx.closePath()
+        }
 
         function isValid(candle)
         {
@@ -200,39 +222,15 @@ Rectangle {
 
         function safeRequestPaint(canvas)
         {
-            // if (!canvas)
-            // {
-            //     Qt.callLater(safeRequestPaint, canvas)
-            //     return
-            // }
-
-            // if (isCanvasReady(canvas))
-            // {
-            //     canvas.requestPaint()
-            // }
-            // else
-            // {
-            //     var onStatusChanged = function() {
-            //         if (isCanvasReady(canvas))
-            //         {
-            //             canvas.requestPaint()
-            //             canvas.statusChanged.disconnect(onStatusChanged)
-            //         }
-            //     }
-            //     canvas.statusChanged.connect(onStatusChanged)
-            // }
-
             var canvasName = canvas.objectName || "Unnamed Canvas"
             var funcName = arguments.callee.name
 
             if (isCanvasReady(canvas))
             {
-                //console.log("[" + funcName + "] Successful rendering: " + canvasName)
                 canvas.requestPaint()
             }
             else
             {
-                //console.log("[" + funcName + "] Deferred rendering: " + canvasName)
                 Qt.callLater(safeRequestPaint, canvas)
             }
         }
@@ -275,13 +273,13 @@ Rectangle {
         }
 
         // Обновляет макс и мин значения в облости видимых индексов и вызывает перерисовку всех компонентов
-        function updateVisibleRange() {
+        function updateVisibleRange()
+        {
             if (scrollAnimation.running)
                 return;
 
             if (!root.klineSeries || root.klineSeries.length === 0)
                 return;
-
 
             var visibleIdx = getVisibleCandleIndices();
             internal.firstVisibleIdx = visibleIdx.start;
@@ -291,29 +289,36 @@ Rectangle {
             var currentMin = Infinity;
             var currentMaxVolume = 0;
 
-            for (var i = internal.firstVisibleIdx; i <= internal.lastVisibleIdx; i++) {
+            for (var i = internal.firstVisibleIdx; i <= internal.lastVisibleIdx; i++)
+            {
                 var candle = root.klineSeries.get(i);
-                if (candle) {
+
+                if (candle)
+                {
                     if (candle.high > currentMax)
                         currentMax = candle.high;
+
                     if (candle.low < currentMin)
                         currentMin = candle.low;
+
                     if (candle.volume > currentMaxVolume)
                         currentMaxVolume = candle.volume;
                 }
             }
 
-            if (currentMax !== -Infinity && currentMin !== Infinity && currentMax >= currentMin) {
+            if (currentMax !== -Infinity && currentMin !== Infinity && currentMax >= currentMin)
+            {
                 var priceRange = currentMax - currentMin;
-                var padding = priceRange * 0.15;
+                var padding = priceRange * root.config.pricePaddingRatio;
+
                 if (padding === 0)
                     padding = 1.0;
+
                 internal.maxPrice = currentMax + padding;
                 internal.minPrice = currentMin - padding;
             }
 
-            if (currentMaxVolume > internal.maxVolume)
-                internal.maxVolume = currentMaxVolume * 1.5;
+            internal.maxVolume = currentMaxVolume * root.config.volumePaddingRatio;
 
             requestPaintAll();
         }
@@ -418,7 +423,7 @@ Rectangle {
                 internal.hoveredCandleIndex = -1;
 
             var timestamp = internal.convertXToTime(internal.mouseGlobalX)
-            internal.timeAtCursor = (timestamp > 0) ? Qt.formatDateTime(new Date(timestamp), "dd.MM.yyyy HH:mm") : ""
+            internal.timeAtCursor = (timestamp > 0) ? Qt.formatDateTime(new Date(timestamp), root.config.cursorTimeFormat) : ""
             internal.priceAtCursor = internal.mouseInsidePriceChart ? internal.convertYToPrice(internal.mouseGlobalY, priceChartScrollView.height) : 0
             internal.volumeAtCursor = internal.mouseInsideVolumeChart ? internal.convertYToVolume(internal.mouseGlobalY - priceChartScrollView.height, volumeChartScrollView.height) : 0
 
@@ -517,7 +522,7 @@ Rectangle {
         id: scrollAnimation
         target: priceChartScrollView
         property: "contentX"
-        duration: 200
+        duration: root.config.scrollAnimationMs
         easing.type: Easing.OutCubic
         onStopped: {
             internal.syncScrollViews()
@@ -629,10 +634,8 @@ Rectangle {
         anchors.fill: parent
         z: 10
 
-        Component.onCompleted: console.log("crosshairCanvas component ready:", width, height)
-
         function drawCursorLines(ctx) {
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.3)"
+            ctx.strokeStyle = root.config.crosshairLine
             ctx.lineWidth = 1
             ctx.setLineDash([5, 5])
 
@@ -652,9 +655,9 @@ Rectangle {
         function drawCursorIndicator(ctx) {
             ctx.beginPath();
             ctx.arc(internal.mouseLocalX, internal.mouseLocalY, 4, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.fillStyle = root.config.crosshairDot;
             ctx.fill();
-            ctx.strokeStyle = "white";
+            ctx.strokeStyle = root.config.tooltipText;
             ctx.lineWidth = 1;
             ctx.stroke();
         }
@@ -663,8 +666,8 @@ Rectangle {
             if (internal.mouseInsidePriceChart) {
                 var cursorY = internal.mouseLocalY
 
-                var priceText = internal.priceAtCursor.toFixed(2);
-                ctx.font = "bold 10px sans-serif";
+                var priceText = root.config.formatPrice(internal.priceAtCursor);
+                ctx.font = internal.tooltipFont();
                 var textWidth = ctx.measureText(priceText).width + 10;
                 var textHeight = 16;
 
@@ -676,27 +679,16 @@ Rectangle {
                 if (textY + textHeight > height)
                     textY = height - textHeight;
 
-                ctx.fillStyle = "rgba(30, 30, 30, 0.85)";
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+                ctx.fillStyle = root.config.tooltipBg;
+                ctx.strokeStyle = root.config.tooltipBorder;
                 ctx.lineWidth = 1;
 
-                var radius = 3;
-                ctx.beginPath();
-                ctx.moveTo(textX + radius, textY);
-                ctx.lineTo(textX + textWidth - radius, textY);
-                ctx.quadraticCurveTo(textX + textWidth, textY, textX + textWidth, textY + radius);
-                ctx.lineTo(textX + textWidth, textY + textHeight - radius);
-                ctx.quadraticCurveTo(textX + textWidth, textY + textHeight, textX + textWidth - radius, textY + textHeight);
-                ctx.lineTo(textX + radius, textY + textHeight);
-                ctx.quadraticCurveTo(textX, textY + textHeight, textX, textY + textHeight - radius);
-                ctx.lineTo(textX, textY + radius);
-                ctx.quadraticCurveTo(textX, textY, textX + radius, textY);
-                ctx.closePath();
+                internal.roundedRectPath(ctx, textX, textY, textWidth, textHeight, root.config.tooltipRadius);
                 ctx.fill();
                 ctx.stroke();
 
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 10px sans-serif";
+                ctx.fillStyle = root.config.tooltipText;
+                ctx.font = internal.tooltipFont();
                 ctx.textBaseline = "middle";
                 ctx.fillText(priceText, textX + 5, textY + textHeight / 2);
             }
@@ -706,8 +698,8 @@ Rectangle {
             if (internal.mouseInsideVolumeChart) {
                 var cursorY = internal.mouseLocalY
 
-                var volumeText = internal.volumeAtCursor.toFixed(2);
-                ctx.font = "bold 10px sans-serif";
+                var volumeText = root.config.formatVolume(internal.volumeAtCursor);
+                ctx.font = internal.tooltipFont();
                 var textWidth = ctx.measureText(volumeText).width + 10;
                 var textHeight = 16;
 
@@ -719,27 +711,16 @@ Rectangle {
                 if (textY + textHeight > height)
                     textY = height - textHeight;
 
-                ctx.fillStyle = "rgba(30, 30, 30, 0.85)";
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+                ctx.fillStyle = root.config.tooltipBg;
+                ctx.strokeStyle = root.config.tooltipBorder;
                 ctx.lineWidth = 1;
 
-                var radius = 3;
-                ctx.beginPath();
-                ctx.moveTo(textX + radius, textY);
-                ctx.lineTo(textX + textWidth - radius, textY);
-                ctx.quadraticCurveTo(textX + textWidth, textY, textX + textWidth, textY + radius);
-                ctx.lineTo(textX + textWidth, textY + textHeight - radius);
-                ctx.quadraticCurveTo(textX + textWidth, textY + textHeight, textX + textWidth - radius, textY + textHeight);
-                ctx.lineTo(textX + radius, textY + textHeight);
-                ctx.quadraticCurveTo(textX, textY + textHeight, textX, textY + textHeight - radius);
-                ctx.lineTo(textX, textY + radius);
-                ctx.quadraticCurveTo(textX, textY, textX + radius, textY);
-                ctx.closePath();
+                internal.roundedRectPath(ctx, textX, textY, textWidth, textHeight, root.config.tooltipRadius);
                 ctx.fill();
                 ctx.stroke();
 
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 10px sans-serif";
+                ctx.fillStyle = root.config.tooltipText;
+                ctx.font = internal.tooltipFont();
                 ctx.textBaseline = "middle";
                 ctx.fillText(volumeText, textX + 5, textY + textHeight / 2);
             }
@@ -756,7 +737,7 @@ Rectangle {
                     var candleCenterX = candleXPos + internal.candleWidth / 2;
 
                     var timeText = internal.timeAtCursor;
-                    ctx.font = "bold 10px sans-serif";
+                    ctx.font = internal.tooltipFont();
                     var textWidth = ctx.measureText(timeText).width + 12;
                     var textHeight = 18;
 
@@ -768,27 +749,16 @@ Rectangle {
                     if (textX + textWidth > width)
                         textX = width - textWidth;
 
-                    ctx.fillStyle = "rgba(30, 30, 30, 0.85)";
-                    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+                    ctx.fillStyle = root.config.tooltipBg;
+                    ctx.strokeStyle = root.config.tooltipBorder;
                     ctx.lineWidth = 1;
 
-                    var radius = 3;
-                    ctx.beginPath();
-                    ctx.moveTo(textX + radius, textY);
-                    ctx.lineTo(textX + textWidth - radius, textY);
-                    ctx.quadraticCurveTo(textX + textWidth, textY, textX + textWidth, textY + radius);
-                    ctx.lineTo(textX + textWidth, textY + textHeight - radius);
-                    ctx.quadraticCurveTo(textX + textWidth, textY + textHeight, textX + textWidth - radius, textY + textHeight);
-                    ctx.lineTo(textX + radius, textY + textHeight);
-                    ctx.quadraticCurveTo(textX, textY + textHeight, textX, textY + textHeight - radius);
-                    ctx.lineTo(textX, textY + radius);
-                    ctx.quadraticCurveTo(textX, textY, textX + radius, textY);
-                    ctx.closePath();
+                    internal.roundedRectPath(ctx, textX, textY, textWidth, textHeight, root.config.tooltipRadius);
                     ctx.fill();
                     ctx.stroke();
 
-                    ctx.fillStyle = "#ffffff";
-                    ctx.font = "bold 10px sans-serif";
+                    ctx.fillStyle = root.config.tooltipText;
+                    ctx.font = internal.tooltipFont();
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
                     ctx.fillText(timeText, textX + textWidth / 2, textY + textHeight / 2);
@@ -880,7 +850,7 @@ Rectangle {
             width: priceInfoLayout.width + 16
             height: priceInfoLayout.height + 16
             color: "transparent"
-            enabled: root.enableCursorInfo
+            visible: root.enableCursorInfo
             z: 20
 
             Row {
@@ -891,67 +861,67 @@ Rectangle {
 
                 Text {
                     text: "O:"
-                    color: "#8a8a8a"
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    color: root.config.axisText
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
                 Text {
                     text: internal.openHoveredCandle
                     color: internal.colorHoveredCandle
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
 
                 Text {
                     text: "H:"
-                    color: "#8a8a8a"
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    color: root.config.axisText
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
                 Text {
                     text: internal.highHoveredCandle
                     color: internal.colorHoveredCandle
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
 
                 Text {
                     text: "L:"
-                    color: "#8a8a8a"
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    color: root.config.axisText
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
                 Text {
                     text: internal.lowHoveredCandle
                     color: internal.colorHoveredCandle
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
 
                 Text {
                     text: "C:"
-                    color: "#8a8a8a"
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    color: root.config.axisText
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
                 Text {
                     text: internal.closeHoveredCandle
                     color: internal.colorHoveredCandle
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
 
                 Text {
                     text: "Δ:"
-                    color: "#8a8a8a"
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    color: root.config.axisText
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
                 Text {
                     text: internal.difHoveredCandle + " (" + internal.difPercentHoveredCandle + "%)"
                     color: internal.colorHoveredCandle
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
             } // priceInfoLayout
         }
@@ -966,21 +936,19 @@ Rectangle {
             anchors.bottom: parent.bottom
             z: 2
 
-            Component.onCompleted: console.log("priceCanvas ready", width, height)
-
             function drawPriceAxis(ctx) {
-                ctx.fillStyle = "#8a8a8a";
-                ctx.font = "10px sans-serif";
+                ctx.fillStyle = root.config.axisText;
+                ctx.font = internal.axisFont();
                 ctx.textBaseline = "middle";
             }
 
             function drawDivisionsPriceAxis(ctx) {
                 var priceRange = internal.maxPrice - internal.minPrice;
-                var step = internal.calculateGridStep(priceRange, 5);
+                var step = internal.calculateGridStep(priceRange, root.config.priceGridTargetLines);
                 var firstPrice = Math.ceil(internal.minPrice / step) * step;
                 for (var price = firstPrice; price <= internal.maxPrice; price += step) {
                     var yPos = Math.round(internal.convertPriceToY(price, height));
-                    var decimalPlaces = step < 1 ? 2 : (step % 1 === 0 ? 0 : 1);
+                    var decimalPlaces = (step % 1 === 0) ? 0 : root.config.priceDecimals;
                     ctx.fillText(price.toFixed(decimalPlaces), 8, yPos);
                 }
             }
@@ -995,8 +963,8 @@ Rectangle {
                     var curPriceY = internal.convertPriceToY(lastCandle.close, height);
                     var isUp = lastCandle.close > lastCandle.open;
 
-                    var priceText = lastCandle.close.toFixed(2);
-                    ctx.font = "bold 10px sans-serif";
+                    var priceText = root.config.formatPrice(lastCandle.close);
+                    ctx.font = internal.tooltipFont();
                     var textWidth = ctx.measureText(priceText).width + 10;
                     var textHeight = 16;
 
@@ -1008,31 +976,21 @@ Rectangle {
                     if (textY + textHeight > height)
                         textY = height - textHeight;
 
-                    ctx.fillStyle = isUp ? "rgba(102, 187, 106, 0.85)" : "rgba(239, 83, 80, 0.85)";
-                    ctx.strokeStyle = isUp ? "rgba(102, 187, 106, 0.5)" : "rgba(239, 83, 80, 0.5)";
+                    var baseColor = isUp ? root.config.bullUnconfirmed : root.config.bearUnconfirmed;
+                    ctx.fillStyle = internal.alpha(baseColor, 0.85);
+                    ctx.strokeStyle = internal.alpha(baseColor, 0.5);
                     ctx.lineWidth = 1;
 
-                    var radius = 3;
-                    ctx.beginPath();
-                    ctx.moveTo(textX + radius, textY);
-                    ctx.lineTo(textX + textWidth - radius, textY);
-                    ctx.quadraticCurveTo(textX + textWidth, textY, textX + textWidth, textY + radius);
-                    ctx.lineTo(textX + textWidth, textY + textHeight - radius);
-                    ctx.quadraticCurveTo(textX + textWidth, textY + textHeight, textX + textWidth - radius, textY + textHeight);
-                    ctx.lineTo(textX + radius, textY + textHeight);
-                    ctx.quadraticCurveTo(textX, textY + textHeight, textX, textY + textHeight - radius);
-                    ctx.lineTo(textX, textY + radius);
-                    ctx.quadraticCurveTo(textX, textY, textX + radius, textY);
-                    ctx.closePath();
+                    internal.roundedRectPath(ctx, textX, textY, textWidth, textHeight, root.config.tooltipRadius);
                     ctx.fill();
                     ctx.stroke();
 
-                    ctx.fillStyle = "#ffffff";
-                    ctx.font = "bold 10px sans-serif";
+                    ctx.fillStyle = root.config.tooltipText;
+                    ctx.font = internal.tooltipFont();
                     ctx.textBaseline = "middle";
                     ctx.fillText(priceText, textX + 5, textY + textHeight / 2);
 
-                    ctx.strokeStyle = isUp ? "rgba(102, 187, 106, 0.5)" : "rgba(239, 83, 80, 0.5)";
+                    ctx.strokeStyle = internal.alpha(baseColor, 0.5);
                     ctx.lineWidth = 1;
                     ctx.setLineDash([2, 2]);
                     ctx.beginPath();
@@ -1057,8 +1015,6 @@ Rectangle {
             }
 
             onPaint: {
-                //console.log("onPaint priceCanvas:", width, height)
-
                 if (width === 0 || height === 0)
                     return;
 
@@ -1081,7 +1037,7 @@ Rectangle {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.right: priceCanvas.left
-            color: "#3a3a3a"
+            color: root.config.separator
         }
 
         // Ценовой график
@@ -1163,8 +1119,6 @@ Rectangle {
                 width: priceChartScrollView.contentWidth
                 height: priceChartScrollView.contentHeight
 
-                Component.onCompleted: console.log("priceChartCanvas ready", width, height)
-
                 function drawGridChart(ctx) {
                     if (!root.klineSeries)
                         return
@@ -1173,10 +1127,10 @@ Rectangle {
                     ctx.resetTransform()
 
                     var priceRange = internal.maxPrice - internal.minPrice
-                    var step = internal.calculateGridStep(priceRange, 5)
+                    var step = internal.calculateGridStep(priceRange, root.config.priceGridTargetLines)
                     var firstPrice = Math.ceil(internal.minPrice / step) * step
 
-                    ctx.strokeStyle = "#2d2d2d"
+                    ctx.strokeStyle = root.config.gridLine
                     ctx.lineWidth = 1
 
                     for (var price = firstPrice; price <= internal.maxPrice; price += step) {
@@ -1199,9 +1153,9 @@ Rectangle {
 
                     var color;
                     if (!candle.isConfirm)
-                        color = candle.close > candle.open ? "#66BB6A" : "#EF5350";
+                        color = candle.close > candle.open ? root.config.bullUnconfirmed : root.config.bearUnconfirmed;
                     else
-                        color = candle.close > candle.open ? "#00C853" : "#FF5252";
+                        color = candle.close > candle.open ? root.config.bullConfirmed : root.config.bearConfirmed;
 
                     ctx.fillStyle = color;
                     ctx.strokeStyle = color;
@@ -1241,7 +1195,7 @@ Rectangle {
 
                         if (i % 5 === 0)
                         {
-                            ctx.strokeStyle = "#252525"
+                            ctx.strokeStyle = root.config.gridLineVertical
                             ctx.beginPath()
                             ctx.moveTo(xPos + internal.candleWidth / 2, 0)
                             ctx.lineTo(xPos + internal.candleWidth / 2, height)
@@ -1267,7 +1221,7 @@ Rectangle {
                         ctx.save()
                         ctx.resetTransform()
 
-                        ctx.strokeStyle = isUp ? "rgba(102, 187, 106, 0.7)" : "rgba(239, 83, 80, 0.7)"
+                        ctx.strokeStyle = internal.alpha(isUp ? root.config.bullUnconfirmed : root.config.bearUnconfirmed, 0.7)
                         ctx.lineWidth = 1
                         ctx.setLineDash([3, 3])
                         ctx.beginPath()
@@ -1281,8 +1235,6 @@ Rectangle {
                 }
 
                 onPaint: {
-                    //console.log("onPaint priceChartCanvas:", width, height)
-
                     if (width === 0 || height === 0)
                         return
 
@@ -1308,7 +1260,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: priceArea.bottom
-        color: "#3a3a3a"
+        color: root.config.separator
         z: 5
         visible: root.enableShowVolumes
     } // priceVolumeSeparator
@@ -1344,7 +1296,7 @@ Rectangle {
             width: volumeInfoLayout.width + 16
             height: volumeInfoLayout.height + 16
             color: "transparent"
-            enabled: root.enableCursorInfo
+            visible: root.enableCursorInfo
             z: 20
 
             Row {
@@ -1355,28 +1307,28 @@ Rectangle {
 
                 Text {
                     text: "V:"
-                    color: "#8a8a8a"
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    color: root.config.axisText
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
                 Text {
                     text: internal.volumeHoveredCandle
                     color: internal.colorHoveredCandle
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
 
                 Text {
                     text: "T:"
-                    color: "#8a8a8a"
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    color: root.config.axisText
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
                 Text {
                     text: internal.turnoverHoveredCandle
                     color: internal.colorHoveredCandle
-                    font.pixelSize: 11
-                    font.family: "monospace"
+                    font.pixelSize: root.config.infoFontSize
+                    font.family: root.config.infoFontFamily
                 }
             } // priceInfoLayout
         }
@@ -1395,8 +1347,8 @@ Rectangle {
             Component.onCompleted: console.log("volumeCanvas ready", width, height)
 
             function drawVolumeAxis(ctx) {
-                ctx.fillStyle = "#8a8a8a";
-                ctx.font = "10px sans-serif";
+                ctx.fillStyle = root.config.axisText;
+                ctx.font = internal.axisFont();
                 ctx.textBaseline = "middle";
             }
 
@@ -1404,17 +1356,14 @@ Rectangle {
                 if (internal.maxVolume === 0)
                     return;
 
-                var targetLines = 3;
-                var step = internal.calculateGridStep(internal.maxVolume, targetLines);
+                var step = internal.calculateGridStep(internal.maxVolume, root.config.volumeGridTargetLines);
                 var firstValue = Math.ceil(0 / step) * step;
 
                 for (var vol = firstValue; vol <= internal.maxVolume; vol += step) {
                     if (vol === 0)
                         continue;
                     var yPos = height - (vol / internal.maxVolume) * height;
-                    var text = vol >= 1000000 ? (vol / 1000000).toFixed(2) + "M" :
-                              vol >= 1000 ? (vol / 1000).toFixed(2) + "K" :
-                              vol.toFixed(2);
+                    var text = root.config.formatVolume(vol);
                     ctx.fillText(text, /*width - 5*/
                                  8, yPos);
                 }
@@ -1431,8 +1380,6 @@ Rectangle {
             }
 
             onPaint: {
-                //console.log("onPaint volumeCanvas:", width, height)
-
                 if (width === 0 || height === 0)
                     return
 
@@ -1452,7 +1399,7 @@ Rectangle {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.right: volumeCanvas.left
-            color: "#3a3a3a"
+            color: root.config.separator
         }
 
         // График объемов
@@ -1487,8 +1434,6 @@ Rectangle {
                 width: volumeChartScrollView.contentWidth
                 height: volumeChartScrollView.contentHeight
 
-                Component.onCompleted: console.log("volumeChartCanvas ready", width, height)
-
                 function drawVolumes(ctx)
                 {
                     if (!root.klineSeries || root.klineSeries.length === 0 || internal.maxVolume === 0)
@@ -1518,16 +1463,16 @@ Rectangle {
 
                         var color;
                         if (!candle.isConfirm)
-                            color = candle.close > candle.open ? "#66BB6A" : "#EF5350";
+                            color = candle.close > candle.open ? root.config.bullUnconfirmed : root.config.bearUnconfirmed;
                         else
-                            color = candle.close > candle.open ? "#00C853" : "#FF5252";
+                            color = candle.close > candle.open ? root.config.bullConfirmed : root.config.bearConfirmed;
 
                         ctx.fillStyle = color;
                         ctx.fillRect(xPos, totalHeight - barHeight, internal.candleWidth, barHeight);
 
                         if (i % 5 === 0)
                         {
-                            ctx.strokeStyle = "#252525"
+                            ctx.strokeStyle = root.config.gridLineVertical
                             ctx.beginPath()
                             ctx.moveTo(xPos + internal.candleWidth / 2, 0)
                             ctx.lineTo(xPos + internal.candleWidth / 2, totalHeight)
@@ -1544,11 +1489,10 @@ Rectangle {
                     ctx.save()
                     ctx.resetTransform()
 
-                    var targetLines = 3;
-                    var step = internal.calculateGridStep(internal.maxVolume, targetLines);
+                    var step = internal.calculateGridStep(internal.maxVolume, root.config.volumeGridTargetLines);
                     var firstValue = Math.ceil(0 / step) * step;
 
-                    ctx.strokeStyle = "#2d2d2d";
+                    ctx.strokeStyle = root.config.gridLine;
                     ctx.lineWidth = 1;
 
                     for (var vol = firstValue; vol <= internal.maxVolume; vol += step)
@@ -1566,8 +1510,6 @@ Rectangle {
                 }
 
                 onPaint: {
-                    //console.log("onPaint volumeChartCanvas:", width, height)
-
                     if (width === 0 || height === 0)
                         return
 
@@ -1591,9 +1533,9 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        color: "#1e1e1e"
+        color: root.config.background
         border.width: 1
-        border.color: "#3a3a3a"
+        border.color: root.config.border
         clip: true
         z: 2
 
@@ -1611,8 +1553,8 @@ Rectangle {
                 if (!root.klineSeries)
                     return;
 
-                ctx.fillStyle = "#8a8a8a";
-                ctx.font = "10px sans-serif";
+                ctx.fillStyle = root.config.axisText;
+                ctx.font = internal.axisFont();
                 ctx.textAlign = "center";
             }
 
@@ -1628,15 +1570,16 @@ Rectangle {
                 visibleStart = Math.max(0, visibleStart - 1);
                 visibleEnd = Math.min(root.klineSeries.length - 1, visibleEnd + 1);
 
-                var labelStep = 5
-                if (internal.candleWidth < 8)
-                    labelStep = 20
-                else if (internal.candleWidth < 15)
-                    labelStep = 10
-                else if (internal.candleWidth > 40)
-                    labelStep = 2
-                else if (internal.candleWidth > 60)
-                    labelStep = 1
+                var cw = internal.candleWidth
+                var labelStep = root.config.timeLabelStepNormal
+                if (cw < 8)
+                    labelStep = root.config.timeLabelStepTiny
+                else if (cw < 15)
+                    labelStep = root.config.timeLabelStepSmall
+                else if (cw > 60)
+                    labelStep = root.config.timeLabelStepHuge
+                else if (cw > 40)
+                    labelStep = root.config.timeLabelStepLarge
 
                 for (var i = visibleStart; i <= visibleEnd; i++)
                 {
@@ -1647,7 +1590,7 @@ Rectangle {
                             continue
 
                         var xPos = i * step + internal.candleSpacing / 2
-                        var timeStr = Qt.formatDateTime(new Date(candle.time), "HH:mm")
+                        var timeStr = Qt.formatDateTime(new Date(candle.time), root.config.timeFormat)
                         ctx.fillText(timeStr, xPos + internal.candleWidth / 2, height / 2 + 3)
                     }
                 }
@@ -1699,7 +1642,6 @@ Rectangle {
 
         function onModelUpdated()
         {
-            console.log("onModelUpdated")
             internal.scrollPosition = 0;
             Qt.callLater(function() {
 
@@ -1714,10 +1656,30 @@ Rectangle {
         }
     }
 
+    Connections {
+        target: root.config
+        function onBackgroundChanged()    { Qt.callLater(internal.requestPaintAll) }
+        function onGridLineChanged()      { Qt.callLater(internal.requestPaintAll) }
+        function onBullConfirmedChanged() { Qt.callLater(internal.requestPaintAll) }
+        function onBearConfirmedChanged() { Qt.callLater(internal.requestPaintAll) }
+    }
+
+    onEnableAutoScrollChanged: {
+        internal.autoScrollEnabled = enableAutoScroll
+        if (enableAutoScroll) {
+            autoScrollRestartTimer.stop()
+            if (internal.totalChartWidth > priceChartScrollView.width)
+                internal.scrollToLastCandle(true)
+        } else {
+            autoScrollRestartTimer.stop()
+        }
+    }
+    onEnableShowVolumesChanged: Qt.callLater(internal.requestPaintAll)
+    onEnableDisplayOpenPriceChanged: Qt.callLater(internal.requestPaintAll)
+
     Component.onCompleted: {
         if (root.klineSeries && root.klineSeries.length > 0) {
             Qt.callLater(function() {
-                console.log("Root component ready:", width, height)
                 internal.update()
             });
         }

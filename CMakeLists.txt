@@ -9,7 +9,7 @@ set(CMAKE_INSTALL_RPATH "$ORIGIN")
 # cmake --build . --target clean
 
 #set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -99,11 +99,13 @@ qt_add_qml_module(${PROJECT_NAME}
         res/Views/TradeScreen.qml
         res/Views/SettingsWindow.qml
         res/Views/LogWindow.qml
-        res/Views/APICreationWindow.qml
+        res/Views/ApiCreateDialog.qml
         res/Views/SelecterTradeWindow.qml
-        res/Views/APISettingsPage.qml
+        res/Views/ApiSettingsPage.qml
         res/Views/GeneralSettingsPage.qml
-        res/Views/OrderManagementWindow.qml
+        res/Views/OrderCreateDialog.qml
+        res/Views/AmendOrderDialog.qml
+        res/Views/ExportDialog.qml
 )
 
 # Подключаем внешние UI-поддиректории
@@ -117,6 +119,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Charts
     EasyTradeCore
     Theme
+    ConfigsComponents
     CustomComponents
     CryptoComponents
 )

@@ -1,0 +1,3 @@
+---
+- Склонировать и устанвить https://github.com/mxrcode/QtCipherSqlitePlugin
+---

@@ -1,7 +1,7 @@
-import QtQuick 2.15
+import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import Theme 1.0
+import Components.Configs 1.0
 
 Item {
     id: root
@@ -14,20 +14,21 @@ Item {
 
         // Индикатор Bid
         Rectangle {
-            width: indicatorBid.contentHeight + Theme.margins
-            height: indicatorBid.contentHeight + Theme.margins
+            width: indicatorBid.contentHeight + SentimentConfig.markerPadding
+            height: indicatorBid.contentHeight + SentimentConfig.markerPadding
             Layout.alignment: Qt.AlignVCenter
-            color: "transparent"
-            border.color: "#00ff66"
-            border.width: Theme.borderWidth
-            radius: 5
+            color: SentimentConfig.markerBackground
+            border.color: SentimentConfig.bidColor
+            border.width: SentimentConfig.markerBorderWidth
+            topLeftRadius: SentimentConfig.markerRadius
+            bottomLeftRadius: SentimentConfig.markerRadius
             Text {
                 id: indicatorBid
                 anchors.centerIn: parent
-                text: "B"
-                font.pixelSize: Theme.fontSizeBody
-                font.family: Theme.fontFamily
-                color: "#00ff66"
+                text: SentimentConfig.bidLabel
+                font.pixelSize: SentimentConfig.fontSize
+                font.family: SentimentConfig.fontFamily
+                color: SentimentConfig.bidColor
             } // Text
         }
 
@@ -44,14 +45,15 @@ Item {
                     id: bidSide
                     height: parent.height
                     width: parent.width * root.percentBid / 100
-                    color: "#00ff66"
+                    color: SentimentConfig.bidColor
                     Text {
                         anchors.left: parent.left
-                        anchors.leftMargin: Theme.margins / 2
+                        anchors.leftMargin: SentimentConfig.textMargin
                         anchors.verticalCenter: parent.verticalCenter
-                        text: root.percentBid + "%"
-                        font.pixelSize: Theme.fontSizeBody
-                        font.family: Theme.fontFamily
+                        text: SentimentConfig.formatPercent(root.percentBid)
+                        color: SentimentConfig.barTextColor
+                        font.pixelSize: SentimentConfig.fontSize
+                        font.family: SentimentConfig.fontFamily
                     }
                 }
 
@@ -59,14 +61,15 @@ Item {
                     id: askSide
                     height: parent.height
                     width: parent.width * root.percentAsk / 100
-                    color: "#ff4444"
+                    color: SentimentConfig.askColor
                     Text {
                         anchors.right: parent.right
-                        anchors.rightMargin: Theme.margins / 2
+                        anchors.rightMargin: SentimentConfig.textMargin
                         anchors.verticalCenter: parent.verticalCenter
-                        text: root.percentAsk + "%"
-                        font.pixelSize: Theme.fontSizeBody
-                        font.family: Theme.fontFamily
+                        text: SentimentConfig.formatPercent(root.percentAsk)
+                        color: SentimentConfig.barTextColor
+                        font.pixelSize: SentimentConfig.fontSize
+                        font.family: SentimentConfig.fontFamily
                     }
                 }
             } // Row
@@ -74,20 +77,21 @@ Item {
 
         // Индикатор Ask
         Rectangle {
-            width: indicatorAsk.contentHeight + Theme.margins
-            height: indicatorAsk.contentHeight + Theme.margins
+            width: indicatorAsk.contentHeight + SentimentConfig.markerPadding
+            height: indicatorAsk.contentHeight + SentimentConfig.markerPadding
             Layout.alignment: Qt.AlignVCenter
-            color: "transparent"
-            border.color: "#ff4444"
-            border.width: Theme.borderWidth
-            radius: 5
+            color: SentimentConfig.markerBackground
+            border.color: SentimentConfig.askColor
+            border.width: SentimentConfig.markerBorderWidth
+            topRightRadius: SentimentConfig.markerRadius
+            bottomRightRadius: SentimentConfig.markerRadius
             Text {
                 id: indicatorAsk
                 anchors.centerIn: parent
-                text: "A"
-                font.pixelSize: Theme.fontSizeBody
-                font.family: Theme.fontFamily
-                color: "#ff4444"
+                text: SentimentConfig.askLabel
+                font.pixelSize: SentimentConfig.fontSize
+                font.family: SentimentConfig.fontFamily
+                color: SentimentConfig.askColor
             } // Text
         }
 

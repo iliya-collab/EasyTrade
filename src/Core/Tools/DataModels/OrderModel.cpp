@@ -105,7 +105,6 @@ void Core::Tools::OrderModel::upsertOrders(const QList<OrderInfo> &orders)
     if (orders.size() == 1)
     {
         upsertOrder(orders.first());
-        qInfo() << "Size:" << m_orders.size();
         return;
     }
 
@@ -165,6 +164,10 @@ void Core::Tools::OrderModel::upsertOrders(const QList<OrderInfo> &orders)
 
     if (!newOrders.empty())
     {
+        std::stable_sort(newOrders.begin(), newOrders.end(), [](const OrderInfo& a, const OrderInfo& b) {
+            return a.m_createdTime < b.m_createdTime;
+        });
+
         const int firstIdx = m_orders.size();
         const int lastIdx = m_orders.size() + newOrders.size() - 1;
 
@@ -177,7 +180,6 @@ void Core::Tools::OrderModel::upsertOrders(const QList<OrderInfo> &orders)
         endInsertRows();
     }
 
-    qInfo() << "Size:" << m_orders.size();
 }
 
 void Core::Tools::OrderModel::resetOrders(const QList<OrderInfo> &orders)

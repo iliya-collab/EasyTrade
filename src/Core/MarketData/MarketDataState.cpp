@@ -1,11 +1,12 @@
 #include "MarketDataState.hpp"
+#include "Tools/Logging.hpp"
 
 namespace Core {
 
     MarketDataState::MarketDataState(QObject *parent)
         : QObject{parent}
     {
-        m_tradePairs = std::make_shared<Tools::TradePairsModel>();
+        m_instruments = std::make_shared<Tools::InstrumentModel>();
         m_klineStore = std::make_shared<Tools::KlineStore>();
         m_asks = std::make_shared<Tools::OrderbookSideModel>(Core::Tools::OrderbookSideModel::Side::Ask);
         m_bids = std::make_shared<Tools::OrderbookSideModel>(Core::Tools::OrderbookSideModel::Side::Bid);
@@ -24,10 +25,10 @@ namespace Core {
         emit currentSymbolChanged();
     }
 
-    void MarketDataState::updateTradePairs(const QList<Tools::TradeInfo>& pairs)
+    void MarketDataState::updateInstruments(const Tools::Instruments& instruments)
     {
-        m_tradePairs->updateTradePairs(pairs);
-        emit tradePairsChanged();
+        m_instruments->updateInstruments(instruments);
+        emit instrumentsChanged();
     }
 
     void MarketDataState::updateKline(const Tools::Kline &kline)
@@ -61,7 +62,7 @@ namespace Core {
         emit tradesChanged();
     }
 
-    void MarketDataState::updatePingMs(qint64 pingMs)
+    void MarketDataState::updatePingMs(const QString& id, qint64 pingMs)
     {
         m_pingMs = pingMs;
         emit pingMsChanged();

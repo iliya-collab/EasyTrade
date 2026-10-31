@@ -1,10 +1,10 @@
 #pragma once
-#include "Markets/RestAPI/BaseMarketDataService.hpp"
+#include "Service/BaseMarketDataService.hpp"
 
-namespace Core::Markets
+namespace Core
 {
 
-class BybitMarketDataService : public BaseMarketDataService
+class BybitMarketDataService : public Service::BaseMarketDataService
 {
     Q_OBJECT
 public:
@@ -13,8 +13,13 @@ public:
 
     void init(bool isTestnet) override;
 
-    void requestTradePairs(Tools::EnumHelpers::MarketType type) override;
+    void requestInstruments(const Tools::InstrumentsInfoRequest& req) override;
     void requestKlines(const Tools::KlinesRequest& req) override;
+
+protected:
+
+    void onInstrumentsInfoPageReceived(const Core::Tools::Instruments& instruments, const QString& nextPageCursor, const QVariant& context) override;
+
 
 };
 

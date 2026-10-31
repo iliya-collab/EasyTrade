@@ -78,7 +78,7 @@ ConfigurationManager* ConfigurationManager::create(QQmlEngine*, QJSEngine*)
 QString ConfigurationManager::configPath()
 {
     return QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
-    + QStringLiteral("/configuration.json");
+        + QStringLiteral("/configuration.json");
 }
 
 ConfigurationManager::ConfigurationManager(QObject* parent)

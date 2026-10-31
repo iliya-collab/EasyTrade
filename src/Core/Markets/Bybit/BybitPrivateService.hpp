@@ -1,10 +1,10 @@
 #pragma once
-#include "Markets/RestAPI/BasePrivateService.hpp"
+#include "Service/BasePrivateService.hpp"
 
-namespace Core::Markets
+namespace Core
 {
 
-class BybitPrivateService : public BasePrivateService
+class BybitPrivateService : public Service::BasePrivateService
 {
     Q_OBJECT
 public:
@@ -19,14 +19,16 @@ public:
     void requestAmendOrder(const Tools::OrderAmendRequest& request) override;
     void requestCancelOrder(const Tools::OrderCancelRequest& request) override;
     void requestCancelAllOrders(const Tools::OrderCancelAllRequest& request) override;
-    void requestOpenOrders(const Tools::OpenOrdersRequest& request) override;
-    void requestOrderHistory(const Tools::OrderHistoryRequest& request) override;
-    void requestTradeHistory(const Tools::TradeHistoryRequest& request) override;
+
+    void requestOpenOrdersAll(const Tools::OpenOrdersRequest& request) override;
+    void requestOrderHistoryAll(const Tools::OrderHistoryRequest& request) override;
+    void requestTradeHistoryAll(const Tools::TradeHistoryRequest& request) override;
 
 private:
 
-    void onOrderHistoryReceived(const QList<Core::Tools::OrderInfo>& orders, const QString& nextPageCursor);
-    void onOpenOrdersReceived(const QList<Core::Tools::OrderInfo>& orders, const QString& nextPageCursor);
+    void onOrderHistoryPageReceived(const QList<Core::Tools::OrderInfo>& orders, const QString& nextPageCursor, const QVariant& context) override;
+    void onOpenOrdersPageReceived(const QList<Core::Tools::OrderInfo>& orders, const QString& nextPageCursor, const QVariant& context) override;
+    void onTradeHistoryPageReceived(const QList<Core::Tools::ExecutionInfo>& execs, const QString& nextPageCursor, const QVariant& context) override;
 
 };
 

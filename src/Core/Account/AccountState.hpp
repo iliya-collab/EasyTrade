@@ -38,17 +38,17 @@ public:
     void updateApi(const Tools::Api& api);
     void updateApiInfo(const Tools::ApiInfo& apiInfo);
     void updateValidAccount(bool isValid);
-    void updateBalance(const Tools::AccountBalance& balance);
+    void upsertBalance(const Tools::AccountBalance& balance);
     void updateOrder(const Tools::OrderInfo& order);
     void updateOrders(const QList<Tools::OrderInfo>& orders);
     void updateExecution(const Tools::ExecutionInfo& execution);
+    void updateExecutions(const QList<Tools::ExecutionInfo>& executions);
     void updatePosition(const Tools::PositionInfo& position);
 
     // READ-методы
     bool getValidAccount() { return m_validAccount; }
     Tools::AssetModel* getAssets() const { return m_assets.get(); }
     Tools::Api getApi() const { return m_api; }
-    //Tools::ApiInfo getApiInfo() const { return m_apiInfo; }
     qint64 getOverallAssetsBalance() const { return m_overallAssetsBalance; }
     Tools::OrderModel* getOrders() const { return m_orders.get(); }
     Tools::ExecutionModel* getExecutions() const { return m_executions.get(); }

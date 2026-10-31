@@ -1,14 +1,9 @@
 #pragma once
 #include <QAbstractListModel>
+#include "Tools/StdTypes.hpp"
 
 namespace Core::Tools
 {
-
-    struct Asset {
-        QString name;
-        double amount;
-        double value;
-    };
 
     class AssetModel : public QAbstractListModel
     {
@@ -28,11 +23,13 @@ namespace Core::Tools
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
         QHash<int, QByteArray> roleNames() const override;
 
-        void updateAssets(std::vector<std::tuple<QString, QString, QString>> newAssets);
+        void upsertAsset(const Asset& asset);
+        void upsertAssets(const std::vector<Asset>& assets);
 
     private:
 
         std::vector<Asset> m_assets{};
+        QHash<QString, int> m_nameAssetToRow{};
 
     };
 

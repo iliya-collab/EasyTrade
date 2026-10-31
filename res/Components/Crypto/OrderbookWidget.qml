@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Theme 1.0
 import Components.Custom 1.0
+import Components.Configs 1.0
 
 Item {
     id: root
@@ -25,7 +26,7 @@ Item {
         IndicatorMarketSentiment {
             Layout.fillWidth: true
             Layout.margins: Theme.margins
-            Layout.preferredHeight: 20
+            Layout.preferredHeight: SentimentConfig.sentimentHeight
             percentAsk: root.percentAsk
             percentBid: root.percentBid
         }

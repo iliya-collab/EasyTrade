@@ -44,10 +44,6 @@ namespace Core::Tools
         // Пакетная загрузка
         void addExecutionBatch(const QList<ExecutionInfo>& executions);
 
-        // Возвращает все исполнения по конкретному ордеру
-        Q_INVOKABLE QList<Core::Tools::ExecutionInfo> executionsForOrder(const QString& orderId) const;
-
-
         int maxItem() { return m_maxItem; }
         void setMaxItem(int max);
 

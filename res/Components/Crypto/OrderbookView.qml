@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Layouts 2.15
 import QtQuick.Controls 2.15
 import Application.Core 1.0
+import Components.Configs 1.0
 
 Item {
     id: root
@@ -15,7 +16,7 @@ Item {
         return Math.max(asks.maxVolume, bids.maxVolume)
     }
 
-    readonly property int rowHeight: 20
+    readonly property int rowHeight: OrderbookConfig.rowHeight
 
     property int hoveredBidIndex: -1
     property int hoveredAskIndex: -1
@@ -27,9 +28,6 @@ Item {
 
     visible: asks && bids
 
-    // ==========================================================================================
-    //  Логика определения hover-строки под курсором
-    // ==========================================================================================
     function updateHover(absX, absY) {
         if (!bidsView || !asksView)
             return
@@ -75,20 +73,20 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.margins: 10
-        height: 30
+        anchors.margins: OrderbookConfig.margins
+        height: OrderbookConfig.headerHeight
 
         Text {
             width: parent.width * 0.5
             text: "BIDS"
-            color: "#00ff66"
+            color: OrderbookConfig.headerBidColor
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }
         Text {
             width: parent.width * 0.5
             text: "ASKS"
-            color: "#ff4444"
+            color: OrderbookConfig.headerAskColor
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }
@@ -101,10 +99,10 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
-        anchors.topMargin: 5
-        anchors.bottomMargin: 10
+        anchors.leftMargin: OrderbookConfig.margins
+        anchors.rightMargin: OrderbookConfig.margins
+        anchors.topMargin: OrderbookConfig.listsTopMargin
+        anchors.bottomMargin: OrderbookConfig.margins
         spacing: 0
 
         // BIDS
@@ -127,15 +125,15 @@ Item {
 
         // Разделитель
         Rectangle {
-            width: 1
+            width: OrderbookConfig.separatorWidth
             height: parent.height
-            color: "#4a4a6a"
+            color: OrderbookConfig.separatorColor
         }
 
         // ASKS
         ListView {
             id: asksView
-            width: parent.width / 2 - 1
+            width: parent.width / 2 - OrderbookConfig.separatorWidth
             height: parent.height
             clip: true
             model: asks
@@ -151,9 +149,6 @@ Item {
         } // asksView
     } // listsRow
 
-    // ==========================================================================================
-    //  Единый MouseArea поверх всего — перехватывает движение курсора
-    // ==========================================================================================
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
@@ -177,15 +172,15 @@ Item {
     Popup {
         id: tooltip
 
-        width: 220
-        height: tooltipText.implicitHeight + 16
-        padding: 8
+        width: OrderbookConfig.tooltipWidth
+        height: tooltipText.implicitHeight + 2 * padding
+        padding: OrderbookConfig.tooltipPadding
         modal: false
         focus: false
         closePolicy: Popup.NoAutoClose
 
         // Зазор между курсором и tooltip
-        readonly property int gap: 14
+        readonly property int gap: OrderbookConfig.tooltipGap
 
         // Пытаемся рисовать справа от курсора; если не влезает — слева
         readonly property real desiredX: (root.mouseX + gap + width <= root.width)
@@ -198,23 +193,23 @@ Item {
                                          : root.mouseY - gap - height
 
         // Ограничиваем окном, но с учётом уже выбранной стороны
-        x: Math.round(Math.max(5, Math.min(desiredX, root.width  - width  - 5)))
-        y: Math.round(Math.max(5, Math.min(desiredY, root.height - height - 5)))
+        x: Math.round(Math.max(OrderbookConfig.tooltipEdgeMargin, Math.min(desiredX, root.width  - width  - OrderbookConfig.tooltipEdgeMargin)))
+        y: Math.round(Math.max(OrderbookConfig.tooltipEdgeMargin, Math.min(desiredY, root.height - height - OrderbookConfig.tooltipEdgeMargin)))
 
         visible: root.tooltipData !== null && root.tooltipData !== undefined
 
         background: Rectangle {
-            color: Qt.rgba(30 / 255, 30 / 255, 40 / 255, 0.92)
-            border.color: root.tooltipIsBid ? "#8bc34a" : "#ef5350"
+            color: OrderbookConfig.tooltipBg
+            border.color: root.tooltipIsBid ? OrderbookConfig.bidColor : OrderbookConfig.askColor
             border.width: 1
-            radius: 2
+            radius: OrderbookConfig.tooltipRadius
         }
 
         contentItem: Text {
             id: tooltipText
-            color: "white"
-            font.family: "monospace"
-            font.pixelSize: 11
+            color: OrderbookConfig.textPrimary
+            font.family: OrderbookConfig.fontFamily
+            font.pixelSize: OrderbookConfig.fontSize
             text: {
                 if (!root.tooltipData)
                     return ""
@@ -227,10 +222,7 @@ Item {
     } // tooltip
 
     function formatNum(v) {
-        v = Number(v)
-        if (v >= 1000000) return (v / 1000000).toFixed(2) + "M"
-        if (v >= 1000)    return (v / 1000).toFixed(2) + "K"
-        return v.toFixed(2)
+        return OrderbookConfig.formatNumber(v)
     }
 
     // ==========================================================================================
@@ -258,13 +250,13 @@ Item {
                 orientation: Gradient.Horizontal
                 GradientStop {
                     position: 0.0
-                    color: index <= bidDel.hoveredIndex ? Qt.rgba(76 / 255, 175 / 255, 80 / 255, 0.10)
-                                                        : Qt.rgba(76 / 255, 175 / 255, 80 / 255, 0.05)
+                    color: OrderbookConfig.withAlpha(OrderbookConfig.bidFill, index <= bidDel.hoveredIndex ? OrderbookConfig.barAlphaFaintHover
+                                                                                : OrderbookConfig.barAlphaFaint)
                 }
                 GradientStop {
                     position: 1.0
-                    color: index <= bidDel.hoveredIndex ? Qt.rgba(76 / 255, 175 / 255, 80 / 255, 0.80)
-                                                        : Qt.rgba(76 / 255, 175 / 255, 80 / 255, 0.30)
+                    color: OrderbookConfig.withAlpha(OrderbookConfig.bidFill, index <= bidDel.hoveredIndex ? OrderbookConfig.barAlphaStrongHover
+                                                                                : OrderbookConfig.barAlphaStrong)
                 }
             }
         }
@@ -272,40 +264,40 @@ Item {
         Rectangle {
             anchors.fill: parent
             visible: index <= bidDel.hoveredIndex
-            color: Qt.rgba(139 / 255, 195 / 255, 74 / 255, 0.08)
-            border.color: index === bidDel.hoveredIndex ? "#8bc34a" : "transparent"
+            color: OrderbookConfig.withAlpha(OrderbookConfig.bidHoverBg, OrderbookConfig.hoverRowAlpha)
+            border.color: index === bidDel.hoveredIndex ? OrderbookConfig.bidColor : "transparent"
             border.width: 1
         }
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 5
-            anchors.rightMargin: 5
-            spacing: 4
+            anchors.leftMargin: OrderbookConfig.rowHorizontalMargin
+            anchors.rightMargin: OrderbookConfig.rowHorizontalMargin
+            spacing: OrderbookConfig.rowSpacing
 
             Text {
                 text: root.formatNum(bidDel.turnover)
-                color: "#aaaaaa"
-                font.family: "monospace"
-                font.pixelSize: 11
-                Layout.preferredWidth: parent.width * 0.30
+                color: OrderbookConfig.textSecondary
+                font.family: OrderbookConfig.fontFamily
+                font.pixelSize: OrderbookConfig.fontSize
+                Layout.preferredWidth: parent.width * OrderbookConfig.columnRatio
                 Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
             }
             Text {
                 text: root.formatNum(bidDel.volume)
-                color: "#ffffff"
-                font.family: "monospace"
-                font.pixelSize: 11
-                Layout.preferredWidth: parent.width * 0.30
+                color: OrderbookConfig.textPrimary
+                font.family: OrderbookConfig.fontFamily
+                font.pixelSize: OrderbookConfig.fontSize
+                Layout.preferredWidth: parent.width * OrderbookConfig.columnRatio
                 Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
             }
             Text {
-                text: bidDel.price.toFixed(2)
-                color: "#8bc34a"
-                font.family: "monospace"
-                font.pixelSize: 11
+                text: OrderbookConfig.formatPrice(bidDel.price)
+                color: OrderbookConfig.bidColor
+                font.family: OrderbookConfig.fontFamily
+                font.pixelSize: OrderbookConfig.fontSize
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
                 Layout.alignment: Qt.AlignVCenter
@@ -339,13 +331,13 @@ Item {
                 orientation: Gradient.Horizontal
                 GradientStop {
                     position: 0.0
-                    color: index <= askDel.hoveredIndex ? Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.80)
-                                                        : Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.30)
+                    color: OrderbookConfig.withAlpha(OrderbookConfig.askFill, index <= askDel.hoveredIndex ? OrderbookConfig.barAlphaStrongHover
+                                                                                : OrderbookConfig.barAlphaStrong)
                 }
                 GradientStop {
                     position: 1.0
-                    color: index <= askDel.hoveredIndex ? Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.10)
-                                                        : Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.05)
+                    color: OrderbookConfig.withAlpha(OrderbookConfig.askFill, index <= askDel.hoveredIndex ? OrderbookConfig.barAlphaFaintHover
+                                                                                : OrderbookConfig.barAlphaFaint)
                 }
             }
         }
@@ -353,40 +345,40 @@ Item {
         Rectangle {
             anchors.fill: parent
             visible: index <= askDel.hoveredIndex
-            color: Qt.rgba(244 / 255, 67 / 255, 54 / 255, 0.08)
-            border.color: index === askDel.hoveredIndex ? "#ef5350" : "transparent"
+            color: OrderbookConfig.withAlpha(OrderbookConfig.askHoverBg, OrderbookConfig.hoverRowAlpha)
+            border.color: index === askDel.hoveredIndex ? OrderbookConfig.askColor : "transparent"
             border.width: 1
         }
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 5
-            anchors.rightMargin: 5
-            spacing: 4
+            anchors.leftMargin: OrderbookConfig.rowHorizontalMargin
+            anchors.rightMargin: OrderbookConfig.rowHorizontalMargin
+            spacing: OrderbookConfig.rowSpacing
 
             Text {
-                text: askDel.price.toFixed(2)
-                color: "#ef5350"
-                font.family: "monospace"
-                font.pixelSize: 11
-                Layout.preferredWidth: parent.width * 0.30
+                text: OrderbookConfig.formatPrice(askDel.price)
+                color: OrderbookConfig.askColor
+                font.family: OrderbookConfig.fontFamily
+                font.pixelSize: OrderbookConfig.fontSize
+                Layout.preferredWidth: parent.width * OrderbookConfig.columnRatio
                 Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
             }
             Text {
                 text: root.formatNum(askDel.volume)
-                color: "#ffffff"
-                font.family: "monospace"
-                font.pixelSize: 11
-                Layout.preferredWidth: parent.width * 0.30
+                color: OrderbookConfig.textPrimary
+                font.family: OrderbookConfig.fontFamily
+                font.pixelSize: OrderbookConfig.fontSize
+                Layout.preferredWidth: parent.width * OrderbookConfig.columnRatio
                 Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
             }
             Text {
                 text: root.formatNum(askDel.turnover)
-                color: "#aaaaaa"
-                font.family: "monospace"
-                font.pixelSize: 11
+                color: OrderbookConfig.textSecondary
+                font.family: OrderbookConfig.fontFamily
+                font.pixelSize: OrderbookConfig.fontSize
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignLeft
                 Layout.alignment: Qt.AlignVCenter
