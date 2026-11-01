@@ -62,7 +62,8 @@ public:
     Q_INVOKABLE void restart();
     Q_INVOKABLE void shutdown();
     Q_INVOKABLE void init(bool isTestnet);
-    Q_INVOKABLE void subscribeSymbol(Tools::EnumHelpers::MarketType category, const QString& symbol);
+    Q_INVOKABLE void selectCurrentInstrument(const Core::Tools::InstrumentInfo& instrument);
+    Q_INVOKABLE void subscribeInstrument();
 
     Q_INVOKABLE void loadInstruments(Core::Tools::EnumHelpers::MarketType type);
     Q_INVOKABLE void loadKlines(const QVariantMap& params);

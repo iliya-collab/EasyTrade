@@ -100,7 +100,7 @@ qt_add_qml_module(${PROJECT_NAME}
         res/Views/SettingsWindow.qml
         res/Views/LogWindow.qml
         res/Views/ApiCreateDialog.qml
-        res/Views/SelecterTradeWindow.qml
+        res/Views/InstrumentSelectionWindow.qml
         res/Views/ApiSettingsPage.qml
         res/Views/GeneralSettingsPage.qml
         res/Views/OrderCreateDialog.qml

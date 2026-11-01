@@ -23,14 +23,14 @@ AppCore::AppCore(QObject* parent) : QObject(parent)
     m_logModel = std::make_unique<Core::Tools::LogModel>();
 
     connect(m_marketService.get(), &Core::MarketDataService::messageReceived,
-            this, [](const QString& m) { qInfo(lcMarket).noquote() << m; });
+            this, [](const QString& m) { marketInfo().noquote() << m; });
     connect(m_marketService.get(), &Core::MarketDataService::errorOccurred,
-            this, [](const QString& e) { qCritical(lcMarket).noquote() << e; });
+            this, [](const QString& e) { marketCrit().noquote() << e; });
 
     connect(m_accountService.get(), &Core::AccountService::messageReceived,
-            this, [](const QString& m) { qInfo(lcAccount).noquote() << m; });
+            this, [](const QString& m) { accountInfo().noquote() << m; });
     connect(m_accountService.get(), &Core::AccountService::errorOccurred,
-            this, [](const QString& e) { qCritical(lcAccount).noquote() << e; });
+            this, [](const QString& e) { accountCrit().noquote() << e; });
 
     init();
 }

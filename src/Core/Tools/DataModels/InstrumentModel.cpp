@@ -19,12 +19,10 @@ namespace Core::Tools {
         {
         case SymbolRole:
             return trade.m_symbol;
-        case QuoteRole:
-            return trade.m_quoteCoin;
-        case BaseRole:
-            return trade.m_baseCoin;
         case CategoryRole:
             return QVariant::fromValue(trade.m_category);
+        case InstrumentRole:
+            return QVariant::fromValue(trade);
         default:
             return QVariant();
         };
@@ -35,9 +33,8 @@ namespace Core::Tools {
     {
         return {
             {SymbolRole, "symbol"},
-            {QuoteRole, "quote"},
-            {BaseRole, "base"},
-            {CategoryRole, "category"}
+            {CategoryRole, "category"},
+            {InstrumentRole, "instrument"}
         };
     }
 

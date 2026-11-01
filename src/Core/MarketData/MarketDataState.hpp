@@ -12,21 +12,19 @@ namespace Core {
         Q_OBJECT
 
         // Readonly свойства
-        Q_PROPERTY(Tools::EnumHelpers::MarketType   currentCategory READ getCurrentCategory NOTIFY currentCategoryChanged   FINAL)
-        Q_PROPERTY(QString                          currentSymbol   READ getCurrentSymbol   NOTIFY currentSymbolChanged     FINAL)
-        Q_PROPERTY(Core::Tools::InstrumentModel*    instruments     READ getInstruments     NOTIFY instrumentsChanged       FINAL)
-        Q_PROPERTY(Core::Tools::KlineStore*         klineStore      READ getKlineStore      NOTIFY klineStoreChanged        FINAL)
-        Q_PROPERTY(qint64                           pingMs          READ getPingMs          NOTIFY pingMsChanged            FINAL)
-        Q_PROPERTY(Core::Tools::Ticker              ticker          READ getTicker          NOTIFY tickerChanged            FINAL)
-        Q_PROPERTY(Core::Tools::OrderbookSideModel* asks            READ getAsks            NOTIFY asksChanged              FINAL)
-        Q_PROPERTY(Core::Tools::OrderbookSideModel* bids            READ getBids            NOTIFY bidsChanged              FINAL)
-        Q_PROPERTY(Core::Tools::PublicTradesModel*  trades          READ getTrades          NOTIFY tradesChanged            FINAL)
+        Q_PROPERTY(Tools::InstrumentInfo            currentInstrument   READ getCurrentInstrument   NOTIFY currentInstrumentChanged     FINAL)
+        Q_PROPERTY(Core::Tools::InstrumentModel*    instruments         READ getInstruments         NOTIFY instrumentsChanged           FINAL)
+        Q_PROPERTY(Core::Tools::KlineStore*         klineStore          READ getKlineStore          NOTIFY klineStoreChanged            FINAL)
+        Q_PROPERTY(qint64                           pingMs              READ getPingMs              NOTIFY pingMsChanged                FINAL)
+        Q_PROPERTY(Core::Tools::Ticker              ticker              READ getTicker              NOTIFY tickerChanged                FINAL)
+        Q_PROPERTY(Core::Tools::OrderbookSideModel* asks                READ getAsks                NOTIFY asksChanged                  FINAL)
+        Q_PROPERTY(Core::Tools::OrderbookSideModel* bids                READ getBids                NOTIFY bidsChanged                  FINAL)
+        Q_PROPERTY(Core::Tools::PublicTradesModel*  trades              READ getTrades              NOTIFY tradesChanged                FINAL)
 
     private:
 
         // Рыночные данные
-        Tools::EnumHelpers::MarketType m_currentCategory;
-        QString m_currentSymbol{};
+        Tools::InstrumentInfo m_currentInstrument{};
         Tools::Ticker m_ticker{};
         std::shared_ptr<Tools::KlineStore> m_klineStore{};
         std::shared_ptr<Tools::OrderbookSideModel> m_asks{};
@@ -41,8 +39,7 @@ namespace Core {
         explicit MarketDataState(QObject *parent = nullptr);
 
         // Методы обновления
-        void setCurrentCategory(Tools::EnumHelpers::MarketType category);
-        void setCurrentSymbol(const QString& symbol);
+        void selectCurrentInstrument(const Tools::InstrumentInfo& Instrument);
         void updateInstruments(const Core::Tools::Instruments& instruments);
         void updateKline(const Tools::Kline& kline);
         void addHistoricalKlines(const QList<Tools::Kline>& klines);
@@ -52,8 +49,7 @@ namespace Core {
         void updatePingMs(const QString& id, qint64 pingMs);
 
         // READ-методы
-        Tools::EnumHelpers::MarketType getCurrentCategory() const { return m_currentCategory; }
-        QString getCurrentSymbol() const { return m_currentSymbol; }
+        Tools::InstrumentInfo getCurrentInstrument() const { return m_currentInstrument; }
         Tools::KlineStore* getKlineStore() const { return m_klineStore.get(); }
         Tools::Ticker getTicker() const { return m_ticker; }
         Tools::OrderbookSideModel* getAsks() const { return m_asks.get(); }
@@ -64,8 +60,7 @@ namespace Core {
 
     signals:
 
-        void currentCategoryChanged();
-        void currentSymbolChanged();
+        void currentInstrumentChanged();
         void instrumentsChanged();
         void klineStoreChanged();
         void tickerChanged();

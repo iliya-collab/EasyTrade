@@ -18,8 +18,9 @@ Dialog {
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
     // ---- Контекст ордера ----
-    property int category: AppCore.marketState.currentCategory
-    property string symbol: AppCore.marketState.currentSymbol
+    readonly property Instrument instrument: AppCore.marketState.currentInstrument
+    property int category: instrument.category
+    property string symbol: instrument.symbol
 
     // ---- Состояние формы ----
     property int side: EnumHelpers.OrderSide.Buy

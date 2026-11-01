@@ -18,21 +18,37 @@ Window {
     title: "Select trade symbol"
     color: Theme.windowColor
 
-    QtObject {
+    QtObject
+    {
         id: internal
 
-        property bool isComponentReady: false
-        readonly property var tradePairList: InstrumentFilterProxyModel
-        {
+        readonly property var tradePairList: InstrumentFilterProxyModel {
             sourceModel: AppCore.marketState.instruments
             symbolFilter: ""
         }
-        property var currentCategory: null
-        property var currentSymbol: null
-        property bool symbolSelected: currentSymbol !== null && currentSymbol !== ""
+
+        property Instrument currentInstrument
+        property bool symbolSelected: false
+        readonly property string currentSymbol: symbolSelected ? currentInstrument.symbol : ""
+
+        function select(inst)
+        {
+            currentInstrument = inst
+            symbolSelected = true
+        }
+
+        function confirm()
+        {
+            if (!symbolSelected)
+                return
+
+            AppCore.marketService.selectCurrentInstrument(currentInstrument)
+            root.instrumentSelected(internal.currentInstrument)
+            root.close()
+        }
     }
 
-    signal tradeSelected(string category, string symbol)
+    signal instrumentSelected(Instrument inst)
 
     ColumnLayout {
         id: contentLayout
@@ -49,8 +65,7 @@ Window {
                 { text: "option",   type: EnumHelpers.MarketType.Option }
             ]
             onCurrentIndexChanged: {
-                internal.currentCategory = modelTabs[currentIndex].text
-                internal.currentSymbol = null
+                internal.symbolSelected = false
                 AppCore.marketService.loadInstruments(modelTabs[currentIndex].type)
             }
         }
@@ -73,7 +88,7 @@ Window {
                 color: Theme.textColor
             }
             Text {
-                text: internal.currentCategory ?? "—"
+                text: tabsBar.modelTabs[tabsBar.currentIndex].text || "—"
                 font.pixelSize: Theme.fontSizeBody
                 font.family: Theme.fontFamily
                 font.bold: true
@@ -89,7 +104,7 @@ Window {
                 color: Theme.textColor
             }
             Text {
-                text: internal.currentSymbol ?? "—"
+                text: internal.currentSymbol || "—"
                 font.pixelSize: Theme.fontSizeBody
                 font.family: Theme.fontFamily
                 font.bold: true
@@ -116,8 +131,9 @@ Window {
                     width: lstTrades.width
                     height: 34
 
-                    property string symbolName: symbol
-                    readonly property bool isSelected: internal.currentSymbol === symbolName
+                    required property string symbol
+                    required property Instrument instrument
+                    readonly property bool isSelected: internal.symbolSelected && internal.currentSymbol === symbol
 
                     Rectangle {
                         id: itemBg
@@ -134,7 +150,7 @@ Window {
                         anchors.fill: parent
                         anchors.leftMargin: Theme.padding
                         anchors.rightMargin: Theme.padding
-                        text: lstItem.symbolName
+                        text: lstItem.symbol
                         font.pixelSize: Theme.fontSizeBody
                         font.family: Theme.fontFamily
                         font.bold: lstItem.isSelected
@@ -149,16 +165,10 @@ Window {
                         hoverEnabled: true
                         acceptedButtons: Qt.LeftButton
 
-                        onClicked: {
-                            internal.currentSymbol = lstItem.symbolName
-                            singleClickTimer.restart()
-                        }
-
+                        onClicked: internal.select(lstItem.instrument)
                         onDoubleClicked: {
-                            singleClickTimer.stop()
-                            internal.currentSymbol = lstItem.symbolName
-                            root.tradeSelected(internal.currentCategory, internal.currentSymbol)
-                            root.close()
+                            internal.select(lstItem.instrument)
+                            internal.confirm()
                         }
                     }
 
@@ -208,10 +218,7 @@ Window {
                 text: "Select"
                 enabled: internal.symbolSelected
                 implicitHeight: 30
-                onClicked: {
-                    root.tradeSelected(internal.currentCategory, internal.currentSymbol)
-                    root.close()
-                }
+                onClicked: internal.confirm()
             }
         }
 

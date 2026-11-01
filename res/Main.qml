@@ -39,14 +39,14 @@ ApplicationWindow {
     Loader {
         id: selecterTradeWindowLoader
         active: false
-        source: "Views/SelecterTradeWindow.qml"
+        source: "Views/InstrumentSelectionWindow.qml"
 
         onLoaded: {
-            item.tradeSelected.connect(function(category, symbol) {
-                AppCore.marketService.subscribeSymbol(category, symbol)
-                AppCore.accountService.requestOrderHistory({ "category": category })
-                AppCore.accountService.requestOpenOrders({ "category": category })
-                AppCore.accountService.requestTradeHistory({ "category": category })
+            item.instrumentSelected.connect(function(inst) {
+                AppCore.marketService.subscribeInstrument()
+                AppCore.accountService.requestOrderHistory({ "category": inst.category })
+                AppCore.accountService.requestOpenOrders({ "category": inst.category })
+                AppCore.accountService.requestTradeHistory({ "category": inst.category })
             })
         }
 

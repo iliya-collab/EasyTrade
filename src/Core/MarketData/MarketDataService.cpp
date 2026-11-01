@@ -81,11 +81,15 @@ void MarketDataService::init(bool isTestnet)
     m_mediator->init(isTestnet);
 }
 
-void MarketDataService::subscribeSymbol(Tools::EnumHelpers::MarketType category, const QString &symbol)
+void MarketDataService::selectCurrentInstrument(const Tools::InstrumentInfo &instrument)
 {
-    m_state->setCurrentCategory(category);
-    m_state->setCurrentSymbol(symbol);
-    m_mediator->subscribe(symbol);
+    m_state->selectCurrentInstrument(instrument);
+}
+
+void MarketDataService::subscribeInstrument()
+{
+    const auto& instrument = m_state->getCurrentInstrument();
+    m_mediator->subscribe(instrument.m_symbol);
 }
 
 void MarketDataService::loadInstruments(Core::Tools::EnumHelpers::MarketType type)

@@ -12,11 +12,11 @@ class InstrumentModel : public QAbstractListModel
 
 public:
 
-    enum Roles {
+    enum Roles
+    {
         SymbolRole = Qt::UserRole + 1,
-        QuoteRole,
-        BaseRole,
-        CategoryRole
+        CategoryRole,
+        InstrumentRole
     };
 
     explicit InstrumentModel(QObject* parent = nullptr) : QAbstractListModel(parent) {}

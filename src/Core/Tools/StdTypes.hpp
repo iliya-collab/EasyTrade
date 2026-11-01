@@ -260,11 +260,27 @@ public:
 
 struct InstrumentInfo
 {
+    Q_GADGET
+    QML_VALUE_TYPE(Instrument)
+
+    Q_PROPERTY(EnumHelpers::MarketType  category    READ category   CONSTANT FINAL)
+    Q_PROPERTY(QString                  symbol      READ symbol     CONSTANT FINAL)
+    Q_PROPERTY(QString                  baseCoin    READ baseCoin   CONSTANT FINAL)
+    Q_PROPERTY(QString                  quoteCoin   READ quoteCoin  CONSTANT FINAL)
+
+public:
+
+    EnumHelpers::MarketType category() const { return m_category; }
+    QString symbol() const { return m_symbol; }
+    QString baseCoin() const { return m_baseCoin; }
+    QString quoteCoin() const { return m_quoteCoin; }
+
     EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
     QString m_symbol = "";
     QString m_baseCoin = "";
     QString m_quoteCoin = "";
 };
+
 
 using Instruments = QList<InstrumentInfo>;
 
