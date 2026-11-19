@@ -5,38 +5,50 @@ import QtCore
 import Theme 1.0
 import Components.Crypto 1.0
 
-// Один виджет, который переключает вложенные виджеты через контекстное меню (ПКМ).
-// Чтобы добавить ещё один вид, достаточно добавить Component и запись в `views`.
-Item {
+Rectangle {
     id: root
+    color: Theme.windowColor
+    clip: true
 
-    // ===== Доступные виды =====
+    // Ширина узкой полоски в свёрнутом состоянии
+    readonly property int collapsedWidth: 28
+
     readonly property var views: [
         { title: qsTr("Order book"),    component: orderbookComponent },
         { title: qsTr("Public trades"), component: tradesComponent    }
     ]
 
-    // Индекс текущего вида; сохраняется между запусками
     property alias currentIndex: store.viewIndex
     readonly property int safeIndex: Math.max(0, Math.min(currentIndex, views.length - 1))
+
+    property alias hidden: store.hidden
 
     Settings {
         id: store
         category: "MarketDataWidget"
-        property int viewIndex: 0
+        property int  viewIndex: 0
+        property bool hidden:    false
     }
 
-    // ===== Содержимое: активный вид (неактивные выгружаются) =====
     Loader {
         id: contentLoader
         anchors.fill: parent
-        sourceComponent: root.views[root.safeIndex].component
+        anchors.margins: Theme.margins
+        active: !root.hidden
+        sourceComponent: root.hidden ? null : root.views[root.safeIndex].component
     }
 
     Component { id: orderbookComponent; OrderbookWidget {} }
     Component { id: tradesComponent;    PublicTradesWidget {} }
 
-    // ===== Контекстное меню (ПКМ) =====
+    // Полоска в свёрнутом состоянии: клик возвращает виджет
+    ToolButton {
+        anchors.fill: parent
+        visible: root.hidden
+        text: "‹"
+        onClicked: root.hidden = false
+    }
+
     TapHandler {
         acceptedButtons: Qt.RightButton
         onTapped: viewMenu.popup(point.position.x, point.position.y)
@@ -44,7 +56,6 @@ Item {
 
     Menu {
         id: viewMenu
-
         background: Rectangle {
             implicitWidth: 180
             color: Theme.windowColor
@@ -54,7 +65,6 @@ Item {
 
         Instantiator {
             model: root.views
-
             delegate: MenuItem {
                 required property int index
                 required property var modelData
@@ -62,12 +72,24 @@ Item {
                 text: modelData.title
                 checkable: true
                 autoExclusive: true
-                checked: root.safeIndex === index
-                onTriggered: root.currentIndex = index
+                checked: !root.hidden && root.safeIndex === index
+                onTriggered: {
+                    root.hidden = false
+                    root.currentIndex = index
+                }
             }
-
-            onObjectAdded: (index, object) => viewMenu.insertItem(index, object)
+            onObjectAdded:   (index, object) => viewMenu.insertItem(index, object)
             onObjectRemoved: (index, object) => viewMenu.removeItem(object)
+        }
+
+        MenuSeparator {}
+
+        MenuItem {
+            text: qsTr("Hide")
+            checkable: true
+            autoExclusive: true
+            checked: root.hidden
+            onTriggered: root.hidden = true
         }
     }
 }

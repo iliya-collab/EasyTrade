@@ -8,9 +8,9 @@ namespace Core::Tools::Exporter
 using ExportRow  = QList<QPair<QString, QVariant>>;
 using ExportRows = QList<ExportRow>;
 
-// --- PublicTradeItem ---
+// --- PublicTradeInfo ---
 
-inline ExportRow toField(const PublicTradeItem &t)
+inline ExportRow toField(const PublicTradeInfo &t)
 {
     return {
         { "category", EnumHelpers::marketTypeToApiString(t.m_category) },
@@ -23,9 +23,9 @@ inline ExportRow toField(const PublicTradeItem &t)
     };
 }
 
-// --- Kline ---
+// --- KlineInfo ---
 
-inline ExportRow toField(const Kline &k)
+inline ExportRow toField(const KlineInfo &k)
 {
     return {
         { "category", EnumHelpers::marketTypeToApiString(k.m_category) },

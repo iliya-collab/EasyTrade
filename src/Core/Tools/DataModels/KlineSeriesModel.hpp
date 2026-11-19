@@ -65,11 +65,11 @@ private:
     void refreshAll();
     void rebuildRows();
 
-    static QVariantMap toMap(const Kline& k);
+    static QVariantMap toMap(const KlineInfo& k);
 
     Core::Tools::KlineStore* m_source = nullptr;
     QString m_timeframe;
-    QList<Kline> m_rows;
+    Klines m_rows;
 
 };
 

@@ -21,13 +21,13 @@ void GetBybitKlineHandler::handle(const QJsonObject &data,
 
     Tools::KlinesRequest req = requestContext.value<Tools::KlinesRequest>();
 
-    QList<Tools::Kline> klines;
+    Klines klines;
     processRequestKlines(klines, req.m_interval, data);
     emit signaller->klinesReceived(klines);
 }
 
-void GetBybitKlineHandler::processRequestKlines(QList<Tools::Kline>& klines,
-                                                Tools::EnumHelpers::Interval interval,
+void GetBybitKlineHandler::processRequestKlines(Klines& klines,
+                                                EnumHelpers::Interval interval,
                                                 const QJsonObject& data)
 {
     QJsonObject result = data["result"].toObject();
@@ -35,13 +35,13 @@ void GetBybitKlineHandler::processRequestKlines(QList<Tools::Kline>& klines,
     QString category = result["category"].toString();
     QJsonArray list = result["list"].toArray();
 
-    qint64 durationMs = Tools::EnumHelpers::intervalToMs(interval);
+    qint64 durationMs = EnumHelpers::intervalToMs(interval);
 
     for (const auto& obj : std::as_const(list))
     {
         QJsonArray itemArr = obj.toArray();
-        Tools::Kline kline;
-        kline.m_category = Tools::EnumHelpers::apiStringToMarketType(category);
+        KlineInfo kline;
+        kline.m_category = EnumHelpers::apiStringToMarketType(category);
         kline.m_symbol = symbol;
         kline.m_start = itemArr[0].toString().toLongLong();
         kline.m_end = kline.m_start + durationMs;
@@ -60,9 +60,9 @@ void GetBybitKlineHandler::processRequestKlines(QList<Tools::Kline>& klines,
 QUrlQuery GetBybitKlineHandler::buildRequest(const Tools::KlinesRequest &req)
 {
     QUrlQuery params;
-    params.addQueryItem("category", Tools::EnumHelpers::marketTypeToApiString(req.m_category));
+    params.addQueryItem("category", EnumHelpers::marketTypeToApiString(req.m_category));
     params.addQueryItem("symbol", req.m_symbol);
-    params.addQueryItem("interval", Tools::EnumHelpers::intervalToString(req.m_interval));
+    params.addQueryItem("interval", EnumHelpers::intervalToString(req.m_interval));
     if (req.m_start.has_value())
         params.addQueryItem("start", QString::number(req.m_start.value()));
     if (req.m_end.has_value())

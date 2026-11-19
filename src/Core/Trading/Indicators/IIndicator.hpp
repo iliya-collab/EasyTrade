@@ -1,6 +1,6 @@
 #ifndef IINDICATOR_HPP
 #define IINDICATOR_HPP
-#include "Trading/Types.hpp"
+#include "Trading/Common/Types.hpp"
 
 namespace Core::Trading
 {

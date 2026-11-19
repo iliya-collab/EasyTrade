@@ -46,6 +46,7 @@ Item {
             ColumnLayout {
                 id: topContent
                 SplitView.preferredHeight: mainLayout.height * 0.80
+                SplitView.fillHeight: bottomPanel.hidden
                 SplitView.minimumHeight: mainLayout.height * 0.50
                 clip: true
 
@@ -92,102 +93,38 @@ Item {
                     KlineWidget {
                         id: candleChart
                         SplitView.fillHeight: true
+                        SplitView.fillWidth: marketData.hidden
                         SplitView.preferredWidth: chartSplit.width * 0.90
                         SplitView.minimumWidth: chartSplit.width * 0.70
-                        currentTrade: AppCore.marketState.currentSymbol
+                        currentTrade: AppCore.marketState.current.info.symbol
                     }
 
-                    Rectangle {
-                        color: Theme.windowColor
+                    MarketDataWidget {
+                        id: marketData
                         SplitView.fillHeight: true
-                        SplitView.fillWidth: true
-                        SplitView.minimumWidth: 350
-                        clip: true
-
-                        MarketDataWidget {
-                            anchors.fill: parent
-                            anchors.margins: Theme.margins
-                        }
+                        SplitView.fillWidth: !hidden
+                        SplitView.minimumWidth: hidden ? collapsedWidth : 350
+                        SplitView.maximumWidth: hidden ? collapsedWidth : Number.POSITIVE_INFINITY
                     }
                 } // chartSplit
             } // topContent
 
-            Rectangle {
-                id: bottomContent
-                SplitView.fillHeight: true
-                SplitView.minimumHeight: 200
-                color: Theme.windowColor
-                clip: true
+            TradingPanelWidget {
+                id: bottomPanel
 
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: Theme.margins
+                SplitView.fillHeight: !hidden
+                SplitView.minimumHeight: hidden ? collapsedHeight : 200
+                SplitView.maximumHeight: hidden ? collapsedHeight : Number.POSITIVE_INFINITY
 
-                    CustomTabBar {
-                        modelTabs: [
-                            { text: "Opened orders" },
-                            { text: "Positons" },
-                            { text: "Historical orders" },
-                            { text: "History of trade" }
-                        ]
-                        onCurrentIndexChanged: loader.sourceComponent = loader.components[currentIndex]
-                    }
-
-                    Loader {
-                        id: loader
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-
-                        property var components: [
-                            openedOrdersComp,
-                            positionsComp,
-                            historyOrdersComp,
-                            tradeHistoryComp
-                        ]
-                    }
-
-                    Component {
-                        id: openedOrdersComp
-
-                        OpenedOrdersWidget {
-                            id: openedOrders
-                            Connections {
-                                target: openedOrders
-                                ignoreUnknownSignals: true
-
-                                function onClickedCancelOrder(category, symbol, orderId, orderLinkId) {
-                                    AppCore.accountService.cancelOrder({
-                                        "category": category,
-                                        "symbol": symbol,
-                                        "orderId": orderId,
-                                        "orderLinkId": orderLinkId
-                                    })
-                                }
-
-                                function onClickedAmendOrder(category, symbol, orderType, orderId, orderLinkId) {
-                                    amendDialog.category = category
-                                    amendDialog.symbol = symbol
-                                    amendDialog.orderType = orderType
-                                    amendDialog.orderId = orderId
-                                    amendDialog.orderLinkId = orderLinkId
-                                    amendDialog.open()
-                                }
-
-                                function onClickedCancelAllOrder() {
-                                    AppCore.accountService.cancelAllOrders({
-                                        "category":  EnumHelpers.marketTypeToApiString(AppCore.marketState.currentCategory),
-                                        "symbol": AppCore.marketState.currentSymbol
-                                    })
-                                }
-                            }
-                        } // openedOrders
-                    }
-                    Component { id: positionsComp; PositionsWidget {} }
-                    Component { id: historyOrdersComp; HistoricalOrdersWidget {} }
-                    Component { id: tradeHistoryComp; TradeHistoryWidget {} }
-
+                onAmendOrderRequested: function(category, symbol, orderType, orderId, orderLinkId) {
+                    amendDialog.category = category
+                    amendDialog.symbol = symbol
+                    amendDialog.orderType = orderType
+                    amendDialog.orderId = orderId
+                    amendDialog.orderLinkId = orderLinkId
+                    amendDialog.open()
                 }
-            } // bottomContent
+            } // bottomPanel
 
         } // mainLayout
     }

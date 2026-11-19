@@ -32,31 +32,31 @@ void GetBybitInfoAboutAPIHandler::handle(const QJsonObject &data, const QVariant
         return;
     }
 
-    Tools::ApiInfo info{};
+    ApiInfo info{};
 
     QJsonObject result = data["result"].toObject();
 
-    info.m_note = result["note"].toString();
+    info.note = result["note"].toString();
 
     QJsonArray ipsArr = result["ips"].toArray();
     bool anyIp = ipsArr.size() == 1 && ipsArr[0].toString() == "*";
     if (!anyIp)
     {
-        info.m_ips.reserve(ipsArr.size());
+        info.ips.reserve(ipsArr.size());
         for (const auto& ip : std::as_const(ipsArr))
-            info.m_ips.emplaceBack(ip.toString());
+            info.ips.emplaceBack(ip.toString());
     }
 
-    info.m_expiredAt = parseISOFormat(result["expiredAt"].toString());
-    info.m_createdAt = parseISOFormat(result["createdAt"].toString());
-    info.m_deadlineDay = result["deadlineDay"].toInt();
-    info.m_vipLevel = result["vipLevel"].toString();
-    info.m_isUnifiedAccount = result["uta"].toInt() == 1;
-    info.m_isMaster = result["isMaster"].toBool();
-    info.m_kycLevel = result["kycLevel"].toString();
-    info.m_userId = QString::number(result["userID"].toInt());
+    info.expiredAt = parseISOFormat(result["expiredAt"].toString());
+    info.createdAt = parseISOFormat(result["createdAt"].toString());
+    info.deadlineDay = result["deadlineDay"].toInt();
+    info.vipLevel = result["vipLevel"].toString();
+    info.isUnifiedAccount = result["uta"].toInt() == 1;
+    info.isMaster = result["isMaster"].toBool();
+    info.kycLevel = result["kycLevel"].toString();
+    info.userId = QString::number(result["userID"].toInt());
 
-    info.m_readOnly = result["readOnly"].toVariant().toBool();
+    info.readOnly = result["readOnly"].toVariant().toBool();
     QJsonObject permissionsObj = result["permissions"].toObject();
 
     auto hasField = [](const QJsonArray &arr, const QString &val) -> bool {
@@ -69,38 +69,38 @@ void GetBybitInfoAboutAPIHandler::handle(const QJsonObject &data, const QVariant
     // Контракты (Деривативы)
     if (permissionsObj.contains("ContractTrade")) {
         QJsonArray contractArr = permissionsObj["ContractTrade"].toArray();
-        info.m_permissionOrderContract = hasField(contractArr, "Order");
-        info.m_permissionPositionContract = hasField(contractArr, "Position");
+        info.permissionOrderContract = hasField(contractArr, "Order");
+        info.permissionPositionContract = hasField(contractArr, "Position");
     }
 
     // Спот
     if (permissionsObj.contains("Spot")) {
-        info.m_permissionSpotTrade = hasField(permissionsObj["Spot"].toArray(), "SpotTrade");
+        info.permissionSpotTrade = hasField(permissionsObj["Spot"].toArray(), "SpotTrade");
     }
 
     // Опционы
     if (permissionsObj.contains("Options")) {
-        info.m_permissionOptionsTrade = hasField(permissionsObj["Options"].toArray(), "OptionsTrade");
+        info.permissionOptionsTrade = hasField(permissionsObj["Options"].toArray(), "OptionsTrade");
     }
 
     // Конвертация
     if (permissionsObj.contains("Exchange")) {
-        info.m_permissionExchange = hasField(permissionsObj["Exchange"].toArray(), "ExchangeHistory");
+        info.permissionExchange = hasField(permissionsObj["Exchange"].toArray(), "ExchangeHistory");
     }
 
     // Earn продукты
     if (permissionsObj.contains("Earn")) {
-        info.m_permissionEarn = hasField(permissionsObj["Earn"].toArray(), "Earn");
+        info.permissionEarn = hasField(permissionsObj["Earn"].toArray(), "Earn");
     }
 
     // Кошелек и переводы
     if (permissionsObj.contains("Wallet")) {
         QJsonArray walletArr = permissionsObj["Wallet"].toArray();
-        info.m_permissionWithdraw = hasField(walletArr, "Withdraw");
-        info.m_permissionAccountTransfer = hasField(walletArr, "AccountTransfer");
+        info.permissionWithdraw = hasField(walletArr, "Withdraw");
+        info.permissionAccountTransfer = hasField(walletArr, "AccountTransfer");
 
         // Проверяем права на суб-переводы (зависит от того мастер-ключ или суб-ключ)
-        info.m_permissionSubTransfer = hasField(walletArr, "SubMemberTransfer") ||
+        info.permissionSubTransfer = hasField(walletArr, "SubMemberTransfer") ||
                                        hasField(walletArr, "SubMemberTransferList");
     }
 

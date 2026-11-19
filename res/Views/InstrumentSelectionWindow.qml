@@ -4,13 +4,14 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import Application.Core 1.0
 import Components.Custom 1.0
+import Components.Crypto 1.0
 import Theme 1.0
 
 Window {
 
     id: root
 
-    width: 320
+    width: 500
     height: 420
     minimumWidth: 280
     minimumHeight: 320
@@ -22,51 +23,65 @@ Window {
     {
         id: internal
 
-        readonly property var tradePairList: InstrumentFilterProxyModel {
-            sourceModel: AppCore.marketState.instruments
-            symbolFilter: ""
+        property tInstrumentInfo selectedInstrument
+        property bool instrumentSelected: false
+        readonly property string selectedCategory: selectedInstrument ? EnumHelpers.marketTypeToApiString(selectedInstrument.category) : "-"
+        readonly property string selectedSymbol: selectedInstrument ? selectedInstrument.symbol : "-"
+        readonly property string selectedBaseCoin: selectedInstrument ? selectedInstrument.baseCoin : "-"
+        readonly property string selectedQuoteCoin: selectedInstrument ? selectedInstrument.quoteCoin : "-"
+        readonly property string selectedStatus: selectedInstrument ? selectedInstrument.status : "-"
+        readonly property string selectedId: selectedInstrument ? selectedInstrument.id : ""
+        property bool advancedOpen: false
+
+        function selectInstrument(inst)
+        {
+            selectedInstrument = inst
+            instrumentSelected = true
         }
 
-        property Instrument currentInstrument
-        property bool symbolSelected: false
-        readonly property string currentSymbol: symbolSelected ? currentInstrument.symbol : ""
-
-        function select(inst)
+        function confirmSelection(inst)
         {
-            currentInstrument = inst
-            symbolSelected = true
-        }
-
-        function confirm()
-        {
-            if (!symbolSelected)
+            if (!instrumentSelected)
                 return
 
-            AppCore.marketService.selectCurrentInstrument(currentInstrument)
-            root.instrumentSelected(internal.currentInstrument)
-            root.close()
+            root.currentInstrumentSelected(inst)
+        }
+
+        function confirmOpen(inst)
+        {
+            if (!instrumentSelected)
+                return
+
+            root.instrumentOpened(inst)
+        }
+
+        function confirmClose(inst)
+        {
+            if (!instrumentSelected)
+                return
+
+            root.instrumentClosed(inst)
         }
     }
 
-    signal instrumentSelected(Instrument inst)
+    signal currentInstrumentSelected(tInstrumentInfo inst)
+    signal instrumentOpened(tInstrumentInfo inst)
+    signal instrumentClosed(tInstrumentInfo inst)
 
     ColumnLayout {
-        id: contentLayout
         anchors.fill: parent
         anchors.margins: Theme.margins
 
+        // --- Заголовок ---
         CustomTabBar {
             id: tabsBar
-            Layout.fillWidth: true
             modelTabs: [
                 { text: "spot",     type: EnumHelpers.MarketType.Spot },
-                { text: "linear",   type: EnumHelpers.MarketType.Linear },
-                { text: "inverse",  type: EnumHelpers.MarketType.Inverse },
-                { text: "option",   type: EnumHelpers.MarketType.Option }
+                { text: "linear",   type: EnumHelpers.MarketType.Linear }
             ]
             onCurrentIndexChanged: {
-                internal.symbolSelected = false
-                AppCore.marketService.loadInstruments(modelTabs[currentIndex].type)
+                internal.instrumentSelected = false
+                availableInsts.categoryFilter = modelTabs[currentIndex].type
             }
         }
 
@@ -74,139 +89,160 @@ Window {
             id: txtFilter
             Layout.fillWidth: true
             placeholderText: "Enter symbol..."
-            onTextChanged: internal.tradePairList.symbolFilter = txtFilter.text
+            onTextChanged: availableInsts.symbolFilter = txtFilter.text
         }
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: Theme.margins
-
-            Text {
-                text: "Category:"
+            CustomText {
+                text: internal.advancedOpen ? "▾ Advanced" : "▸ Advanced"
+                color: "#8bc34a"
                 font.pixelSize: Theme.fontSizeBody
-                font.family: Theme.fontFamily
-                color: Theme.textColor
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: internal.advancedOpen = !internal.advancedOpen
+                }
             }
-            Text {
-                text: tabsBar.modelTabs[tabsBar.currentIndex].text || "—"
-                font.pixelSize: Theme.fontSizeBody
-                font.family: Theme.fontFamily
-                font.bold: true
-                color: Theme.accentColor
-            }
-
             Item { Layout.fillWidth: true }
-
-            Text {
-                text: "Symbol:"
-                font.pixelSize: Theme.fontSizeBody
-                font.family: Theme.fontFamily
-                color: Theme.textColor
-            }
-            Text {
-                text: internal.currentSymbol || "—"
-                font.pixelSize: Theme.fontSizeBody
-                font.family: Theme.fontFamily
-                font.bold: true
-                color: Theme.accentColor
-            }
         }
 
-        Rectangle {
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: internal.advancedOpen
+
+            RowLayout {
+                Layout.fillWidth: true
+                CustomText {
+                    text: "Category:"
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+                Item { Layout.fillWidth: true }
+                CustomText {
+                    text: internal.selectedCategory
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                CustomText {
+                    text: "Symbol:"
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+                Item { Layout.fillWidth: true }
+                CustomText {
+                    text: internal.selectedSymbol
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                CustomText {
+                    text: "Base coin:"
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+                Item { Layout.fillWidth: true }
+                CustomText {
+                    text: internal.selectedBaseCoin
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                CustomText {
+                    text: "Quote coin:"
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+                Item { Layout.fillWidth: true }
+                CustomText {
+                    text: internal.selectedQuoteCoin
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                CustomText {
+                    text: "Status:"
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+                Item { Layout.fillWidth: true }
+                CustomText {
+                    text: internal.selectedStatus
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+            }
+        }
+        // -----------------------------------------------
+
+        // --- Контент ---
+        SplitView {
+            id: mainLayout
             Layout.fillWidth: true
             Layout.fillHeight: true
-            border.color: Theme.borderColor
-            border.width: Theme.borderWidth
-            color: "transparent"
-            radius: Theme.radius
+            Layout.margins: Theme.margins
+            orientation: Qt.Horizontal
 
-            ListView {
-                id: lstTrades
-                model: internal.tradePairList
-                anchors.fill: parent
-                clip: true
+            handle: Rectangle {
+                implicitWidth: 6
+                color: SplitHandle.pressed ? Theme.accentColor
+                     : SplitHandle.hovered ? Qt.lighter(Theme.borderColor, 1.5)
+                     : "transparent"
 
-                delegate: Item {
-                    id: lstItem
-                    width: lstTrades.width
-                    height: 34
-
-                    required property string symbol
-                    required property Instrument instrument
-                    readonly property bool isSelected: internal.symbolSelected && internal.currentSymbol === symbol
-
-                    Rectangle {
-                        id: itemBg
-                        anchors.fill: parent
-                        radius: Theme.radius
-                        color: lstItem.isSelected
-                               ? Theme.selectColor
-                               : (mouseArea.containsMouse ? Theme.hoverColor : "transparent")
-                        border.color: lstItem.isSelected ? Theme.accentColor : "transparent"
-                        border.width: lstItem.isSelected ? Theme.borderWidth : 0
-                    }
-
-                    Text {
-                        anchors.fill: parent
-                        anchors.leftMargin: Theme.padding
-                        anchors.rightMargin: Theme.padding
-                        text: lstItem.symbol
-                        font.pixelSize: Theme.fontSizeBody
-                        font.family: Theme.fontFamily
-                        font.bold: lstItem.isSelected
-                        color: lstItem.isSelected ? Theme.selectTextColor : Theme.textColor
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                    }
-
-                    MouseArea {
-                        id: mouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton
-
-                        onClicked: internal.select(lstItem.instrument)
-                        onDoubleClicked: {
-                            internal.select(lstItem.instrument)
-                            internal.confirm()
-                        }
-                    }
-
-                    Timer {
-                        id: singleClickTimer
-                        interval: 250
-                        repeat: false
-                        onTriggered: {}
-                    }
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 1
+                    height: parent.height
+                    color: Theme.borderColor
                 }
+            }
 
-                ScrollBar.vertical: ScrollBar {
-                    id: scrollBar
-                    policy: ScrollBar.AsNeeded
-                    minimumSize: Theme.scrollBarMinSize
-                    background: Rectangle {
-                        color: Theme.scrollBarColor
-                        border.color: Theme.borderColor
-                        border.width: Theme.borderWidth
-                        radius: Theme.radius
-                    }
-                    contentItem: Rectangle {
-                        implicitWidth: Theme.scrollBarWidth
-                        implicitHeight: Theme.scrollBarHeight
-                        color: scrollBar.hovered ? Theme.hoverColor : Theme.sliderColor
-                        border.color: Theme.borderColor
-                        border.width: Theme.borderWidth
-                        radius: Theme.radius
-                    }
+            // --- Левая колонка: доступные инструменты ---
+            ListInsts {
+                id: availableInsts
+                SplitView.fillHeight: true
+                SplitView.preferredWidth: mainLayout.width * 0.5
+                SplitView.minimumWidth: 100
+
+                listInsts: AppCore.marketState.availableInsts
+                selectedId: internal.selectedInstrument.id
+
+                onClickedOnInstrument: function(inst) {
+                    internal.selectInstrument(inst)
                 }
-            } // lstTrades
-        } // Rectangle
+                onDoubleClickedOnInstrument: function(inst) {
+                    internal.selectInstrument(inst)
+                    internal.confirmOpen(inst)
+                }
+            }
 
+            // --- Правая колонка: открытые инструменты ---
+            ListInsts {
+                id: openedInsts
+                SplitView.fillHeight: true
+                SplitView.preferredWidth: mainLayout.width * 0.5
+                SplitView.minimumWidth: 100
+
+                listInsts: AppCore.marketState.openedInsts
+                selectedId: internal.selectedInstrument.id
+
+                onClickedOnInstrument: function(inst) {
+                    internal.selectInstrument(inst)
+                }
+                onDoubleClickedOnInstrument: function(inst) {
+                    internal.selectInstrument(inst)
+                    internal.confirmSelection(inst)
+                }
+            }
+        }
+        // -----------------------------------------------
+
+        // --- Кнопки для выбора ---
         RowLayout {
             Layout.fillWidth: true
             spacing: Theme.margins
-
-            Item { Layout.fillWidth: true }
 
             CustomButton {
                 text: "Cancel"
@@ -214,14 +250,30 @@ Window {
                 onClicked: root.close()
             }
 
+            Item { Layout.fillWidth: true }
+
+            CustomButton {
+                text: "Open"
+                enabled: internal.instrumentSelected
+                implicitHeight: 30
+                onClicked: internal.confirmOpen(internal.selectedInstrument)
+            }
+
+            CustomButton {
+                text: "Close"
+                enabled: internal.instrumentSelected
+                implicitHeight: 30
+                onClicked: internal.confirmClose(internal.selectedInstrument)
+            }
+
             CustomButton {
                 text: "Select"
-                enabled: internal.symbolSelected
+                enabled: internal.instrumentSelected
                 implicitHeight: 30
-                onClicked: internal.confirm()
+                onClicked: internal.confirmSelection(internal.selectedInstrument)
             }
         }
-
-    } // contentLayout
+        // -----------------------------------------------
+    }
 
 } // root

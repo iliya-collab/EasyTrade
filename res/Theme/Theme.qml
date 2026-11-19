@@ -3,7 +3,6 @@ import QtQuick
 import QtCore
 
 QtObject {
-    id: root
 
     // ===== Выбор и определение темы =====
     // mode: "system" (следовать ОС) | "dark" | "light"
@@ -28,12 +27,19 @@ QtObject {
     readonly property color hoverColor:             isDark ? "#a6a6a6" : "#d6d6d6"
     readonly property color pressColor:             isDark ? "#a6a6a6" : "#c4c4c4"
     readonly property color selectColor:            isDark ? "#a6a6a6" : "#c4c4c4"
-    readonly property color disabledButtonColor:    isDark ? "#3a3a3a" : "#e0e0e0"
+    readonly property color disabledColor:          isDark ? "#3a3a3a" : "#e0e0e0"
     readonly property color disabledBorderColor:    isDark ? "#555555" : "#c8c8c8"
     readonly property color disabledTextColor:      isDark ? "#888888" : "#9a9a9a"
     readonly property color focusColor:             isDark ? "#4caf50" : "#388e3c"
     readonly property color greenColor:             isDark ? "#00ff66" : "#00a152"
     readonly property color redColor:               isDark ? "#ff4444" : "#d32f2f"
+    readonly property color warningColor:           isDark ? "#ffb74d" : "#f57c00"
+
+    // Фон панели
+    readonly property color panelColor:             isDark ? "#262626" : "#ffffff"
+    readonly property color panelSelectedColor:     isDark ? "#2a2a2a" : "#e0e0e0"
+    readonly property color panelHoverColor:        isDark ? "#262626" : "#eaeaea"
+    readonly property color panelSelectedBorderColor: isDark ? "#4caf50" : "#388e3c"
 
     // Switch
     readonly property int   switchWidth:            40

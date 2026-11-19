@@ -18,29 +18,33 @@ namespace Core::Tools
 
         switch (role)
         {
-        case NameRole:
-            return asset.name;
-        case AmountRole:
-            return asset.amount;
-        case ValueRole:
-            return asset.value;
+        case CoinRole:
+            return asset.coin;
+        case WalletBalanceRole:
+            return asset.walletBalance;
+        case UsdValueRole:
+            return asset.usdValue;
+        case AssetRole:
+            return QVariant::fromValue(asset);
+        default:
+            return QVariant();
         }
 
-        return QVariant();
     }
 
     QHash<int, QByteArray> AssetModel::roleNames() const
     {
         return {
-            {NameRole, "name"},
-            {AmountRole, "amount"},
-            {ValueRole, "value"}
+            {CoinRole, "coin"},
+            {WalletBalanceRole, "walletBalance"},
+            {UsdValueRole, "usdValue"},
+            {AssetRole, "asset"}
         };
     }
 
-    void AssetModel::upsertAsset(const Asset &asset)
+    void AssetModel::upsertAsset(const AssetInfo &asset)
     {
-        auto it = m_nameAssetToRow.find(asset.name);
+        auto it = m_nameAssetToRow.find(asset.coin);
 
         if (it != m_nameAssetToRow.end())
         {
@@ -54,11 +58,11 @@ namespace Core::Tools
         const int row = m_assets.size();
         beginInsertRows(QModelIndex(), row, row);
         m_assets.push_back(asset);
-        m_nameAssetToRow.insert(asset.name, row);
+        m_nameAssetToRow.insert(asset.coin, row);
         endInsertRows();
     }
 
-    void AssetModel::upsertAssets(const std::vector<Asset>& assets)
+    void AssetModel::upsertAssets(const Assets& assets)
     {
         if (assets.empty())
             return;
@@ -72,12 +76,12 @@ namespace Core::Tools
         std::vector<int> changedRows{};
         changedRows.reserve(assets.size());
 
-        std::vector<Asset> newAssets{};
+        std::vector<AssetInfo> newAssets{};
         newAssets.reserve(assets.size());
 
         for (const auto& a : assets)
         {
-            auto it = m_nameAssetToRow.find(a.name);
+            auto it = m_nameAssetToRow.find(a.coin);
             if (it != m_nameAssetToRow.end())
             {
                 int row = it.value();
@@ -86,7 +90,8 @@ namespace Core::Tools
             }
             else
             {
-                auto it = find_if(newAssets.begin(), newAssets.end(), [&a](const Asset& other) { return a.isSameAsset(other); });
+                auto it = find_if(newAssets.begin(), newAssets.end(),
+                                  [&a](const AssetInfo& other) { return a.isSame(other); });
                 if (it != newAssets.end())
                     *it = a;
                 else
@@ -131,11 +136,25 @@ namespace Core::Tools
             beginInsertRows(QModelIndex(), firstIdx, lastIdx);
             for (const auto& a : newAssets)
             {
-                m_nameAssetToRow.insert(a.name, m_assets.size());
+                m_nameAssetToRow.insert(a.coin, m_assets.size());
                 m_assets.push_back(a);
             }
             endInsertRows();
         }
+    }
+
+    AssetInfo AssetModel::asset(const QString &coin)
+    {
+        const int row = m_nameAssetToRow.value(coin, -1);
+        return (row >= 0 && row < m_assets.size()) ? m_assets[row] : AssetInfo{};
+    }
+
+    void AssetModel::clear()
+    {
+        beginResetModel();
+        m_assets.clear();
+        m_nameAssetToRow.clear();
+        endResetModel();
     }
 
 }

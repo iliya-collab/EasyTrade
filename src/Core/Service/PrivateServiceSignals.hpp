@@ -16,9 +16,9 @@ public:
 
 signals:
 
-    void accountBalanceReceived(const Core::Tools::AccountBalance& balance);
     void accountVerified();
-    void infoAboutApiReceived(const Core::Tools::ApiInfo& apiInfo);
+    void walletReceived(const WalletInfo& wallet);
+    void infoAboutApiReceived(const ApiInfo& apiInfo);
 
     // Ордер успешно создан
     void orderCreated(const QString& orderId, const QString& orderLinkId);
@@ -29,16 +29,19 @@ signals:
     // Массовая отмена выполнена — список ID отмененных ордеров
     void allOrdersCancelled(const QList<QString>& cancelledOrderIds);
     // Получен список активных ордеров
-    void allOpenOrdersReceived(const QList<Core::Tools::OrderInfo>& orders, bool wasTruncated);
+    void allOpenOrdersReceived(const QList<OrderInfo>& orders, bool wasTruncated);
     // Получена история ордеров
-    void allOrderHistoryReceived(const QList<Core::Tools::OrderInfo>& orders, bool wasTruncated);
+    void allOrderHistoryReceived(const QList<OrderInfo>& orders, bool wasTruncated);
     // Получена истории сделак
-    void allTradeHistoryReceived(const QList<Core::Tools::ExecutionInfo>& execs, bool wasTruncated);
+    void allTradeHistoryReceived(const QList<ExecutionInfo>& execs, bool wasTruncated);
+
+    // Получение комиссии исполнения
+    void feeRatesReceived(const FeeRatesInfo& rates);
 
     // Сигналы с пагинацией
-    void tradeHistoryPageReceived(const QList<Core::Tools::ExecutionInfo>& execs, const QString& nextPageCursor, const QVariant& context);
-    void orderHistoryPageReceived(const QList<Core::Tools::OrderInfo>& orders, const QString& nextPageCursor, const QVariant& context);
-    void openOrdersPageReceived(const QList<Core::Tools::OrderInfo>& orders, const QString& nextPageCursor, const QVariant& context);
+    void tradeHistoryPageReceived(const QList<ExecutionInfo>& execs, const QString& nextPageCursor, const QVariant& context);
+    void orderHistoryPageReceived(const QList<OrderInfo>& orders, const QString& nextPageCursor, const QVariant& context);
+    void openOrdersPageReceived(const QList<OrderInfo>& orders, const QString& nextPageCursor, const QVariant& context);
 
     // Отдельный канал для отказов конкретно по управлению ордерами
     void orderRequestRejected(const QString& orderLinkId, const QString& reason);

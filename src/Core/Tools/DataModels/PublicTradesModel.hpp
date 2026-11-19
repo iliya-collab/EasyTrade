@@ -1,5 +1,5 @@
 #pragma once
-#include "../StdTypes.hpp"
+#include "Tools/StdTypes.hpp"
 #include <QAbstractListModel>
 #include <QQueue>
 
@@ -25,8 +25,8 @@ namespace Core::Tools {
         QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
         QHash<int, QByteArray> roleNames() const override;
 
-        void addTrade(const PublicTradeItem& item);
-        void addTradeBatch(const QList<PublicTradeItem>& items);
+        void addTrade(const PublicTradeInfo& item);
+        void addTradeBatch(const PublicTrades& items);
 
     private:
 

@@ -7,8 +7,8 @@ import Components.Configs 1.0
 Item {
     id: root
 
-    readonly property OrderbookSideModel asks: AppCore.marketState.asks ? AppCore.marketState.asks : null
-    readonly property OrderbookSideModel bids: AppCore.marketState.bids ? AppCore.marketState.bids : null
+    readonly property OrderbookSideModel asks: AppCore.marketState.current.asks ? AppCore.marketState.current.asks : null
+    readonly property OrderbookSideModel bids: AppCore.marketState.current.bids ? AppCore.marketState.current.bids : null
 
     readonly property real maxVolume: {
         if (!asks || !bids)

@@ -16,17 +16,17 @@ public:
     explicit KlineStore(QObject* parent = nullptr) : QObject(parent) {}
 
     // Для потоковых данных
-    void updateKline(const Kline& kline);
-    void addKline(const Kline& kline);
+    void updateKline(const KlineInfo& kline);
+    void addKline(const KlineInfo& kline);
 
     // Для данных из сети
-    void addHistoricalKlines(const QList<Kline>& klines);
+    void addHistoricalKlines(const Klines& klines);
 
     // Доступ к серии конкретного таймфрейма.
-    Q_INVOKABLE QList<Kline> series(const QString& timeframe) const;
-    const QMap<qint64, Kline>& seriesMap(const QString& timeframe) const;
+    Q_INVOKABLE Klines series(const QString& timeframe) const;
+    const QMap<qint64, KlineInfo>& seriesMap(const QString& timeframe) const;
     int seriesSize(const QString& timeframe) const;
-    bool lastKline(const QString& timeframe, Kline& out) const;
+    bool lastKline(const QString& timeframe, KlineInfo& out) const;
 
     Q_INVOKABLE void clear();
     Q_INVOKABLE void clearTimeframe(const QString& timeframe);
@@ -45,9 +45,8 @@ signals:
 
 private:
 
-    static const QList<Kline> s_empty;
-    //QMap<QString, QList<Kline>> m_klineSeries{}; // timeframe -> серия свечей
-    QMap<QString, QMap<qint64, Kline>> m_klineSeries{}; // timeframe -> (open time -> kline)
+    static const Klines s_empty;
+    QMap<QString, QMap<qint64, KlineInfo>> m_klineSeries{}; // timeframe -> (open time -> kline)
 
 };
 

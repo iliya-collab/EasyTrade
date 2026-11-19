@@ -4,7 +4,7 @@ QByteArray Core::Handlers::PostBybitCancelAllOrdersHandler::buildRequestBody(con
 {
     QJsonObject body;
 
-    body["category"] = Tools::EnumHelpers::marketTypeToApiString(req.m_category);
+    body["category"] = EnumHelpers::marketTypeToApiString(req.m_category);
 
     if (req.m_symbol.has_value() && !req.m_symbol->isEmpty())
         body["symbol"] = req.m_symbol.value();

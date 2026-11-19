@@ -12,8 +12,9 @@ void Core::Handlers::BybitOrderbookStreamHandler::handle(const QString& id, cons
     QString symbol = data["s"].toString();
     QString type = obj["type"].toString();
 
-    Tools::Orderbook orderbook{};
+    OrderbookInfo orderbook{};
 
+    orderbook.m_category = EnumHelpers::apiStringToMarketType(id);
     orderbook.m_symbol = symbol;
 
     QJsonArray bidsArray = data.value("b").toArray();
@@ -34,24 +35,30 @@ void Core::Handlers::BybitOrderbookStreamHandler::handle(const QString& id, cons
         orderbook.m_asks.insert(price, size);
     }
 
-    m_savedOrderbook.m_category = Tools::EnumHelpers::apiStringToMarketType(id);
+    if (type == "snapshot")
+        emit signaller->orderbookSnapshot(orderbook);
+    else
+        emit signaller->orderbookDeltaUpdated(orderbook);
+
+    /*m_savedOrderbooks[symbol].m_category = EnumHelpers::apiStringToMarketType(id);
+    m_savedOrderbooks[symbol].m_symbol = symbol;
 
     if (type == "snapshot")
-        snapshotOrderbook(m_savedOrderbook, orderbook);
+        snapshotOrderbook(m_savedOrderbooks[symbol], orderbook);
     else
-        deltaUpdateOrderbook(m_savedOrderbook, orderbook);
+        deltaUpdateOrderbook(m_savedOrderbooks[symbol], orderbook);
 
-    emit signaller->orderbookUpdated(m_savedOrderbook);
+    emit signaller->orderbookUpdated(m_savedOrderbooks[symbol]);*/
 }
 
 
-void Core::Handlers::BybitOrderbookStreamHandler::snapshotOrderbook(Tools::Orderbook& oldOrderbook, const Tools::Orderbook& newOrderbook)
+/*void Core::Handlers::BybitOrderbookStreamHandler::snapshotOrderbook(OrderbookInfo& oldOrderbook, const OrderbookInfo& newOrderbook)
 {
     oldOrderbook.m_bids = newOrderbook.m_bids;
     oldOrderbook.m_asks = newOrderbook.m_asks;
 }
 
-void Core::Handlers::BybitOrderbookStreamHandler::deltaUpdateOrderbook(Tools::Orderbook& oldOrderbook, const Tools::Orderbook& newOrderbook)
+void Core::Handlers::BybitOrderbookStreamHandler::deltaUpdateOrderbook(OrderbookInfo& oldOrderbook, const OrderbookInfo& newOrderbook)
 {
     for (const auto& bidVal : newOrderbook.m_bids.asKeyValueRange())
     {
@@ -74,4 +81,4 @@ void Core::Handlers::BybitOrderbookStreamHandler::deltaUpdateOrderbook(Tools::Or
         else
             oldOrderbook.m_asks.insert(price, size);
     }
-}
+}*/

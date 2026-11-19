@@ -14,6 +14,7 @@ Item {
     property string currentInterval: "1"
     property int limit: 200
     property alias enableVolumeChart: chart.enableShowVolumes
+    readonly property var store: AppCore.marketState.current.klineStore
 
     // Список таймфреймов для панели: подпись -> значение interval для Bybit API
     ListModel {
@@ -43,7 +44,7 @@ Item {
         if (currentTrade === "")
             return
 
-        AppCore.marketState.klineStore.clear()
+        store.clear()
         ensureHistoryLoaded(currentInterval)
     }
 
@@ -66,7 +67,7 @@ Item {
 
     KlineSeriesModel {
         id: seriesModel
-        klineStore: AppCore.marketState.klineStore
+        klineStore: store
         timeframe: root.currentInterval
     }
 

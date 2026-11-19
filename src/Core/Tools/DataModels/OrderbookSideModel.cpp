@@ -1,191 +1,267 @@
+#include <algorithm>
+#include <limits>
 #include "OrderbookSideModel.hpp"
 
 namespace Core::Tools {
 
-    OrderbookSideModel::OrderbookSideModel(QObject *parent)
-        : QAbstractListModel(parent), m_side(Bid) {}
+namespace {
 
-    OrderbookSideModel::OrderbookSideModel(Side side, QObject *parent)
-        : QAbstractListModel(parent), m_side(side) {}
+const QList<int> kRawRoles { OrderbookSideModel::PriceRole,
+                           OrderbookSideModel::VolumeRole,
+                           OrderbookSideModel::TurnoverRole };
+const QList<int> kCumRoles { OrderbookSideModel::TotalVolumeRole,
+                           OrderbookSideModel::TotalTurnoverRole,
+                           OrderbookSideModel::AvgPriceRole };
+}
 
-    int OrderbookSideModel::rowCount(const QModelIndex &parent) const {
-        if (parent.isValid())
-            return 0;
-        return m_levels.size();
-    }
+OrderbookSideModel::OrderbookSideModel(QObject *parent)
+    : QAbstractListModel(parent), m_side(Bid) {}
 
-    QVariant OrderbookSideModel::data(const QModelIndex &index, int role) const
-    {
-        if (!index.isValid() || index.row() >= m_levels.size())
+OrderbookSideModel::OrderbookSideModel(Side side, QObject *parent)
+    : QAbstractListModel(parent), m_side(side) {}
+
+int OrderbookSideModel::rowCount(const QModelIndex &parent) const {
+    if (parent.isValid())
+        return 0;
+    return m_orderbook.size();
+}
+
+QVariant OrderbookSideModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid() || index.row() >= m_orderbook.size())
+        return QVariant();
+
+    const auto &level = m_orderbook.at(index.row());
+
+    switch (role) {
+        case PriceRole:
+            return level.price;
+        case VolumeRole:
+            return level.volume;
+        case TurnoverRole:
+            return level.turnover;
+        case TotalVolumeRole:
+            return level.totalVolume;
+        case TotalTurnoverRole:
+            return level.totalTurnover;
+        case AvgPriceRole:
+            return level.avgPrice;
+        default:
             return QVariant();
+    }
+}
 
-        const auto &level = m_levels.at(index.row());
+QHash<int, QByteArray> OrderbookSideModel::roleNames() const
+{
+    QHash<int, QByteArray> roles;
 
-        switch (role) {
-            case PriceRole:
-                return level.price;
-            case VolumeRole:
-                return level.volume;
-            case TurnoverRole:
-                return level.turnover;
-            case TotalVolumeRole:
-                return level.totalVolume;
-            case TotalTurnoverRole:
-                return level.totalTurnover;
-            case AvgPriceRole:
-                return level.avgPrice;
-            default:
-                return QVariant();
-        }
+    roles[PriceRole]            = "price";
+    roles[VolumeRole]           = "volume";
+    roles[TurnoverRole]         = "turnover";
+    roles[TotalVolumeRole]      = "totalVolume";
+    roles[TotalTurnoverRole]    = "totalTurnover";
+    roles[AvgPriceRole]         = "avgPrice";
+
+    return roles;
+}
+
+void OrderbookSideModel::setSide(Side side)
+{
+    if (m_side == side)
+        return;
+
+    m_side = side;
+    clear();
+
+    emit sideChanged();
+}
+
+void OrderbookSideModel::snapshot(const QMap<QString, QString> &data)
+{
+    BookLevels levels;
+    levels.reserve(data.size());
+
+    for (auto it = data.cbegin(); it != data.cend(); ++it)
+    {
+        BookLevel l;
+        l.price = it.key().toDouble();
+        l.volume = it.value().toDouble();
+        if (isVolumeLiquidation(l.volume))
+            continue;
+        l.turnover = l.price * l.volume;
+        levels.push_back(l);
     }
 
-    QHash<int, QByteArray> OrderbookSideModel::roleNames() const
+    std::sort(levels.begin(), levels.end(),
+              [this](const BookLevel& a, const BookLevel& b) { return before(a.price, b.price); });
+
+    beginResetModel();
+    m_orderbook = std::move(levels);
+    recalcCumulative(0);
+    endResetModel();
+
+    updateStats();
+}
+
+void OrderbookSideModel::deltaUpdate(const QMap<QString, QString>& data)
+{
+    int minChanged = std::numeric_limits<int>::max();
+
+    for (auto it = data.constBegin(); it != data.constEnd(); ++it)
     {
-        QHash<int, QByteArray> roles;
+        const double price  = it.key().toDouble();
+        const double volume = it.value().toDouble();
 
-        roles[PriceRole]            = "price";
-        roles[VolumeRole]           = "volume";
-        roles[TurnoverRole]         = "turnover";
-        roles[TotalVolumeRole]      = "totalVolume";
-        roles[TotalTurnoverRole]    = "totalTurnover";
-        roles[AvgPriceRole]         = "avgPrice";
+        const int pos = findBookLevel(price);
+        const bool exists = pos < m_orderbook.size() && m_orderbook[pos].price == price;
 
-        return roles;
-    }
-
-    void OrderbookSideModel::setSide(Side side)
-    {
-        if (m_side == side)
-            return;
-
-        m_side = side;
-
-        emit sideChanged();
-    }
-
-    void OrderbookSideModel::update(const QMap<QString, QString>& data)
-    {
-        std::vector<Level> new_levels;
-        new_levels.reserve(data.size());
-
-        for (auto it = data.constBegin(); it != data.constEnd(); ++it)
-            new_levels.push_back({it.key().toDouble(), it.value().toDouble()});
-
-        if (m_side == Ask)
+        // уровень удалён
+        if (exists && isVolumeLiquidation(volume))
         {
-            std::sort(new_levels.begin(), new_levels.end(),
-                      [](const Level& a, const Level& b) { return a.price < b.price; });
-        } else
-        {
-            std::sort(new_levels.begin(), new_levels.end(),
-                      [](const Level& a, const Level& b) { return a.price > b.price; });
-        }
-
-        double cumulativeVolume = 0.0;
-        double cumulativeTurnover = 0.0;
-        double cumulativePrice = 0.0;
-        double maxVol = 0.0;
-        int nLevel = 1;
-        for (auto& level : new_levels) {
-            level.turnover = level.price * level.volume;
-
-            cumulativePrice += level.price;
-            cumulativeVolume += level.volume;
-            cumulativeTurnover += level.turnover;
-
-            level.totalVolume = cumulativeVolume;
-            level.totalTurnover = cumulativeTurnover;
-            level.avgPrice = cumulativePrice / nLevel;
-
-            if (level.volume > maxVol)
-                maxVol = level.volume;
-
-            nLevel++;
-        }
-        m_maxVolume = maxVol;
-        m_totalVolume = cumulativeVolume;
-        m_totalTurnover = cumulativeTurnover;
-
-        int new_size = new_levels.size();
-        int old_size = m_levels.size();
-
-        if (new_size < old_size) {
-            beginRemoveRows(QModelIndex(), new_size, old_size - 1);
-            m_levels.resize(new_size);
+            beginRemoveRows({}, pos, pos);
+            m_orderbook.removeAt(pos);
             endRemoveRows();
-        } else if (new_size > old_size) {
-            beginInsertRows(QModelIndex(), old_size, new_size - 1);
-            m_levels.resize(new_size);
+            minChanged = std::min(minChanged, pos);
+        }
+        // объём изменился
+        else if (exists)
+        {
+            auto& l = m_orderbook[pos];
+            if (l.volume == volume)
+                continue;
+            l.volume   = volume;
+            l.turnover = price * volume;
+            emit dataChanged(index(pos), index(pos), kRawRoles);
+            minChanged = std::min(minChanged, pos);
+        }
+        // новый уровень
+        else if (volume > 0)
+        {
+            BookLevel l;
+            l.price    = price;
+            l.volume   = volume;
+            l.turnover = price * volume;
+            beginInsertRows({}, pos, pos);
+            m_orderbook.insert(pos, l);
             endInsertRows();
+            minChanged = std::min(minChanged, pos);
         }
-
-        bool hasDataChanged = false;
-        int firstChanged = -1;
-        int lastChanged = -1;
-
-        for (int i = 0; i < new_size; ++i) {
-            if (i < old_size) {
-                if (m_levels[i] != new_levels[i]) {
-                    m_levels[i] = new_levels[i];
-                    hasDataChanged = true;
-                    if (firstChanged == -1)
-                        firstChanged = i;
-                    lastChanged = i;
-                }
-            } else {
-                m_levels[i] = new_levels[i];
-                hasDataChanged = true;
-                if (firstChanged == -1)
-                    firstChanged = i;
-                lastChanged = i;
-            }
-        }
-
-        if (m_count != m_levels.size()) {
-            m_count = m_levels.size();
-            emit countChanged();
-        }
-
-        if (hasDataChanged && firstChanged != -1)
-            emit dataChanged(index(firstChanged, 0), index(lastChanged, 0));
-
-        emit maxVolumeChanged();
-        emit totalVolumeChanged();
-        emit totalTurnoverChanged();
     }
 
-    QVariantMap OrderbookSideModel::get(int index) const
+    // ничего не изменилось
+    if (minChanged == std::numeric_limits<int>::max())
+        return;
+
+    if (minChanged < m_orderbook.size())
     {
-        QVariantMap res;
+        recalcCumulative(minChanged);
+        emit dataChanged(index(minChanged), index(m_orderbook.size() - 1), kCumRoles);
+    }
 
-        if (index < 0 || index >= m_levels.size())
-            return res;
+    updateStats();
+}
 
-        auto item = m_levels[index];
+QVariantMap OrderbookSideModel::get(int index) const
+{
+    QVariantMap res;
 
-        res["price"] = item.price;
-        res["volume"] = item.volume;
-        res["turnover"] = item.turnover;
-        res["totalVolume"] = item.totalVolume;
-        res["totalTurnover"] = item.totalTurnover;
-        res["avgPrice"] = item.avgPrice;
-
+    if (index < 0 || index >= m_orderbook.size())
         return res;
-    }
 
-    void OrderbookSideModel::clear()
+    auto item = m_orderbook[index];
+
+    res["price"] = item.price;
+    res["volume"] = item.volume;
+    res["turnover"] = item.turnover;
+    res["totalVolume"] = item.totalVolume;
+    res["totalTurnover"] = item.totalTurnover;
+    res["avgPrice"] = item.avgPrice;
+
+    return res;
+}
+
+bool OrderbookSideModel::before(double a, double b) const
+{
+    return m_side == Bid ? a > b : a < b;
+}
+
+bool OrderbookSideModel::isVolumeLiquidation(double v) const
+{
+    return qFuzzyIsNull(v) && v <= 0;
+}
+
+int OrderbookSideModel::findBookLevel(double p) const
+{
+    auto it = std::lower_bound(m_orderbook.cbegin(), m_orderbook.cend(), p,
+                               [this](const BookLevel& lvl, double price) { return before(lvl.price, price); });
+    return (it - m_orderbook.cbegin());
+}
+
+void OrderbookSideModel::recalcCumulative(int from)
+{
+    double tv = 0, tt = 0;
+    if (from > 0)
     {
-        beginResetModel();
-        m_levels.clear();
-        m_count = 0;
-        m_maxVolume = 0;
-        m_totalVolume = 0;
-        m_totalTurnover = 0;
-        endResetModel();
+        tv = m_orderbook[from - 1].totalVolume;
+        tt = m_orderbook[from - 1].totalTurnover;
+    }
+    for (int i = from; i < m_orderbook.size(); i++)
+    {
+        auto& l = m_orderbook[i];
+        tv += l.volume;
+        tt += l.turnover;
+
+        l.totalVolume = tv;
+        l.totalTurnover = tt;
+        l.avgPrice = tv > 0 ? tt / tv : 0;
+    }
+}
+
+void OrderbookSideModel::updateStats()
+{
+    double maxVol = 0;
+    for (const auto& l : std::as_const(m_orderbook))
+        maxVol = std::max(maxVol, l.volume);
+
+    const double tv = m_orderbook.isEmpty() ? 0.0 : m_orderbook.last().totalVolume;
+    const double tt = m_orderbook.isEmpty() ? 0.0 : m_orderbook.last().totalTurnover;
+    const int    n  = m_orderbook.size();
+
+    if (m_count != n)
+    {
+        m_count = n;
         emit countChanged();
+    }
+    if (m_maxVolume != maxVol)
+    {
+        m_maxVolume = maxVol;
         emit maxVolumeChanged();
+    }
+    if (m_totalVolume != tv)
+    {
+        m_totalVolume = tv;
         emit totalVolumeChanged();
+    }
+    if (m_totalTurnover != tt)
+    {
+        m_totalTurnover = tt;
         emit totalTurnoverChanged();
     }
+}
+
+void OrderbookSideModel::clear()
+{
+    beginResetModel();
+    m_orderbook.clear();
+    m_count = 0;
+    m_maxVolume = 0;
+    m_totalVolume = 0;
+    m_totalTurnover = 0;
+    endResetModel();
+    emit countChanged();
+    emit maxVolumeChanged();
+    emit totalVolumeChanged();
+    emit totalTurnoverChanged();
+}
 
 }

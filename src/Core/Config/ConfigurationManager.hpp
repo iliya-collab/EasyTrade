@@ -30,11 +30,11 @@ public:
     static QString configPath();
 
     // --- Q_PROPERTY getters ---
-    bool        autoConnection() const noexcept { return m_data.m_autoConnection; }
-    bool        testnet()        const noexcept { return m_data.m_testnet; }
-    bool        enableTrades()   const noexcept { return m_data.m_enableTrades; }
-    QString     activeApi()      const noexcept { return m_data.m_activeApi; }
-    QStringList apiNames()       const noexcept { return m_data.m_apis.keys(); }
+    bool        autoConnection() const noexcept { return m_data.autoConnection; }
+    bool        testnet()        const noexcept { return m_data.testnet; }
+    bool        enableTrades()   const noexcept { return m_data.enableTrades; }
+    QString     activeApi()      const noexcept { return m_data.activeApi; }
+    QStringList apiNames()       const noexcept { return m_data.apis.keys(); }
 
     // --- Q_PROPERTY setters ---
     void setAutoConnection(bool enabled);
@@ -52,7 +52,7 @@ public:
     const ConfigurationParams& data() const noexcept { return m_data; }
     std::expected<ConfigurationParams, QString> tryLoad();
     std::expected<void, QString> trySave();
-    std::expected<void, QString> tryAddApi(const QString& name, const Tools::Api& api);
+    std::expected<void, QString> tryAddApi(const QString& name, const Api& api);
     std::expected<void, QString> tryRemoveApi(const QString& name);
     std::expected<void, QString> trySetActiveApi(const QString& name);
 

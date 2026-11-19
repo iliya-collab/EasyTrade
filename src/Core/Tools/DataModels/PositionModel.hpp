@@ -42,8 +42,8 @@ namespace Core::Tools
 
         void resetPositions(const QList<PositionInfo>& positions);
 
-        Q_INVOKABLE Core::Tools::PositionInfo get(int row) const;
-        Q_INVOKABLE Core::Tools::PositionInfo findBySymbol(const QString& symbol, int positionIdx = 0) const;
+        Q_INVOKABLE PositionInfo get(int row) const;
+        Q_INVOKABLE PositionInfo findBySymbol(const QString& symbol, int positionIdx = 0) const;
 
     private:
 

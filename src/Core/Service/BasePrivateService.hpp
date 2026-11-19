@@ -26,9 +26,9 @@ public:
 
 protected slots:
 
-    virtual void onOrderHistoryPageReceived(const QList<Core::Tools::OrderInfo>&, const QString&, const QVariant&) = 0;
-    virtual void onOpenOrdersPageReceived(const QList<Core::Tools::OrderInfo>&, const QString&, const QVariant&) = 0;
-    virtual void onTradeHistoryPageReceived(const QList<Core::Tools::ExecutionInfo>&, const QString&, const QVariant&) = 0;
+    virtual void onOrderHistoryPageReceived(const Orders&, const QString&, const QVariant&) = 0;
+    virtual void onOpenOrdersPageReceived(const Orders&, const QString&, const QVariant&) = 0;
+    virtual void onTradeHistoryPageReceived(const Executions&, const QString&, const QVariant&) = 0;
 
 };
 

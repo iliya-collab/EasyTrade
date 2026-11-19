@@ -16,9 +16,9 @@ void Core::Handlers::BybitExecutionStreamHandler::handle(const QString& id, cons
     {
         QJsonObject dataObj = iData.toObject();
 
-        Tools::ExecutionInfo exec{};
+        ExecutionInfo exec{};
 
-        exec.m_category    = Tools::EnumHelpers::apiStringToMarketType(dataObj["category"].toString());
+        exec.m_category    = EnumHelpers::apiStringToMarketType(dataObj["category"].toString());
         exec.m_symbol      = dataObj["symbol"].toString();
         exec.m_execId      = dataObj["execId"].toString();
         exec.m_orderId     = dataObj["orderId"].toString();
@@ -27,23 +27,23 @@ void Core::Handlers::BybitExecutionStreamHandler::handle(const QString& id, cons
 
         QString strSide = dataObj["side"].toString();
         if (strSide == "Buy")
-            exec.m_side = Tools::EnumHelpers::OrderSide::Buy;
+            exec.m_side = EnumHelpers::OrderSide::Buy;
         else if (strSide == "Sell")
-            exec.m_side = Tools::EnumHelpers::OrderSide::Sell;
+            exec.m_side = EnumHelpers::OrderSide::Sell;
         else
-            exec.m_side = Tools::EnumHelpers::OrderSide::Unknown;
+            exec.m_side = EnumHelpers::OrderSide::Unknown;
 
         QString strExecType = dataObj["execType"].toString();
         if (strExecType == "Trade")
-            exec.m_execType = Tools::EnumHelpers::ExecType::Trade;
+            exec.m_execType = EnumHelpers::ExecType::Trade;
         else if (strExecType == "Adl")
-            exec.m_execType = Tools::EnumHelpers::ExecType::Adl;
+            exec.m_execType = EnumHelpers::ExecType::Adl;
         else if (strExecType == "Funding")
-            exec.m_execType = Tools::EnumHelpers::ExecType::Funding;
+            exec.m_execType = EnumHelpers::ExecType::Funding;
         else if (strExecType == "Liquidation" || strExecType == "BustTrade")
-            exec.m_execType = Tools::EnumHelpers::ExecType::Liquidation;
+            exec.m_execType = EnumHelpers::ExecType::Liquidation;
         else
-            exec.m_execType = Tools::EnumHelpers::ExecType::Unknown;
+            exec.m_execType = EnumHelpers::ExecType::Unknown;
 
         exec.m_execPrice   = dataObj["execPrice"].toString();
         exec.m_execQty     = dataObj["execQty"].toString();

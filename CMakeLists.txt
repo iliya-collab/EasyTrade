@@ -39,15 +39,18 @@ find_package(Qt6 REQUIRED COMPONENTS
 )
 
 find_package(Qt6Keychain REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LUA54 REQUIRED IMPORTED_TARGET lua5.4)
+find_package(sol2 REQUIRED)
 
 qt_standard_project_setup()
 
-file(GLOB_RECURSE MY_SOURCES RELATIVE ${CMAKE_SOURCE_DIR}
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS RELATIVE ${CMAKE_SOURCE_DIR}
     "${SOURCE_DIR}/*.cpp"
     "${SOURCE_DIR}/*.c"
 )
 
-file(GLOB_RECURSE MY_HEADERS RELATIVE ${CMAKE_SOURCE_DIR}
+file(GLOB_RECURSE MY_HEADERS CONFIGURE_DEPENDS RELATIVE ${CMAKE_SOURCE_DIR}
     "${SOURCE_DIR}/*.hpp"
     "${SOURCE_DIR}/*.h"
 )
@@ -81,9 +84,14 @@ target_link_libraries(EasyTradeCore PRIVATE
     Qt6Keychain::Qt6Keychain
 )
 
+target_link_libraries(EasyTradeCore PRIVATE sol2::sol2 PkgConfig::LUA54)
+
+target_include_directories(EasyTradeCore PRIVATE ${LUA54_INCLUDE_DIRS})
+
 target_include_directories(EasyTradeCore PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/Core/Config
     ${CMAKE_SOURCE_DIR}/src/Core/Tools/DataModels
 )
 

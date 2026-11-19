@@ -1,56 +1,56 @@
 #pragma once
-#include "BaseMediator.hpp"
+#include "MultiMediator.hpp"
+#include "Core/ConnectionsPool.hpp"
 #include "Service/IMarketDataService.hpp"
-#include "Streamer/IMarketDataStreamer.hpp"
 #include "Repository/MarketDataRepository.hpp"
 #include "Tools/ExportStructures.hpp"
 
 namespace Core {
 
-class MarketDataMediator : public BaseMediator
+class MarketDataMediator : public MultiMediator
 {
     Q_OBJECT
 private:
 
     std::unique_ptr<Service::IMarketDataService> m_publicService;
-    std::unique_ptr<Streamer::IMarketDataStreamer> m_publicStreamer;
     std::unique_ptr<Repository::MarketDataRepository> m_marketDataRep;
+    ConnectionsPool m_pool; // Хранит соединения для spot и linear рынков
 
 public:
 
     explicit MarketDataMediator(QObject* parent = nullptr);
 
-    void subscribe(const QString& symbol);
+    void subscribe(EnumHelpers::MarketType market, const QString& symbol);
+    void unsubscribe(EnumHelpers::MarketType market, const QString &symbol);
 
-    Tools::Instruments readInstrumentsFromRepository(Tools::EnumHelpers::MarketType type);
-    QList<Tools::Kline> readKlinesFromRepository(const Tools::StdExport& std, const Tools::SpecialExportKlines& special);
-    Tools::PublicTrades readPublicTradesFromRepository(const Tools::StdExport& std);
+    Klines readKlinesFromRepository(const Tools::StdExport& std, const Tools::SpecialExportKlines& special);
+    PublicTrades readPublicTradesFromRepository(const Tools::StdExport& std);
 
-    void loadInstrumentsFromNetwork(Tools::EnumHelpers::MarketType type);
-    void loadKlinesFromNetwork(const Tools::KlinesRequest& req);
+    void loadInstruments(EnumHelpers::MarketType type);
+    void loadKlines(const Tools::KlinesRequest& req);
 
     void init(bool isTestnet);
 
-protected:
-
-    Streamer::IStreamer* streamer() override { return m_publicStreamer.get(); }
+    ConnectionsPool& pool() override;
+    const ConnectionsPool& cpool() const override;
 
 signals:
 
     // Уведомляет о получении данных
-    void instrumentsReady(const Core::Tools::Instruments& instruments);
-    void tickerReady(const Core::Tools::Ticker& ticker);
-    void orderbookReady(const Core::Tools::Orderbook& orderbook);
-    void klineUpdated(const Core::Tools::Kline& kline);
-    void historicalKlinesReady(const QList<Core::Tools::Kline>& klines);
-    void tradesReady(const Core::Tools::PublicTrades& trades);
+    void instrumentsReady(const Instruments& instruments);
+    void tickerReady(const TickerInfo& ticker);
+    void snapshotOrderbookReady(const OrderbookInfo& orderbook);
+    void deltaUpdateOrderbookReady(const OrderbookInfo& orderbook);
+    void klineUpdated(const KlineInfo& kline);
+    void historicalKlinesReady(const Klines& klines);
+    void tradesReady(const PublicTrades& trades);
 
 private slots:
 
-    void onInstrumentsReady(const Core::Tools::Instruments& instruments);
-    void onKlinesReady(const QList<Core::Tools::Kline>& klines);
-    void onKlineReceived(const Core::Tools::Kline& kline);
-    void onPublicTradesReceived(const Core::Tools::PublicTrades& trades);
+    void onInstrumentsReady(const Instruments& instruments);
+    void onKlinesReady(const Klines& klines);
+    void onKlineReceived(const KlineInfo& kline);
+    void onPublicTradesReceived(const PublicTrades& trades);
 
 };
 

@@ -4,5 +4,6 @@
         <file>icons/icon_restart.png</file>
         <file>icons/icon_stop.png</file>
         <file>icons/icon_app.png</file>
+        <file>icons/icon_wallet.png</file>
     </qresource>
 </RCC>

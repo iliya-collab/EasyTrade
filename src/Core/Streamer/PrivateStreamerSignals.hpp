@@ -16,10 +16,10 @@ public:
 
 signals:
 
-    void accountBalanceUpdated(const Core::Tools::AccountBalance& newAccountBalance);
-    void orderUpdated(const Core::Tools::OrderInfo& order);
-    void executionUpdated(const Core::Tools::ExecutionInfo& exec);
-    void positionUpdated(const Core::Tools::PositionInfo& position);
+    void walletUpdated(const WalletInfo& wallet);
+    void orderUpdated(const OrderInfo& order);
+    void executionUpdated(const ExecutionInfo& exec);
+    void positionUpdated(const PositionInfo& position);
 
 };
 

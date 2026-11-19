@@ -5,7 +5,7 @@ QUrlQuery Core::Handlers::GetBybitTradeHistoryHandler::buildRequest(const Tools:
     QUrlQuery params;
 
     // Обязательный параметр
-    params.addQueryItem("category", Tools::EnumHelpers::marketTypeToApiString(req.m_category));
+    params.addQueryItem("category", EnumHelpers::marketTypeToApiString(req.m_category));
 
     // Фильтры по инструменту
     if (req.m_symbol.has_value() && !req.m_symbol->isEmpty())
@@ -52,10 +52,10 @@ void Core::Handlers::GetBybitTradeHistoryHandler::handle(const QJsonObject &data
     const QJsonObject result = data.value(QStringLiteral("result")).toObject();
     const QJsonArray list = result.value(QStringLiteral("list")).toArray();
 
-    Tools::EnumHelpers::MarketType category = Tools::EnumHelpers::apiStringToMarketType(
+    EnumHelpers::MarketType category = EnumHelpers::apiStringToMarketType(
         result.value(QStringLiteral("category")).toString());
 
-    QList<Tools::ExecutionInfo> executions;
+    Executions executions;
     executions.reserve(list.size());
 
 
@@ -63,7 +63,7 @@ void Core::Handlers::GetBybitTradeHistoryHandler::handle(const QJsonObject &data
     {
         const QJsonObject obj = item.toObject();
 
-        Tools::ExecutionInfo info;
+        ExecutionInfo info;
 
         info.m_category = category;
 
@@ -72,13 +72,13 @@ void Core::Handlers::GetBybitTradeHistoryHandler::handle(const QJsonObject &data
         info.m_orderId     = obj.value(QStringLiteral("orderId")).toString();
         info.m_orderLinkId = obj.value(QStringLiteral("orderLinkId")).toString();
 
-        info.m_side = Tools::EnumHelpers::stringToOrderSide(obj.value(QStringLiteral("side")).toString());
+        info.m_side = EnumHelpers::stringToOrderSide(obj.value(QStringLiteral("side")).toString());
 
         info.m_execPrice = obj.value(QStringLiteral("execPrice")).toString();
         info.m_execQty   = obj.value(QStringLiteral("execQty")).toString();
         info.m_execValue = obj.value(QStringLiteral("execValue")).toString();
 
-        info.m_execType = Tools::EnumHelpers::stringToExecType(obj.value(QStringLiteral("execType")).toString());
+        info.m_execType = EnumHelpers::stringToExecType(obj.value(QStringLiteral("execType")).toString());
 
         info.m_execFee     = obj.value(QStringLiteral("execFee")).toString();
         info.m_feeCurrency = obj.value(QStringLiteral("feeCurrency")).toString();

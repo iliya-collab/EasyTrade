@@ -1,10 +1,17 @@
 #pragma once
-#include "EnumHelpers.hpp"
+#include "Types/EnumHelpers.hpp"
 #include <QString>
 #include <optional>
+using namespace Core::Tools::Types;
 
 namespace Core::Tools
 {
+
+struct FeeRateRequest
+{
+    EnumHelpers::MarketType m_category = EnumHelpers::MarketType::Unknown;
+    QString m_symbol = "";
+};
 
 struct InstrumentsInfoRequest
 {

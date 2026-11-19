@@ -12,9 +12,10 @@ namespace Core::Tools
     public:
 
         enum AssetRoles {
-            NameRole = Qt::UserRole + 1,
-            AmountRole,
-            ValueRole
+            CoinRole = Qt::UserRole + 1,
+            WalletBalanceRole,
+            UsdValueRole,
+            AssetRole
         };
 
         explicit AssetModel(QObject* parent = nullptr) : QAbstractListModel(parent) {};
@@ -23,12 +24,15 @@ namespace Core::Tools
         QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
         QHash<int, QByteArray> roleNames() const override;
 
-        void upsertAsset(const Asset& asset);
-        void upsertAssets(const std::vector<Asset>& assets);
+        void upsertAsset(const AssetInfo& asset);
+        void upsertAssets(const Assets& assets);
+
+        Q_INVOKABLE AssetInfo asset(const QString& coin);
+        Q_INVOKABLE void clear();
 
     private:
 
-        std::vector<Asset> m_assets{};
+        Assets m_assets{};
         QHash<QString, int> m_nameAssetToRow{};
 
     };

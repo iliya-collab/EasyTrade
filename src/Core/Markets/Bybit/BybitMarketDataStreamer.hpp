@@ -10,10 +10,11 @@ class BybitMarketDataStreamer : public Streamer::BaseMarketDataStreamer
 
 public:
 
-    explicit BybitMarketDataStreamer(Tools::EnumHelpers::MarketType type, QObject* parent = nullptr);
+    explicit BybitMarketDataStreamer(Eh::MarketType type, QObject* parent = nullptr);
     ~BybitMarketDataStreamer();
 
     QString id() override;
+    Eh::MarketType marketType() override;
     void init(bool isTestnet) override;
 
 private:
@@ -23,8 +24,10 @@ private:
 
     QString createTickerStream(const QString& symbol) const override;
     QString createOrderbookStream(const QString& symbol, int depth) const override;
-    QString createKlineStream(const QString& symbol, Tools::EnumHelpers::Interval interval) const override;
+    QString createKlineStream(const QString& symbol, EnumHelpers::Interval interval) const override;
     QString createPublicTradeStream(const QString& symbol) const override;
+
+    Eh::MarketType m_marketType = Eh::MarketType::Unknown;
 
 };
 

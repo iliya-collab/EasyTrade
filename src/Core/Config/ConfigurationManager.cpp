@@ -86,11 +86,11 @@ ConfigurationManager::ConfigurationManager(QObject* parent)
 {
     if (!QFile::exists(configPath()))
     {
-        m_data.m_autoConnection = true;
-        m_data.m_activeApi = QStringLiteral("default");
-        m_data.m_testnet = true;
-        m_data.m_enableTrades = false;
-        m_data.m_apis[QStringLiteral("default")] = Tools::Api{ "", "" };
+        m_data.autoConnection = true;
+        m_data.activeApi = QStringLiteral("default");
+        m_data.testnet = true;
+        m_data.enableTrades = false;
+        m_data.apis[QStringLiteral("default")] = Api{ "", "" };
 
         auto res = trySave();
         if (!res.has_value())
@@ -121,26 +121,26 @@ std::expected<ConfigurationParams, QString> ConfigurationManager::tryLoad()
         return std::unexpected(parseError.errorString());
 
     const QJsonObject root = doc.object();
-    m_data.m_apis.clear();
+    m_data.apis.clear();
 
     const QJsonObject apisObj = root.value("APIs").toObject();
     for (auto it = apisObj.begin(); it != apisObj.end(); ++it)
     {
         const QString name = it.key();
-        Tools::Api api;
-        api.m_apiKey        = readSecret(apiKeyKey(name));
-        api.m_secretKey     = readSecret(secretKeyKey(name));
-        m_data.m_apis[name] = api;
+        Api api;
+        api.apiKey        = readSecret(apiKeyKey(name));
+        api.secretKey     = readSecret(secretKeyKey(name));
+        m_data.apis[name] = api;
     }
 
     const QJsonObject generalObj = root.value("General").toObject();
-    m_data.m_autoConnection      = generalObj.value("AutoConnection").toBool(true);
-    m_data.m_activeApi           = generalObj.value("ActiveAPI").toString();
-    m_data.m_testnet             = generalObj.value("Testnet").toBool(true);
-    m_data.m_enableTrades        = generalObj.value("EnableTrades").toBool(false);
+    m_data.autoConnection      = generalObj.value("AutoConnection").toBool(true);
+    m_data.activeApi           = generalObj.value("ActiveAPI").toString();
+    m_data.testnet             = generalObj.value("Testnet").toBool(true);
+    m_data.enableTrades        = generalObj.value("EnableTrades").toBool(false);
 
-    if (!m_data.m_apis.contains(m_data.m_activeApi))
-        m_data.m_activeApi = m_data.m_apis.isEmpty() ? QString{} : m_data.m_apis.firstKey();
+    if (!m_data.apis.contains(m_data.activeApi))
+        m_data.activeApi = m_data.apis.isEmpty() ? QString{} : m_data.apis.firstKey();
 
     emit apisChanged();
     emit activeApiChanged();
@@ -165,14 +165,14 @@ std::expected<void, QString> ConfigurationManager::trySave()
     QJsonObject root;
 
     QJsonObject apisObj;
-    for (auto it = m_data.m_apis.begin(); it != m_data.m_apis.end(); ++it)
+    for (auto it = m_data.apis.begin(); it != m_data.apis.end(); ++it)
     {
         const QString name = it.key();
-        const Tools::Api& api = it.value();
+        const Api& api = it.value();
 
-        if (!writeSecret(apiKeyKey(name), api.m_apiKey))
+        if (!writeSecret(apiKeyKey(name), api.apiKey))
             return std::unexpected(QStringLiteral("Failed to write API key '%1'").arg(name));
-        if (!writeSecret(secretKeyKey(name), api.m_secretKey))
+        if (!writeSecret(secretKeyKey(name), api.secretKey))
             return std::unexpected(QStringLiteral("Failed to write secret key '%1'").arg(name));
 
         apisObj[name] = QJsonObject{};
@@ -180,10 +180,10 @@ std::expected<void, QString> ConfigurationManager::trySave()
     root["APIs"] = apisObj;
 
     QJsonObject generalObj;
-    generalObj["AutoConnection"] = m_data.m_autoConnection;
-    generalObj["ActiveAPI"]      = m_data.m_activeApi;
-    generalObj["Testnet"]        = m_data.m_testnet;
-    generalObj["EnableTrades"]   = m_data.m_enableTrades;
+    generalObj["AutoConnection"] = m_data.autoConnection;
+    generalObj["ActiveAPI"]      = m_data.activeApi;
+    generalObj["Testnet"]        = m_data.testnet;
+    generalObj["EnableTrades"]   = m_data.enableTrades;
     root["General"]              = generalObj;
 
     const QJsonDocument doc(root);
@@ -220,7 +220,7 @@ bool ConfigurationManager::addApi(const QString& name,
                                   const QString& apiKey,
                                   const QString& secretKey)
 {
-    auto res = tryAddApi(name, Tools::Api{ apiKey, secretKey });
+    auto res = tryAddApi(name, Api{ apiKey, secretKey });
     if (!res.has_value()) {
         emit errorOccurred(res.error());
         return false;
@@ -242,42 +242,42 @@ bool ConfigurationManager::removeApi(const QString& name)
 QVariantMap ConfigurationManager::api(const QString& name) const
 {
     QVariantMap m;
-    if (!m_data.m_apis.contains(name))
+    if (!m_data.apis.contains(name))
         return m;
 
-    const Tools::Api& a = m_data.m_apis.value(name);
-    m["apiKey"]    = a.m_apiKey;
-    m["secretKey"] = a.m_secretKey;
+    const Api& a = m_data.apis.value(name);
+    m["apiKey"]    = a.apiKey;
+    m["secretKey"] = a.secretKey;
     return m;
 }
 
 // ==================================   C++ API  ==================================
 
-std::expected<void, QString> ConfigurationManager::tryAddApi(const QString& name, const Tools::Api& api)
+std::expected<void, QString> ConfigurationManager::tryAddApi(const QString& name, const Api& api)
 {
-    if (m_data.m_apis.contains(name))
+    if (m_data.apis.contains(name))
         return std::unexpected(QStringLiteral("Such a key exists"));
 
-    if (!writeSecret(apiKeyKey(name), api.m_apiKey))
+    if (!writeSecret(apiKeyKey(name), api.apiKey))
         return std::unexpected(QStringLiteral("Failed to write API key to keychain"));
-    if (!writeSecret(secretKeyKey(name), api.m_secretKey))
+    if (!writeSecret(secretKeyKey(name), api.secretKey))
         return std::unexpected(QStringLiteral("Failed to write secret key to keychain"));
 
-    m_data.m_apis[name] = api;
+    m_data.apis[name] = api;
     emit apisChanged();
     return {};
 }
 
 std::expected<void, QString> ConfigurationManager::tryRemoveApi(const QString& name)
 {
-    if (name == m_data.m_activeApi)
+    if (name == m_data.activeApi)
         return std::unexpected(QStringLiteral("Can not delete an active key"));
-    if (!m_data.m_apis.contains(name))
+    if (!m_data.apis.contains(name))
         return std::unexpected(QStringLiteral("Such a key does not exist"));
 
     deleteSecret(apiKeyKey(name));
     deleteSecret(secretKeyKey(name));
-    m_data.m_apis.remove(name);
+    m_data.apis.remove(name);
 
     emit apisChanged();
     return {};
@@ -285,13 +285,13 @@ std::expected<void, QString> ConfigurationManager::tryRemoveApi(const QString& n
 
 std::expected<void, QString> ConfigurationManager::trySetActiveApi(const QString& name)
 {
-    if (!m_data.m_apis.contains(name))
+    if (!m_data.apis.contains(name))
         return std::unexpected(QStringLiteral("Such a key does not exist"));
 
-    if (m_data.m_activeApi == name)
+    if (m_data.activeApi == name)
         return {};
 
-    m_data.m_activeApi = name;
+    m_data.activeApi = name;
     emit activeApiChanged();
     return {};
 }
@@ -300,25 +300,25 @@ std::expected<void, QString> ConfigurationManager::trySetActiveApi(const QString
 
 void ConfigurationManager::setAutoConnection(bool enabled)
 {
-    if (m_data.m_autoConnection == enabled)
+    if (m_data.autoConnection == enabled)
         return;
-    m_data.m_autoConnection = enabled;
+    m_data.autoConnection = enabled;
     emit autoConnectionChanged();
 }
 
 void ConfigurationManager::setEnableTrades(bool enabled)
 {
-    if (m_data.m_enableTrades == enabled)
+    if (m_data.enableTrades == enabled)
         return;
-    m_data.m_enableTrades = enabled;
+    m_data.enableTrades = enabled;
     emit enableTradesChanged();
 }
 
 void ConfigurationManager::setTestnet(bool enabled)
 {
-    if (m_data.m_testnet == enabled)
+    if (m_data.testnet == enabled)
         return;
-    m_data.m_testnet = enabled;
+    m_data.testnet = enabled;
     emit testnetChanged();
 }
 

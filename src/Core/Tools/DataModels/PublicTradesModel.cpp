@@ -43,7 +43,7 @@ namespace Core::Tools {
         };
     }
 
-    void PublicTradesModel::addTrade(const PublicTradeItem &item)
+    void PublicTradesModel::addTrade(const PublicTradeInfo &item)
     {
         beginInsertRows(QModelIndex(), 0, 0);
         m_trades.prepend(item);

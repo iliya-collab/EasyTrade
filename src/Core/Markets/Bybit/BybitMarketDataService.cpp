@@ -4,9 +4,7 @@
 #include "Handlers/Service/GetBybitInstrumentsInfoHandler.hpp"
 #include "Handlers/Service/GetBybitKlineHandler.hpp"
 
-using InstrumentsInfoJob = Core::Tools::PagedJob<
-    Core::Tools::InstrumentsInfoRequest,
-    Core::Tools::InstrumentInfo>;
+using InstrumentsInfoJob = Core::Tools::PagedJob<InstrumentsInfoRequest, InstrumentInfo>;
 
 namespace Core
 {
@@ -23,7 +21,7 @@ void BybitMarketDataService::init(bool isTestnet)
     if (!m_currentApi)
         return;
 
-    Tools::Api api {"", ""};
+    Api api {"", ""};
     m_currentApi->init(api, isTestnet);
 }
 
@@ -39,7 +37,7 @@ void BybitMarketDataService::requestKlines(const Tools::KlinesRequest& req)
     send<Handlers::GetBybitKlineHandler>(QVariant::fromValue(req), req);
 }
 
-void BybitMarketDataService::onInstrumentsInfoPageReceived(const Tools::Instruments &instruments, const QString &nextPageCursor, const QVariant &context)
+void BybitMarketDataService::onInstrumentsInfoPageReceived(const Instruments &instruments, const QString &nextPageCursor, const QVariant &context)
 {
     if (context.metaType() != QMetaType::fromType<InstrumentsInfoJob>())
     {

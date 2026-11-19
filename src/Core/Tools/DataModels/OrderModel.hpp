@@ -51,7 +51,7 @@ namespace Core::Tools
         // Удаляет ордер из модели (например, когда терминальный статус больше не нужно держать в UI).
         void removeOrder(const QString& orderId);
 
-        Q_INVOKABLE Core::Tools::OrderInfo get(int row) const;
+        Q_INVOKABLE OrderInfo get(int row) const;
 
     private:
 

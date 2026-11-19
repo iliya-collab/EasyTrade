@@ -4,43 +4,9 @@
 
 namespace Core {
 
-MarketDataMediator::MarketDataMediator(QObject* parent) : BaseMediator(parent)
+static QSet<Streamer::PublicStreams> defaultStreams()
 {
-    m_publicService = std::make_unique<BybitMarketDataService>();
-    m_publicStreamer = std::make_unique<BybitMarketDataStreamer>(Tools::EnumHelpers::MarketType::Spot);
-    m_marketDataRep = std::make_unique<Repository::MarketDataRepository>();
-
-    bindService(m_publicService->signaller());
-    bindStreamer(m_publicStreamer->signaller());
-
-    connect(m_marketDataRep.get(), &Repository::MarketDataRepository::errorOccurred,
-            this, &MarketDataMediator::errorOccurred);
-
-    // Связываем Сеть (REST)
-    connect(m_publicService->signaller(), &Service::MarketDataServiceSignals::allInstrumentsInfoReceived,
-            this, &MarketDataMediator::onInstrumentsReady);
-
-    connect(m_publicService->signaller(), &Service::MarketDataServiceSignals::klinesReceived,
-            this, &MarketDataMediator::onKlinesReady);
-
-    // Связываем публичный стрим
-    connect(m_publicStreamer->signaller(), &Streamer::MarketDataStreamerSignals::klineUpdated,
-            this, &MarketDataMediator::onKlineReceived);
-
-    connect(m_publicStreamer->signaller(), &Streamer::MarketDataStreamerSignals::tickerUpdated,
-            this, &MarketDataMediator::tickerReady);
-
-    connect(m_publicStreamer->signaller(), &Streamer::MarketDataStreamerSignals::orderbookUpdated,
-            this, &MarketDataMediator::orderbookReady);
-
-    connect(m_publicStreamer->signaller(), &Streamer::MarketDataStreamerSignals::publicTradeUpdated,
-            this, &MarketDataMediator::onPublicTradesReceived);
-
-}
-
-void MarketDataMediator::subscribe(const QString &symbol)
-{
-    m_publicStreamer->subscribeSymbol(symbol, {
+    return {
         Streamer::PublicStreams::Ticker,
         Streamer::PublicStreams::Orderbook50,
         Streamer::PublicStreams::Kline1m,
@@ -57,15 +23,82 @@ void MarketDataMediator::subscribe(const QString &symbol)
         Streamer::PublicStreams::Kline1W,
         Streamer::PublicStreams::Kline1M,
         Streamer::PublicStreams::PublicTrade
-    });
+    };
 }
 
-Tools::Instruments MarketDataMediator::readInstrumentsFromRepository(Tools::EnumHelpers::MarketType type)
+MarketDataMediator::MarketDataMediator(QObject* parent) : MultiMediator(parent)
 {
-    return m_marketDataRep->loadInstruments(type);
+    m_publicService = std::make_unique<BybitMarketDataService>();
+    m_marketDataRep = std::make_unique<Repository::MarketDataRepository>();
+
+    m_pool.addStream(std::make_unique<BybitMarketDataStreamer>(Eh::MarketType::Spot));
+    m_pool.addStream(std::make_unique<BybitMarketDataStreamer>(Eh::MarketType::Linear));
+
+    connect(m_marketDataRep.get(), &Repository::MarketDataRepository::errorOccurred,
+            this, &MarketDataMediator::errorOccurred);
+
+    // Связываем Сеть (REST)
+    bindService(m_publicService->signaller());
+
+    connect(m_publicService->signaller(), &Service::MarketDataServiceSignals::allInstrumentsInfoReceived,
+            this, &MarketDataMediator::onInstrumentsReady);
+
+    connect(m_publicService->signaller(), &Service::MarketDataServiceSignals::klinesReceived,
+            this, &MarketDataMediator::onKlinesReady);
+
+    // Связываем публичные стримы в пуле соединений
+    for (auto* s : m_pool.streams())
+    {
+        auto* mds = dynamic_cast<Streamer::IMarketDataStreamer*>(s);
+        if (!mds)
+            continue;
+
+        bindStreamer(mds->signaller());
+
+        connect(mds->signaller(), &Streamer::MarketDataStreamerSignals::klineUpdated,
+                this, &MarketDataMediator::onKlineReceived);
+
+        connect(mds->signaller(), &Streamer::MarketDataStreamerSignals::tickerUpdated,
+                this, &MarketDataMediator::tickerReady);
+
+        connect(mds->signaller(), &Streamer::MarketDataStreamerSignals::orderbookSnapshot,
+                this, &MarketDataMediator::snapshotOrderbookReady);
+
+        connect(mds->signaller(), &Streamer::MarketDataStreamerSignals::orderbookDeltaUpdated,
+                this, &MarketDataMediator::deltaUpdateOrderbookReady);
+
+        connect(mds->signaller(), &Streamer::MarketDataStreamerSignals::publicTradeUpdated,
+                this, &MarketDataMediator::onPublicTradesReceived);
+    }
+
+
 }
 
-QList<Tools::Kline> MarketDataMediator::readKlinesFromRepository(const Tools::StdExport &std, const Tools::SpecialExportKlines &special)
+void MarketDataMediator::unsubscribe(EnumHelpers::MarketType market, const QString &symbol)
+{
+    auto* mds = dynamic_cast<Streamer::IMarketDataStreamer*>(streamerFor(market));
+    if (!mds)
+    {
+        emit errorOccurred("[unsubscribe] No streamer for market: " + Eh::marketTypeToApiString(market));
+        return;
+    }
+
+    mds->unsubscribeSymbol(symbol, defaultStreams());
+}
+
+void MarketDataMediator::subscribe(EnumHelpers::MarketType market, const QString &symbol)
+{
+    auto* mds = dynamic_cast<Streamer::IMarketDataStreamer*>(streamerFor(market));
+    if (!mds)
+    {
+        emit errorOccurred("[subscribe] No streamer for market: " + Eh::marketTypeToApiString(market));
+        return;
+    }
+
+    mds->subscribeSymbol(symbol, defaultStreams());
+}
+
+Klines MarketDataMediator::readKlinesFromRepository(const Tools::StdExport &std, const Tools::SpecialExportKlines &special)
 {
     return m_marketDataRep->loadKlines(std.m_category,
                                        std.m_symbol,
@@ -74,29 +107,35 @@ QList<Tools::Kline> MarketDataMediator::readKlinesFromRepository(const Tools::St
                                        special.m_end);
 }
 
-Tools::PublicTrades MarketDataMediator::readPublicTradesFromRepository(const Tools::StdExport& std)
+PublicTrades MarketDataMediator::readPublicTradesFromRepository(const Tools::StdExport& std)
 {
     return m_marketDataRep->loadPublicTrades(std.m_category, std.m_symbol);
 }
 
-void MarketDataMediator::loadInstrumentsFromNetwork(Tools::EnumHelpers::MarketType type)
+void MarketDataMediator::loadInstruments(EnumHelpers::MarketType type)
 {
-    emit messageSent("Loading instruments from network...");
+    emit messageSent("Loading instruments...");
     Tools::InstrumentsInfoRequest req;
     req.m_category = type;
     m_publicService->requestInstruments(req);
 }
 
-void MarketDataMediator::loadKlinesFromNetwork(const Tools::KlinesRequest& req)
+void MarketDataMediator::loadKlines(const Tools::KlinesRequest& req)
 {
-    emit messageSent("Loading klines from network...");
+    emit messageSent("Loading klines...");
     m_publicService->requestKlines(req);
 }
 
 void MarketDataMediator::init(bool isTestnet)
 {
     m_publicService->init(isTestnet);
-    m_publicStreamer->init(isTestnet);
+    for (auto* s : m_pool.streams())
+    {
+        auto* mds = dynamic_cast<Streamer::IMarketDataStreamer*>(s);
+        if (!mds)
+            continue;
+        mds->init(isTestnet);
+    }
     try {
         m_marketDataRep->init(isTestnet);
     } catch (const std::exception& e) {
@@ -104,14 +143,17 @@ void MarketDataMediator::init(bool isTestnet)
     }
 }
 
-void MarketDataMediator::onInstrumentsReady(const Tools::Instruments &instruments)
+ConnectionsPool &MarketDataMediator::pool() { return m_pool; }
+
+const ConnectionsPool &MarketDataMediator::cpool() const { return m_pool; }
+
+void MarketDataMediator::onInstrumentsReady(const Instruments &instruments)
 {
     emit messageSent("Instruments ready: " + QString::number(instruments.size()));
-    m_marketDataRep->saveInstruments(instruments);
     emit instrumentsReady(instruments);
 }
 
-void MarketDataMediator::onKlineReceived(const Tools::Kline& kline)
+void MarketDataMediator::onKlineReceived(const KlineInfo& kline)
 {
     if (kline.m_confirm)
     {
@@ -120,14 +162,14 @@ void MarketDataMediator::onKlineReceived(const Tools::Kline& kline)
     emit klineUpdated(kline);
 }
 
-void MarketDataMediator::onKlinesReady(const QList<Tools::Kline>& klines)
+void MarketDataMediator::onKlinesReady(const Klines& klines)
 {
     emit messageSent("Klines ready: " + QString::number(klines.size()));
     m_marketDataRep->saveKlines(klines);
     emit historicalKlinesReady(klines);
 }
 
-void MarketDataMediator::onPublicTradesReceived(const Tools::PublicTrades& trades)
+void MarketDataMediator::onPublicTradesReceived(const PublicTrades& trades)
 {
     m_marketDataRep->savePublicTrades(trades);
     emit tradesReady(trades);

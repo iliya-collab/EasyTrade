@@ -9,13 +9,13 @@ class GetBybitInstrumentsInfoHandler : public Service::IMarketDataResponseHandle
 {
 private:
 
-    void processRequestTradePairs(Tools::Instruments& instruments, const QJsonObject& result);
+    void processRequestTradePairs(Instruments& instruments, const QJsonObject& result);
 
 public:
 
     static QString endpoint() { return "/v5/market/instruments-info"; }
 
-    static QUrlQuery buildRequest(const Tools::InstrumentsInfoRequest& req);
+    static QUrlQuery buildRequest(const InstrumentsInfoRequest& req);
 
     void handle(const QJsonObject& data, const QVariant& requestContext, Service::MarketDataServiceSignals* signaller) override;
 };

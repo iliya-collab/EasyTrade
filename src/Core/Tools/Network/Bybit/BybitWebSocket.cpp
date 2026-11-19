@@ -93,13 +93,13 @@ namespace Core::Tools {
         qint64 currentMs = QDateTime::currentMSecsSinceEpoch();
         QString expires = QString::number(currentMs + 10000);
 
-        QString signature = generateSignature(m_api.m_apiKey, m_api.m_secretKey, expires);
+        QString signature = generateSignature(m_api.apiKey, m_api.secretKey, expires);
 
         QJsonObject authMessage;
         authMessage["op"] = "auth";
 
         QJsonArray args;
-        args.append(m_api.m_apiKey);
+        args.append(m_api.apiKey);
         args.append(expires);
         args.append(signature);
 

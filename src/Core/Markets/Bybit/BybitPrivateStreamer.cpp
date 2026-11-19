@@ -12,7 +12,7 @@ namespace Core
 
     BybitPrivateStreamer::BybitPrivateStreamer(QObject* parent)
         : BasePrivateStreamer(
-          Tools::BybitWebSocketCreator::create(Tools::SocketType::Private, Tools::EnumHelpers::MarketType::Unknown, Tools::Api(), parent),
+          BybitWebSocketCreator::create(SocketType::Private, EnumHelpers::MarketType::Unknown, Api(), parent),
           parent
         )
     {
@@ -35,7 +35,12 @@ namespace Core
         return "private";
     }
 
-    void BybitPrivateStreamer::init(const Tools::Api &api, bool isTestnet)
+    EnumHelpers::MarketType BybitPrivateStreamer::marketType()
+    {
+        return Eh::MarketType::Unknown;
+    }
+
+    void BybitPrivateStreamer::init(const Api &api, bool isTestnet)
     {
         m_webSocket->init(api, isTestnet);
     }

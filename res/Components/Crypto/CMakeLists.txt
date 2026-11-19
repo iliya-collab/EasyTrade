@@ -17,4 +17,9 @@ qt_add_qml_module(CryptoComponents
         PositionsWidget.qml
         TradeHistoryWidget.qml
         MarketDataWidget.qml
+        WalletPopup.qml
+        AccountInfoWidget.qml
+        WalletInfoWidget.qml
+        ListInsts.qml
+        TradingPanelWidget.qml
 )

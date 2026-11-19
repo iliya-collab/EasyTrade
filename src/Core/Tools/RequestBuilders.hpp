@@ -52,6 +52,21 @@ namespace detail
 
 }
 
+inline std::expected<FeeRateRequest, QString> buildFeeRatesRequest(const QVariantMap& params)
+{
+    FeeRateRequest req;
+
+    req.m_category = EnumHelpers::apiStringToMarketType(detail::reqString(params, "category"));
+    req.m_symbol = detail::reqString(params, "symbol");
+
+    if (req.m_category == EnumHelpers::MarketType::Unknown)
+        return std::unexpected<QString>("requestFeeRates: Invalid \'category\' parameter");
+    if (req.m_symbol.isEmpty())
+        return std::unexpected<QString>("requestFeeRates: The \'symbol\' parameter must not be empty");
+
+    return req;
+}
+
 inline std::expected<KlinesRequest, QString> buildKlinesRequest(const QVariantMap& params)
 {
     KlinesRequest req;
@@ -184,7 +199,7 @@ inline std::expected<OrderCancelAllRequest, QString> buildOrderCancelAllRequest(
     req.m_baseCoin = detail::optString(params, "baseCoin");
     req.m_settleCoin = detail::optString(params, "settleCoin");
 
-    const bool isDerivative = (req.m_category == EnumHelpers::MarketType::Linear || req.m_category == EnumHelpers::MarketType::Inverse);
+    const bool isDerivative = req.m_category == EnumHelpers::MarketType::Linear;
     const bool hasFilter = (req.m_symbol.has_value() && !req.m_symbol->isEmpty()) ||
                            (req.m_baseCoin.has_value() && !req.m_baseCoin->isEmpty()) ||
                            (req.m_settleCoin.has_value() && !req.m_settleCoin->isEmpty());
@@ -204,13 +219,11 @@ inline std::expected<OpenOrdersRequest, QString> buildOpenOrdersRequest(const QV
     if (req.m_category == EnumHelpers::MarketType::Unknown)
         return std::unexpected<QString>("requestOpenOrders: Invalid 'category' parameter");
 
-    // Для категорий linear и inverse параметр symbol является ОБЯЗАТЕЛЬНЫМ в Bybit API V5.
-    // На споте (spot) его можно не передавать.
     auto symbolStr = detail::optString(params, "symbol");
     if (symbolStr.has_value())
     {
-        if ((req.m_category == EnumHelpers::MarketType::Linear || req.m_category == EnumHelpers::MarketType::Inverse) && symbolStr->isEmpty())
-            return std::unexpected<QString>("requestOpenOrders: 'symbol' parameter is required for linear/inverse categories");
+        if (req.m_category == EnumHelpers::MarketType::Linear && symbolStr->isEmpty())
+            return std::unexpected<QString>("requestOpenOrders: 'symbol' parameter is required for linear categories");
     }
     req.m_symbol = symbolStr;
 

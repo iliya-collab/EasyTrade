@@ -1,6 +1,7 @@
 #ifndef EXECUTIONREPOSITORY_HPP
 #define EXECUTIONREPOSITORY_HPP
 #include "BaseRepository.hpp"
+using namespace Core::Tools::Types;
 
 namespace Core::Tools
 {
@@ -21,7 +22,7 @@ public:
 
     bool insert(const Executions& newExecs);
     bool insert(const ExecutionInfo& newExec);
-    bool select(Tools::EnumHelpers::MarketType type, const QString& symbol);
+    bool select(EnumHelpers::MarketType type, const QString& symbol);
 };
 
 };

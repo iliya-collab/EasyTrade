@@ -1,6 +1,7 @@
 #ifndef ORDERSREPOSITORY_HPP
 #define ORDERSREPOSITORY_HPP
 #include "BaseRepository.hpp"
+using namespace Core::Tools::Types;
 
 namespace Core::Tools
 {
@@ -21,7 +22,7 @@ public:
 
     bool insert(const Orders& newOrders);
     bool insert(const OrderInfo& newOrder);
-    bool select(Tools::EnumHelpers::MarketType type, const QString& symbol);
+    bool select(EnumHelpers::MarketType type, const QString& symbol);
 };
 
 };

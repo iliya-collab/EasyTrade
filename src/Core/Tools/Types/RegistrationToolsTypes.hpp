@@ -1,0 +1,12 @@
+#ifndef REGISTRATIONTOOLSTYPES_HPP
+#define REGISTRATIONTOOLSTYPES_HPP
+#include <QtQmlIntegration>
+
+namespace Core::Tools::Types
+{
+Q_NAMESPACE
+QML_NAMED_ELEMENT(Types)
+}
+
+
+#endif // REGISTRATIONTOOLSTYPES_HPP

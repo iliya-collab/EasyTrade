@@ -32,7 +32,7 @@ protected:
 
     virtual QString createTickerStream(const QString& symbol) const = 0;
     virtual QString createOrderbookStream(const QString& symbol, int depth) const = 0;
-    virtual QString createKlineStream(const QString& symbol, Tools::EnumHelpers::Interval interval) const = 0;
+    virtual QString createKlineStream(const QString& symbol, EnumHelpers::Interval interval) const = 0;
     virtual QString createPublicTradeStream(const QString& symbol) const = 0;
 
 };

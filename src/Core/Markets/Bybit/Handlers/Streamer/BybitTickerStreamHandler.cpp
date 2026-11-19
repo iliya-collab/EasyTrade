@@ -11,9 +11,9 @@ void Core::Handlers::BybitTickerStreamHandler::handle(const QString& id, const Q
     QJsonObject data = obj["data"].toObject();
     QString symbol = data["symbol"].toString();
 
-    Tools::Ticker ticker{};
+    TickerInfo ticker{};
 
-    ticker.m_category = Tools::EnumHelpers::apiStringToMarketType(id);
+    ticker.m_category = EnumHelpers::apiStringToMarketType(id);
     ticker.m_symbol = symbol;
     ticker.m_lastPrice = data["lastPrice"].toString();
     ticker.m_usdIndexPrice = data["usdIndexPrice"].toString();

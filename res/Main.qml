@@ -12,9 +12,9 @@ ApplicationWindow {
 
     id: mainWindow
     visible: true
-    minimumWidth: 800
+    minimumWidth: 1000
     minimumHeight: 600
-    width: 1000
+    width: 1500
     height: 800
     title: "EasyTrade"
     color: Theme.windowColor
@@ -42,11 +42,24 @@ ApplicationWindow {
         source: "Views/InstrumentSelectionWindow.qml"
 
         onLoaded: {
-            item.instrumentSelected.connect(function(inst) {
-                AppCore.marketService.subscribeInstrument()
-                AppCore.accountService.requestOrderHistory({ "category": inst.category })
-                AppCore.accountService.requestOpenOrders({ "category": inst.category })
-                AppCore.accountService.requestTradeHistory({ "category": inst.category })
+            item.currentInstrumentSelected.connect(function(inst) {
+                AppCore.marketService.selectCurrentInstrument(inst)
+                AppCore.accountService.requestFeeRates({
+                    "category": EnumHelpers.marketTypeToApiString(inst.category),
+                    "symbol": inst.symbol
+                })
+                AppCore.accountService.requestOrderHistory({
+                    "category": EnumHelpers.marketTypeToApiString(inst.category) })
+                AppCore.accountService.requestOpenOrders({
+                    "category": EnumHelpers.marketTypeToApiString(inst.category) })
+                AppCore.accountService.requestTradeHistory({
+                    "category": EnumHelpers.marketTypeToApiString(inst.category) })
+            })
+            item.instrumentOpened.connect(function(inst) {
+                AppCore.marketService.openInstrument(inst)
+            })
+            item.instrumentClosed.connect(function(inst) {
+                AppCore.marketService.closeInstrument(inst)
             })
         }
 
@@ -145,24 +158,55 @@ ApplicationWindow {
         }
     }
 
+    WalletPopup {
+        id: assetPopup
+
+        onHoveredChanged: function(hovered) {
+            if (hovered)
+                closeTimer.stop()
+            else
+                closeTimer.restart()
+        }
+    }
+
+    Timer {
+        id: closeTimer
+        interval: 300
+        repeat: false
+        onTriggered: assetPopup.close()
+    }
+
 // ++++++++++++++++++++++++++++++++++++++++++   UI  ++++++++++++++++++++++++++++++++++++++++++
 
     // Меню
     menuBar: CustomMenuBar {
         menuModel: [
             {
-                text: qsTr("Services"),
+                text: qsTr("Application"),
                 items: [
+                    { text: qsTr("About") },
+                    { text: "---" },
                     {
-                        text: qsTr("User"),
-                        clicked: function() { mainStack.showUserScreen() }
-                    },
-                    {
-                        text: qsTr("Trade"),
+                        text: qsTr("Exit"),
                         clicked: function() {
-                            mainStack.showTradeScreen()
+                            Qt.quit()
                         }
-                    },
+                    }
+                ]
+            },
+            {
+                text: qsTr("User"),
+                clicked: function() { mainStack.showUserScreen() }
+            },
+            {
+                text: qsTr("Trade"),
+                clicked: function() {
+                    mainStack.showTradeScreen()
+                }
+            },
+            {
+                text: qsTr("Market"),
+                items: [
                     {
                         text: qsTr("Instruments"),
                         clicked: function() {
@@ -173,14 +217,8 @@ ApplicationWindow {
                         text: qsTr("Order"),
                         clicked: function() {
                             orderDialog.open()
-                        }
-                    },
-                    { text: "---" },
-                    {
-                        text: qsTr("Exit"),
-                        clicked: function() {
-                            Qt.quit()
-                        }
+                        },
+                        enabled: ConfigurationManager.enableTrades && AppCore.accountState.accountVerified
                     }
                 ]
             },
@@ -220,11 +258,12 @@ ApplicationWindow {
 
         header: CustomToolBar {
             modelToolButtons: [
-                { id: "btn_run", icon: "qrc:/icons/icon_play.png" },
-                { id: "btn_restart", icon: "qrc:/icons/icon_restart.png" },
-                { id: "btn_stop", icon: "qrc:/icons/icon_stop.png" }
+                { id: "btn_run",        icon: "qrc:/icons/icon_play.png" },
+                { id: "btn_restart",    icon: "qrc:/icons/icon_restart.png" },
+                { id: "btn_stop",       icon: "qrc:/icons/icon_stop.png" },
+                { id: "btn_wallet",     icon: "qrc:/icons/icon_wallet.png", rightAligned: true },
             ]
-            onToolButtonClicked: function(id, name) {
+            onButtonClicked: function(id, name) {
                 if (id === "btn_run")
                     AppCore.marketService.run()
                 else if (id === "btn_restart")
@@ -232,13 +271,29 @@ ApplicationWindow {
                 else if (id === "btn_stop")
                     AppCore.marketService.shutdown()
             }
+            onButtonHovered: function(id, item, hovered) {
+                if (id !== "btn_wallet")
+                    return
+
+                if (hovered) {
+                    closeTimer.stop()
+                    if (!assetPopup.visible) {
+                        assetPopup.parent = item
+                        assetPopup.x = item.width - assetPopup.width
+                        assetPopup.y = item.height + 4
+                        assetPopup.open()
+                    }
+                } else {
+                    closeTimer.restart()
+                }
+            }
         }
 
         StackView {
             id: mainStack
             anchors.fill: parent
 
-            initialItem: UserScreen {}
+            initialItem: TradeScreen {}
 
             // Метод для вызова экрана торговли
             function showTradeScreen()
@@ -253,31 +308,6 @@ ApplicationWindow {
             }
 
         } // mainStack
-
-        /*footer: Rectangle {
-            color: Theme.toolBarColor
-            height: 30
-
-            RowLayout {
-                anchors.fill: parent
-
-                CustomStatusBar {
-                    id: statusWidget
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    autoHide: false
-                }
-
-                Item { Layout.fillWidth: true }
-
-                PingIndicator {
-                    width: 30
-                    height: 30
-                    thickness: 1
-                    pingValue: AppCore.marketState.pingMs
-                }
-            }
-        }*/
 
     } // mainLayout
 

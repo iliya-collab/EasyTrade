@@ -9,15 +9,15 @@ class GetBybitKlineHandler : public Service::IMarketDataResponseHandler
 {
 private:
 
-    void processRequestKlines(QList<Tools::Kline>& klines,
-                              Tools::EnumHelpers::Interval interval,
+    void processRequestKlines(Klines& klines,
+                              EnumHelpers::Interval interval,
                               const QJsonObject& data);
 
 public:
 
     static QString endpoint() { return "/v5/market/kline"; }
 
-    static QUrlQuery buildRequest(const Tools::KlinesRequest& req);
+    static QUrlQuery buildRequest(const KlinesRequest& req);
 
     void handle(const QJsonObject& data,
                 const QVariant& requestContext,

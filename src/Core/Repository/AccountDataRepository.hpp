@@ -21,19 +21,19 @@ public:
     explicit AccountDataRepository(QObject* parent = nullptr);
     void init(const QString& userId, bool testnet);
 
-    Tools::Orders loadOrders(Tools::EnumHelpers::MarketType type,
+    Orders loadOrders(EnumHelpers::MarketType type,
                             const QString& symbol);
     void clearOrders();
-    void saveOrder(const Tools::OrderInfo& newOrder);
-    void saveOrders(const Tools::Orders& newOrders);
-    Tools::Orders getOrders() const { return m_ordersRep->getData(); }
+    void saveOrder(const OrderInfo& newOrder);
+    void saveOrders(const Orders& newOrders);
+    Orders getOrders() const { return m_ordersRep->getData(); }
 
-    Tools::Executions loadExecs(Tools::EnumHelpers::MarketType type,
+    Executions loadExecs(EnumHelpers::MarketType type,
                                 const QString& symbol);
     void clearExecs();
-    void saveExec(const Tools::ExecutionInfo& newExec);
-    void saveExecs(const Tools::Executions& newExecs);
-    Tools::Executions getExecs() const { return m_execsRep->getData(); }
+    void saveExec(const ExecutionInfo& newExec);
+    void saveExecs(const Executions& newExecs);
+    Executions getExecs() const { return m_execsRep->getData(); }
 
 signals:
 

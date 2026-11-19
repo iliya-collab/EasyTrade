@@ -205,7 +205,7 @@ void Core::Tools::OrderModel::removeOrder(const QString &orderId)
     rebuildIndex();
 }
 
-Core::Tools::OrderInfo Core::Tools::OrderModel::get(int row) const
+OrderInfo Core::Tools::OrderModel::get(int row) const
 {
     if (row < 0 || row >= m_orders.size())
         return {};

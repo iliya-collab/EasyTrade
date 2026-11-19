@@ -16,10 +16,10 @@ public:
 
 signals:
 
-    void klinesReceived(const QList<Core::Tools::Kline>& klines);
-    void allInstrumentsInfoReceived(const Core::Tools::Instruments& instruments, bool wasTruncated);
+    void klinesReceived(const Klines& klines);
+    void allInstrumentsInfoReceived(const Instruments& instruments, bool wasTruncated);
 
-    void instrumentsInfoPageReceived(const Core::Tools::Instruments& instruments, const QString& nextPageCursor, const QVariant& context);
+    void instrumentsInfoPageReceived(const Instruments& instruments, const QString& nextPageCursor, const QVariant& context);
 
 };
 

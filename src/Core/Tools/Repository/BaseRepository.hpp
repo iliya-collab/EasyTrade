@@ -42,10 +42,9 @@ namespace Core::Tools {
 
     };
 
-    using BaseInstrumentsRepository = BaseRepository<Tools::InstrumentInfo>;
-    using BaseKlinesRepository = BaseRepository<Tools::Kline>;
-    using BasePublicTradesRepository = BaseRepository<Tools::PublicTradeItem>;
-    using BaseOrdersRepository = BaseRepository<Tools::OrderInfo>;
-    using BaseExecutionsRepository = BaseRepository<Tools::ExecutionInfo>;
+    using BaseKlinesRepository = BaseRepository<KlineInfo>;
+    using BasePublicTradesRepository = BaseRepository<PublicTradeInfo>;
+    using BaseOrdersRepository = BaseRepository<OrderInfo>;
+    using BaseExecutionsRepository = BaseRepository<ExecutionInfo>;
 
 }

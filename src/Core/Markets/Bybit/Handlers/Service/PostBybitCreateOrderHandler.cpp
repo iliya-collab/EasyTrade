@@ -4,10 +4,10 @@ QByteArray Core::Handlers::PostBybitCreateOrderHandler::buildRequestBody(const T
 {
     QJsonObject body;
 
-    body["category"] = Tools::EnumHelpers::marketTypeToApiString(req.m_category);
+    body["category"] = EnumHelpers::marketTypeToApiString(req.m_category);
     body["symbol"] = req.m_symbol;
-    body["side"] = Tools::EnumHelpers::orderSideToString(req.m_side);
-    body["orderType"] = Tools::EnumHelpers::orderTypeToString(req.m_orderType);
+    body["side"] = EnumHelpers::orderSideToString(req.m_side);
+    body["orderType"] = EnumHelpers::orderTypeToString(req.m_orderType);
     body["qty"] = req.m_qty;
 
     if (req.m_price.has_value() && !req.m_price->isEmpty())
@@ -15,7 +15,7 @@ QByteArray Core::Handlers::PostBybitCreateOrderHandler::buildRequestBody(const T
     if (req.m_orderLinkId.has_value() && !req.m_orderLinkId->isEmpty())
         body["orderLinkId"] = req.m_orderLinkId.value();
     if (req.m_timeInForce.has_value())
-        body["timeInForce"] = Tools::EnumHelpers::timeInForceToString(req.m_timeInForce.value());
+        body["timeInForce"] = EnumHelpers::timeInForceToString(req.m_timeInForce.value());
     if (req.m_takeProfit.has_value() && !req.m_takeProfit->isEmpty())
         body["takeProfit"] = req.m_takeProfit.value();
     if (req.m_stopLoss.has_value() && !req.m_stopLoss->isEmpty())

@@ -111,7 +111,7 @@ namespace Core::Tools {
     BybitRestAPI::ApiHeaders BybitRestAPI::initApiHeaders(const QString& queryString)
     {
         ApiHeaders headers;
-        headers.X_BAPI_API_KEY = m_api.m_apiKey;
+        headers.X_BAPI_API_KEY = m_api.apiKey;
         headers.X_BAPI_TIMESTAMP = QString::number(QDateTime::currentMSecsSinceEpoch());
         headers.X_BAPI_RECV_WINDOW = "5000";
         headers.X_BAPI_SIGN = generateSignature(headers.X_BAPI_TIMESTAMP, headers.X_BAPI_RECV_WINDOW, queryString);
@@ -128,10 +128,10 @@ namespace Core::Tools {
 
     QString BybitRestAPI::generateSignature(const QString& timesTamp, const QString& recvWindow, const QString& queryString)
     {
-        QString dataForSign = timesTamp + m_api.m_apiKey + recvWindow + queryString;
+        QString dataForSign = timesTamp + m_api.apiKey + recvWindow + queryString;
 
         QMessageAuthenticationCode hmac(QCryptographicHash::Sha256);
-        hmac.setKey(m_api.m_secretKey.toUtf8());
+        hmac.setKey(m_api.secretKey.toUtf8());
         hmac.addData(dataForSign.toUtf8());
 
         return QString(hmac.result().toHex());

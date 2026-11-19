@@ -18,7 +18,7 @@ public:
 
 protected:
 
-    void onInstrumentsInfoPageReceived(const Core::Tools::Instruments& instruments, const QString& nextPageCursor, const QVariant& context) override;
+    void onInstrumentsInfoPageReceived(const Instruments& instruments, const QString& nextPageCursor, const QVariant& context) override;
 
 
 };

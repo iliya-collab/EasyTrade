@@ -34,16 +34,16 @@ namespace Core::Tools {
         explicit OrderbookSideModel(QObject* parent = nullptr);
         explicit OrderbookSideModel(Side side, QObject* parent = nullptr);
 
-        // Обязательные методы QAbstractListModel
         int rowCount(const QModelIndex &parent = QModelIndex()) const override;
         QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
         QHash<int, QByteArray> roleNames() const override;
 
         Side getSide() const { return m_side; }
         void setSide(Side side);
-        void update(const QMap<QString, QString>& data);
 
-        //Q_INVOKABLE void update(const QVariantList& data);
+        void snapshot(const QMap<QString, QString>& data);
+        void deltaUpdate(const QMap<QString, QString>& data);
+
         Q_INVOKABLE void clear();
         Q_INVOKABLE QVariantMap get(int index) const;
 
@@ -57,36 +57,42 @@ namespace Core::Tools {
 
     private:
 
-        struct Level {
+        struct BookLevel
+        {
             double price = 0;           // Цена на уровне
             double volume = 0;          // Обьем на уровне
             double turnover = 0;        // Оборот на уровне
 
-            double totalVolume = 0;     // Весь обьем до n уровня
-            double totalTurnover = 0;   // Весь Оборот до n уровня
-            double avgPrice = 0;        // Средняя цена за n уровней
+            // Статистика до n-ого уровня
+            double totalVolume = 0;     // Весь обьем
+            double totalTurnover = 0;   // Весь оборот
+            double avgPrice = 0;        // Средневзвешанная цена
 
-            bool operator==(const Level& other) const {
-                return  this->price == other.price &&
-                        this->volume == other.volume &&
-                        this->turnover == other.turnover &&
-                        this->totalVolume == other.totalVolume &&
-                        this->totalTurnover == other.totalTurnover &&
-                        this->avgPrice == other.avgPrice;
+            bool operator==(const BookLevel& other) const {
+                return this->price == other.price &&
+                       this->volume == other.volume;
             }
 
-            bool operator!=(const Level& other) const {
+            bool operator!=(const BookLevel& other) const {
                 return !(*this == other);
             }
 
         };
+
+        using BookLevels = QList<BookLevel>;
+
+        bool before(double a, double b) const;
+        bool isVolumeLiquidation(double v) const;
+        int findBookLevel(double p) const;
+        void recalcCumulative(int from);
+        void updateStats();
 
         int m_count = 0;
         double m_maxVolume = 0;
         double m_totalVolume = 0;
         double m_totalTurnover = 0;
         Side m_side;
-        std::vector<Level> m_levels;
+        BookLevels m_orderbook;
 
     };
 

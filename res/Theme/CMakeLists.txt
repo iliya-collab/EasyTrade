@@ -1,4 +1,5 @@
-set_source_files_properties(Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(Theme.qml Format.qml
+    PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt_add_qml_module(Theme
     URI Theme
@@ -7,4 +8,5 @@ qt_add_qml_module(Theme
     OUTPUT_DIRECTORY "${QML_MODULES}/Theme"
     QML_FILES
         Theme.qml
+        Format.qml
 )

@@ -2,9 +2,9 @@
 
 namespace Core::Tools {
 
-const QList<Kline> KlineStore::s_empty{};
+const Klines KlineStore::s_empty{};
 
-QList<Kline> KlineStore::series(const QString& timeframe) const
+Klines KlineStore::series(const QString& timeframe) const
 {
     auto it = m_klineSeries.constFind(timeframe);
     if (it == m_klineSeries.constEnd())
@@ -18,7 +18,7 @@ int KlineStore::seriesSize(const QString &timeframe) const
     return it == m_klineSeries.constEnd() ? 0 : it->size();
 }
 
-bool KlineStore::lastKline(const QString& timeframe, Kline& out) const
+bool KlineStore::lastKline(const QString& timeframe, KlineInfo& out) const
 {
     auto it = m_klineSeries.constFind(timeframe);
     if (it == m_klineSeries.constEnd() || it->isEmpty())
@@ -33,9 +33,9 @@ bool KlineStore::hasTimeframe(const QString& timeframe) const
     return it != m_klineSeries.constEnd();
 }
 
-void KlineStore::updateKline(const Kline& kline)
+void KlineStore::updateKline(const KlineInfo& kline)
 {
-    QString tf = Tools::EnumHelpers::intervalToString(kline.m_interval);
+    QString tf = EnumHelpers::intervalToString(kline.m_interval);
     auto& bucket = m_klineSeries[tf];
 
     auto it = bucket.find(kline.m_start);
@@ -45,6 +45,7 @@ void KlineStore::updateKline(const Kline& kline)
         return;
     }
 
+    it.value().m_open       = kline.m_open;
     it.value().m_close      = kline.m_close;
     it.value().m_volume     = kline.m_volume;
     it.value().m_turnover   = kline.m_turnover;
@@ -53,9 +54,9 @@ void KlineStore::updateKline(const Kline& kline)
     emit klineUpdated(tf);
 }
 
-void KlineStore::addKline(const Kline& kline)
+void KlineStore::addKline(const KlineInfo& kline)
 {
-    QString tf = Tools::EnumHelpers::intervalToString(kline.m_interval);
+    QString tf = EnumHelpers::intervalToString(kline.m_interval);
     auto& bucket = m_klineSeries[tf];
 
     if (bucket.contains(kline.m_start))
@@ -68,12 +69,12 @@ void KlineStore::addKline(const Kline& kline)
     emit klineAppended(tf);
 }
 
-void KlineStore::addHistoricalKlines(const QList<Kline>& klines)
+void KlineStore::addHistoricalKlines(const Klines& klines)
 {
     if (klines.isEmpty())
         return;
 
-    QString tf = Tools::EnumHelpers::intervalToString(klines.first().m_interval);
+    QString tf = EnumHelpers::intervalToString(klines.first().m_interval);
     auto& bucket = m_klineSeries[tf];
 
     for (const auto& kline : klines)

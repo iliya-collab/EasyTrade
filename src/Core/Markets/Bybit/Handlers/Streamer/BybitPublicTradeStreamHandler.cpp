@@ -10,24 +10,24 @@ void Core::Handlers::BybitPublicTradeStreamHandler::handle(const QString& id, co
 
     QJsonArray arrData = obj["data"].toArray();
     QString symbol = obj["topic"].toString().section('.', -1);
-    Tools::EnumHelpers::MarketType category = Tools::EnumHelpers::apiStringToMarketType(id);
+    EnumHelpers::MarketType category = EnumHelpers::apiStringToMarketType(id);
 
-    Tools::PublicTrades publicTrades{};
+    PublicTrades publicTrades{};
 
     for (const auto& val : std::as_const(arrData))
     {
         QJsonObject itemData = val.toObject();
 
-        Tools::PublicTradeItem publicTradeItem{};
-        publicTradeItem.m_category = category;
-        publicTradeItem.m_symbol = symbol;
-        publicTradeItem.m_side = Tools::EnumHelpers::stringToOrderSide(itemData["S"].toString());
-        publicTradeItem.m_price = itemData["p"].toString();
-        publicTradeItem.m_volume = itemData["v"].toString();
-        publicTradeItem.m_turnover = QString::number(publicTradeItem.m_price.toDouble() * publicTradeItem.m_volume.toDouble());
-        publicTradeItem.m_tradeTime = itemData["T"].toVariant().toLongLong();
+        PublicTradeInfo publicTrade{};
+        publicTrade.m_category = category;
+        publicTrade.m_symbol = symbol;
+        publicTrade.m_side = EnumHelpers::stringToOrderSide(itemData["S"].toString());
+        publicTrade.m_price = itemData["p"].toString();
+        publicTrade.m_volume = itemData["v"].toString();
+        publicTrade.m_turnover = QString::number(publicTrade.m_price.toDouble() * publicTrade.m_volume.toDouble());
+        publicTrade.m_tradeTime = itemData["T"].toVariant().toLongLong();
 
-        publicTrades.append(publicTradeItem);
+        publicTrades.append(publicTrade);
     }
 
     emit signaller->publicTradeUpdated(publicTrades);

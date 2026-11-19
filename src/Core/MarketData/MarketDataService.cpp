@@ -9,63 +9,68 @@ namespace Core
 MarketDataService::MarketDataService(std::shared_ptr<MarketDataState> state,
                                  std::shared_ptr<MarketDataMediator> mediator,
                                  QObject *parent) :
-    m_state(state), m_mediator(mediator), QObject(parent)
+    m_state(state), m_mediator(mediator), BaseService(parent)
 {
     connect(mediator.get(), &MarketDataMediator::tickerReady,
-            state.get(), &MarketDataState::updateTicker, Qt::UniqueConnection);
+            state.get(), &MarketDataState::updateTicker);
 
-    connect(mediator.get(), &MarketDataMediator::orderbookReady,
-            state.get(), &MarketDataState::updateOrderbook, Qt::UniqueConnection);
+    connect(mediator.get(), &MarketDataMediator::snapshotOrderbookReady,
+            state.get(), &MarketDataState::snapshotOrderbook);
+
+    connect(mediator.get(), &MarketDataMediator::deltaUpdateOrderbookReady,
+            state.get(), &MarketDataState::deltaUpdateOrderbook);
 
     connect(mediator.get(), &MarketDataMediator::klineUpdated,
-            state.get(), &MarketDataState::updateKline, Qt::UniqueConnection);
+            state.get(), &MarketDataState::updateKline);
 
     connect(mediator.get(), &MarketDataMediator::historicalKlinesReady,
-            state.get(), &MarketDataState::addHistoricalKlines, Qt::UniqueConnection);
-
-    connect(mediator.get(), &MarketDataMediator::instrumentsReady,
-            state.get(), &MarketDataState::updateInstruments, Qt::UniqueConnection);
+            state.get(), &MarketDataState::addHistoricalKlines);
 
     connect(mediator.get(), &MarketDataMediator::tradesReady,
-            state.get(), &MarketDataState::updateTrades, Qt::UniqueConnection);
+            state.get(), &MarketDataState::updateTrades);
+
+    // --------------------------------------------------------------------------------------
+
+    connect(mediator.get(), &MarketDataMediator::instrumentsReady,
+            state.get(), &MarketDataState::uploadInstruments);
 
     connect(mediator.get(), &MarketDataMediator::pingMeasured,
-            state.get(), &MarketDataState::updatePingMs, Qt::UniqueConnection);
+            state.get(), &MarketDataState::updatePingMs);
 
     // --------------------------------------------------------------------------------------
 
     connect(mediator.get(), &MarketDataMediator::messageSent,
-            this, &MarketDataService::messageReceived, Qt::UniqueConnection);
+            this, &MarketDataService::messageReceived);
 
     connect(mediator.get(), &MarketDataMediator::streamerStarted,
-            this, &MarketDataService::onStreamerStarted, Qt::UniqueConnection);
+            this, &MarketDataService::onStreamerStarted);
 
     connect(mediator.get(), &MarketDataMediator::streamerStopped,
-            this, &MarketDataService::onStreamerStopped, Qt::UniqueConnection);
+            this, &MarketDataService::onStreamerStopped);
 
     connect(mediator.get(), &MarketDataMediator::downloadProgress,
-            this, &MarketDataService::downloadProgress, Qt::UniqueConnection);
+            this, &MarketDataService::downloadProgress);
 
     connect(mediator.get(), &MarketDataMediator::errorOccurredWithId,
-            this, &MarketDataService::onErrorOccurredWithId, Qt::UniqueConnection);
+            this, &MarketDataService::onErrorOccurredWithId);
 
     connect(mediator.get(), &MarketDataMediator::errorOccurred,
-            this, &MarketDataService::onErrorOccurred, Qt::UniqueConnection);
+            this, &MarketDataService::onErrorOccurred);
 }
 
 void MarketDataService::run()
 {
-    m_mediator->runStreamer();
+    m_mediator->runAllStreams();
 }
 
 void MarketDataService::restart()
 {
-    m_mediator->restartStreamer();
+    m_mediator->restartAllStreams();
 }
 
 void MarketDataService::shutdown()
 {
-    m_mediator->stopStreamer();
+    m_mediator->stopAllStreams();
 
     QEventLoop loop;
     QTimer::singleShot(5000, &loop, &QEventLoop::quit);
@@ -81,35 +86,50 @@ void MarketDataService::init(bool isTestnet)
     m_mediator->init(isTestnet);
 }
 
-void MarketDataService::selectCurrentInstrument(const Tools::InstrumentInfo &instrument)
+void MarketDataService::openInstrument(const InstrumentInfo &inst)
 {
-    m_state->selectCurrentInstrument(instrument);
-}
-
-void MarketDataService::subscribeInstrument()
-{
-    const auto& instrument = m_state->getCurrentInstrument();
-    m_mediator->subscribe(instrument.m_symbol);
-}
-
-void MarketDataService::loadInstruments(Core::Tools::EnumHelpers::MarketType type)
-{
-    auto res = m_mediator->readInstrumentsFromRepository(type);
-
-    if (!res.isEmpty())
+    if (m_state->isOpened(inst))
     {
-        m_state->updateInstruments(res);
+        emit messageReceived(QLatin1String("Instrument %1 was already opened").arg(inst.id()));
         return;
     }
 
-    m_mediator->loadInstrumentsFromNetwork(type);
+    m_state->openInstrument(inst);
+    m_mediator->subscribe(inst.m_category, inst.m_symbol);
+    emit messageReceived(QLatin1String("Instrument %1 was opened").arg(inst.id()));
+}
+
+void MarketDataService::closeInstrument(const InstrumentInfo& inst)
+{
+    if (!m_state->isOpened(inst))
+    {
+        emit messageReceived(QLatin1String("Instrument %1 was already closed").arg(inst.id()));
+        return;
+    }
+
+    m_state->closeInstrument(inst);
+    m_mediator->unsubscribe(inst.m_category, inst.m_symbol);
+    emit messageReceived(QLatin1String("Instrument %1 was closed").arg(inst.id()));
+}
+
+void MarketDataService::selectCurrentInstrument(const InstrumentInfo &inst)
+{
+    if (!m_state->instrument(inst))
+        openInstrument(inst);
+
+    m_state->setCurrent(inst);
+}
+
+void MarketDataService::loadInstruments(EnumHelpers::MarketType type)
+{
+    m_mediator->loadInstruments(type);
 }
 
 void MarketDataService::loadKlines(const QVariantMap& params)
 {
     validateAndSend(params, Tools::buildKlinesRequest, [this](const Tools::KlinesRequest& req)
     {
-        m_mediator->loadKlinesFromNetwork(req);
+        m_mediator->loadKlines(req);
     });
 }
 
@@ -137,14 +157,14 @@ void MarketDataService::exportKlines(const QString &path,
     auto klines = m_mediator->readKlinesFromRepository(reqStd.value(), reqSpecial.value());
     if (klines.isEmpty())
     {
-        emit errorOccurred("export: no klines in repository for the requested range");
+        emit warningOccurred("[export] no klines in repository for the requested range");
         return;
     }
 
     const QUrl url(path);
     const QString localPath = url.isLocalFile() ? url.toLocalFile() : path;
 
-    doExport(klines, format, localPath, [](const Tools::Kline& k) { return Tools::Exporter::toField(k); }, opts);
+    doExport(klines, format, localPath, [](const KlineInfo& k) { return Tools::Exporter::toField(k); }, opts);
 }
 
 void MarketDataService::exportTrades(const QString &path, Tools::Exporter::ExportFormat format, const QVariantMap &opts, const QVariantMap &params)
@@ -159,14 +179,14 @@ void MarketDataService::exportTrades(const QString &path, Tools::Exporter::Expor
     auto trades = m_mediator->readPublicTradesFromRepository(reqStd.value());
     if (trades.isEmpty())
     {
-        emit errorOccurred("export: no trades in repository");
+        emit warningOccurred("[export] no trades in repository");
         return;
     }
 
     const QUrl url(path);
     const QString localPath = url.isLocalFile() ? url.toLocalFile() : path;
 
-    doExport(trades, format, localPath, [](const Tools::PublicTradeItem& t) { return Tools::Exporter::toField(t); }, opts);
+    doExport(trades, format, localPath, [](const PublicTradeInfo& t) { return Tools::Exporter::toField(t); }, opts);
 }
 
 void MarketDataService::onErrorOccurredWithId(const QString& id, const QString &error)
@@ -177,11 +197,13 @@ void MarketDataService::onErrorOccurredWithId(const QString& id, const QString &
 
 void MarketDataService::onStreamerStarted(const QString& id)
 {
+    emit messageReceived(QLatin1String("Streamer (id : %1) started").arg(id));
     emit streamerStarted(id);
 }
 
 void MarketDataService::onStreamerStopped(const QString& id)
 {
+    emit messageReceived(QLatin1String("Streamer (id : %1) stopped").arg(id));
     emit streamerStopped(id);
 }
 

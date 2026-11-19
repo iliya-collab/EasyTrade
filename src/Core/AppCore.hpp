@@ -1,7 +1,7 @@
 #pragma once
 #include "MarketData/MarketDataService.hpp"
-#include "Account/AccountService.hpp"
-#include "Config/ConfigurationManager.hpp"
+#include "AccountData/AccountService.hpp"
+#include "Config/Configuration.hpp"
 #include "Tools/DataModels/LogModel.hpp"
 #include <QQmlContext>
 #include <QObject>
@@ -13,11 +13,11 @@ class AppCore : public QObject
     QML_ELEMENT
     QML_SINGLETON
 
-    Q_PROPERTY(Core::MarketDataState* marketState READ getMarketState CONSTANT)
-    Q_PROPERTY(Core::MarketDataService* marketService READ getMarketService CONSTANT)
-    Q_PROPERTY(Core::AccountState* accountState READ getAccountState CONSTANT)
-    Q_PROPERTY(Core::AccountService* accountService READ getAccountService CONSTANT)
-    Q_PROPERTY(Core::Tools::LogModel* logModel READ getLogModel CONSTANT)
+    Q_PROPERTY(Core::MarketDataState*   marketState     READ getMarketState     CONSTANT)
+    Q_PROPERTY(Core::MarketDataService* marketService   READ getMarketService   CONSTANT)
+    Q_PROPERTY(Core::AccountState*      accountState    READ getAccountState    CONSTANT)
+    Q_PROPERTY(Core::AccountService*    accountService  READ getAccountService  CONSTANT)
+    Q_PROPERTY(Core::Tools::LogModel*   logModel        READ getLogModel        CONSTANT)
 
 private:
 
@@ -31,15 +31,27 @@ private:
 
     std::unique_ptr<Core::Tools::LogModel> m_logModel;
 
-    void init();
+    Core::ConfigurationParams m_config{};
+
+    void runCore();
+
+    void initLogging();
+
+    void initMarketService();
+    void runMarketService();
+
+    void initAccountService();
+    void runAccountService();
+
+    void readConfiguration();
 
     explicit AppCore(QObject* parent = nullptr);
     ~AppCore() = default;
 
 public:
 
-    // --- Singleton для QML ---
     static AppCore& instance();
+    // --- Singleton для QML ---
     static AppCore* create(QQmlEngine*, QJSEngine*);
 
     Core::MarketDataState* getMarketState() const { return m_marketState.get(); }

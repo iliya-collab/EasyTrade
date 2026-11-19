@@ -8,12 +8,12 @@ namespace Core
 struct ConfigurationParams
 {
     // Общее
-    bool m_autoConnection = true;
-    bool m_enableTrades = false;
-    bool m_testnet = true;
-    QString m_activeApi = "";
+    bool autoConnection = true;
+    bool enableTrades = false;
+    bool testnet = true;
+    QString activeApi = "";
     // Набор ключей
-    QMap<QString, Tools::Api> m_apis{};
+    QMap<QString, Api> apis{};
 };
 
 }

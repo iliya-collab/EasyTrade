@@ -10,71 +10,77 @@
 namespace Core
 {
 
-    BybitMarketDataStreamer::BybitMarketDataStreamer(Tools::EnumHelpers::MarketType type, QObject* parent)
-        : BaseMarketDataStreamer(
-            Tools::BybitWebSocketCreator::create(Tools::SocketType::Public, type, Tools::Api(), parent),
-            parent
-        )
-    {
-        qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
+BybitMarketDataStreamer::BybitMarketDataStreamer(EnumHelpers::MarketType type, QObject* parent)
+    : m_marketType{type},
+    BaseMarketDataStreamer(
+        BybitWebSocketCreator::create(SocketType::Public, type, Api(), parent),
+        parent
+    )
+{
+    qDebug() << Q_FUNC_INFO << "called from:" << QThread::currentThread();
 
-        registerHandler<Handlers::BybitTickerStreamHandler>();
-        registerHandler<Handlers::BybitOrderbookStreamHandler>();
-        registerHandler<Handlers::BybitKlineStreamHandler>();
-        registerHandler<Handlers::BybitPublicTradeStreamHandler>();
-    }
+    registerHandler<Handlers::BybitTickerStreamHandler>();
+    registerHandler<Handlers::BybitOrderbookStreamHandler>();
+    registerHandler<Handlers::BybitKlineStreamHandler>();
+    registerHandler<Handlers::BybitPublicTradeStreamHandler>();
+}
 
-    BybitMarketDataStreamer::~BybitMarketDataStreamer()
-    {
-        if (!m_webSocket)
-            return;
+BybitMarketDataStreamer::~BybitMarketDataStreamer()
+{
+    if (!m_webSocket)
+        return;
 
-        m_webSocket->close();
-    }
+    m_webSocket->close();
+}
 
-    QString BybitMarketDataStreamer::id()
-    {
-        return m_webSocket->getId();
-    }
+QString BybitMarketDataStreamer::id()
+{
+    return m_webSocket->getId();
+}
 
-    void BybitMarketDataStreamer::init(bool isTestnet)
-    {
-        Tools::Api api {"", ""};
-        m_webSocket->init(api, isTestnet);
-    }
+EnumHelpers::MarketType BybitMarketDataStreamer::marketType()
+{
+    return m_marketType;
+}
 
-    void BybitMarketDataStreamer::sendSubscriptionMessage(const QStringList &streams)
-    {
-        Bybit::WsProtocol::sendChunked(*m_webSocket, "subscribe", streams);
-    }
+void BybitMarketDataStreamer::init(bool isTestnet)
+{
+    Api api {"", ""};
+    m_webSocket->init(api, isTestnet);
+}
 
-    void BybitMarketDataStreamer::sendUnsubscriptionMessage(const QStringList &streams)
-    {
-        Bybit::WsProtocol::sendChunked(*m_webSocket, "unsubscribe", streams);
-    }
+void BybitMarketDataStreamer::sendSubscriptionMessage(const QStringList &streams)
+{
+    Bybit::WsProtocol::sendChunked(*m_webSocket, "subscribe", streams);
+}
 
-    QString BybitMarketDataStreamer::createTickerStream(const QString &symbol) const
-    {
-        return QString("tickers.%1").arg(symbol);
-    }
+void BybitMarketDataStreamer::sendUnsubscriptionMessage(const QStringList &streams)
+{
+    Bybit::WsProtocol::sendChunked(*m_webSocket, "unsubscribe", streams);
+}
 
-    QString BybitMarketDataStreamer::createOrderbookStream(const QString &symbol, int depth) const
-    {
-        return QString("orderbook.%1.%2")
-            .arg(depth)
-            .arg(symbol);
-    }
+QString BybitMarketDataStreamer::createTickerStream(const QString &symbol) const
+{
+    return QString("tickers.%1").arg(symbol);
+}
 
-    QString BybitMarketDataStreamer::createKlineStream(const QString &symbol, Tools::EnumHelpers::Interval interval) const
-    {
-        return QString("kline.%1.%2")
-            .arg(Tools::EnumHelpers::intervalToString(interval))
-            .arg(symbol);
-    }
+QString BybitMarketDataStreamer::createOrderbookStream(const QString &symbol, int depth) const
+{
+    return QString("orderbook.%1.%2")
+        .arg(depth)
+        .arg(symbol);
+}
 
-    QString BybitMarketDataStreamer::createPublicTradeStream(const QString &symbol) const
-    {
-        return QString("publicTrade.%1").arg(symbol);
-    }
+QString BybitMarketDataStreamer::createKlineStream(const QString &symbol, EnumHelpers::Interval interval) const
+{
+    return QString("kline.%1.%2")
+        .arg(EnumHelpers::intervalToString(interval))
+        .arg(symbol);
+}
+
+QString BybitMarketDataStreamer::createPublicTradeStream(const QString &symbol) const
+{
+    return QString("publicTrade.%1").arg(symbol);
+}
 
 }

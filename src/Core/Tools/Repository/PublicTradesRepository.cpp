@@ -18,9 +18,8 @@ const QString kInsertTradeSql = QStringLiteral(R"(
     VALUES (?, ?, ?, ?, ?, ?)
 )").arg(kTradesTable, kColumns);
 
-QVariantList tradeBindings(const Core::Tools::PublicTradeItem& t)
+QVariantList tradeBindings(const PublicTradeInfo& t)
 {
-    using Core::Tools::EnumHelpers;
     return {
         EnumHelpers::marketTypeToApiString(t.m_category),
         t.m_symbol,
@@ -40,7 +39,7 @@ void PublicTradesRepository::handleSelectedPublicTrades(QSqlQuery& query)
 {
     while (query.next())
     {
-        PublicTradeItem t;
+        PublicTradeInfo t;
         t.m_category  = EnumHelpers::apiStringToMarketType(query.value("category").toString());
         t.m_symbol    = query.value("symbol").toString();
         t.m_side      = EnumHelpers::stringToOrderSide(query.value("side").toString());

@@ -18,7 +18,7 @@ Dialog {
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
     // ---- Контекст ордера ----
-    readonly property Instrument instrument: AppCore.marketState.currentInstrument
+    readonly property tInstrumentInfo instrument: AppCore.marketState.current.info
     property int category: instrument.category
     property string symbol: instrument.symbol
 

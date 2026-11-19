@@ -14,7 +14,8 @@ public:
     ~BybitPrivateStreamer();
 \
     QString id() override;
-    void init(const Core::Tools::Api& api, bool isTestnet) override;
+    Eh::MarketType marketType() override;
+    void init(const Api& api, bool isTestnet) override;
 
 private:
 

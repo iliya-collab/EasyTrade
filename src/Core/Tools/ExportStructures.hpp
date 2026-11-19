@@ -1,7 +1,8 @@
 #ifndef EXPORTSTRUCTURES_HPP
 #define EXPORTSTRUCTURES_HPP
-#include "EnumHelpers.hpp"
+#include "Types/EnumHelpers.hpp"
 #include <QString>
+using namespace Core::Tools::Types;
 
 namespace Core::Tools
 {

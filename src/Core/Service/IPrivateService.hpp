@@ -14,10 +14,10 @@ public:
     // Доступ к своему сигнальщику
     virtual PrivateServiceSignals* signaller() const = 0;
 
-    virtual void init(const Tools::Api& api, bool isTestnet) = 0;
+    virtual void init(const Api& api, bool isTestnet) = 0;
 
     // Запрос информации об аккаунте
-    virtual void requestAccountBalance() = 0;
+    virtual void requestWalletBalance() = 0;
     // Запрос информации об Api
     virtual void requestInfoAboutApi() = 0;
 
@@ -33,6 +33,8 @@ public:
     virtual void requestCancelOrder(const Tools::OrderCancelRequest& request) = 0;
     // POST /v5/order/cancel-all — отменить все ордера по фильтру
     virtual void requestCancelAllOrders(const Tools::OrderCancelAllRequest& request) = 0;
+    // GET /v5/account/fee-rate - получение комиссий
+    virtual void requestFeeRates(const Tools::FeeRateRequest& request) = 0;
 
     // GET /v5/order/realtime — получить список активных ордеров
     virtual void requestOpenOrdersAll(const Tools::OpenOrdersRequest& request) = 0;

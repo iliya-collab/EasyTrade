@@ -4,7 +4,7 @@ QUrlQuery Core::Handlers::GetBybitOpenOrdersHandler::buildRequest(const Tools::O
 {
     QUrlQuery params;
 
-    params.addQueryItem("category", Tools::EnumHelpers::marketTypeToApiString(req.m_category));
+    params.addQueryItem("category", EnumHelpers::marketTypeToApiString(req.m_category));
 
     if (req.m_symbol.has_value() && !req.m_symbol->isEmpty())
         params.addQueryItem("symbol", req.m_symbol.value());
@@ -46,27 +46,27 @@ void Core::Handlers::GetBybitOpenOrdersHandler::handle(const QJsonObject &data, 
 
     QJsonObject result = data["result"].toObject();
     QJsonArray list = result["list"].toArray();
-    Tools::EnumHelpers::MarketType category = Tools::EnumHelpers::apiStringToMarketType(result["category"].toString());
+    EnumHelpers::MarketType category = EnumHelpers::apiStringToMarketType(result["category"].toString());
     QString nextPageCursor = result["nextPageCursor"].toString();
 
-    QList<Tools::OrderInfo> orders{};
+    Orders orders{};
 
     for (const auto& item : std::as_const(list))
     {
         QJsonObject obj = item.toObject();
-        Tools::OrderInfo o{};
+        OrderInfo o{};
 
         o.m_category = category;
         o.m_symbol = obj["symbol"].toString();
         o.m_orderId = obj["orderId"].toString();
         o.m_orderLinkId = obj["orderLinkId"].toString();
-        o.m_side = Tools::EnumHelpers::stringToOrderSide(obj["side"].toString());
-        o.m_orderType = Tools::EnumHelpers::stringToOrderType(obj["orderType"].toString());
+        o.m_side = EnumHelpers::stringToOrderSide(obj["side"].toString());
+        o.m_orderType = EnumHelpers::stringToOrderType(obj["orderType"].toString());
 
         o.m_price = obj["price"].toString();
         o.m_qty = obj["qty"].toString();
 
-        o.m_status = Tools::EnumHelpers::stringToOrderStatus(obj["orderStatus"].toString());
+        o.m_status = EnumHelpers::stringToOrderStatus(obj["orderStatus"].toString());
         o.m_positionIdx = obj.value("positionIdx").toInt(0);
 
         o.m_leavesQty = obj["leavesQty"].toString();

@@ -23,9 +23,10 @@ namespace Core::Tools {
         if (row < 0 || row >= m_rows.size())
             return {};
 
-        const Kline& k = m_rows.at(row);
+        const KlineInfo& k = m_rows.at(row);
 
-        switch (role) {
+        switch (role)
+        {
         case OpenRole:      return k.m_open.toDouble();
         case CloseRole:     return k.m_close.toDouble();
         case HighRole:      return k.m_high.toDouble();
@@ -102,7 +103,7 @@ namespace Core::Tools {
         m_rows = m_source->series(m_timeframe);
     }
 
-    QVariantMap KlineSeriesModel::toMap(const Kline &k)
+    QVariantMap KlineSeriesModel::toMap(const KlineInfo &k)
     {
         return {
             {"open",      k.m_open.toDouble()},
@@ -140,7 +141,7 @@ namespace Core::Tools {
         if (timeframe != m_timeframe || !m_source)
             return;
 
-        Kline k;
+        KlineInfo k;
         if (!m_source->lastKline(m_timeframe, k))
             return;
 
@@ -158,7 +159,7 @@ namespace Core::Tools {
         if (timeframe != m_timeframe || !m_source || m_rows.isEmpty())
             return;
 
-        Kline k;
+        KlineInfo k;
         if (!m_source->lastKline(m_timeframe, k))
             return;
 

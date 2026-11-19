@@ -15,7 +15,7 @@ public:
     // Доступ к своему сигнальщику
     virtual PrivateStreamerSignals* signaller() const = 0;
 
-    virtual void init(const Core::Tools::Api& api, bool isTestnet) = 0;
+    virtual void init(const Api& api, bool isTestnet) = 0;
 
     // Отправка всех текущих подписок
     virtual void connectToStreams() = 0;

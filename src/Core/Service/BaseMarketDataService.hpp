@@ -21,7 +21,7 @@ public:
 
 protected slots:
 
-    virtual void onInstrumentsInfoPageReceived(const Core::Tools::Instruments&, const QString&, const QVariant&) = 0;
+    virtual void onInstrumentsInfoPageReceived(const Instruments&, const QString&, const QVariant&) = 0;
 
 };
 

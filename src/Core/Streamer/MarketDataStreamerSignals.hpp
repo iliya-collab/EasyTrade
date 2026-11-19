@@ -16,10 +16,11 @@ public:
 
 signals:
 
-    void tickerUpdated(const Core::Tools::Ticker& newTicker);
-    void orderbookUpdated(const Core::Tools::Orderbook& newOrderBook);
-    void klineUpdated(const Core::Tools::Kline& newKline);
-    void publicTradeUpdated(const Core::Tools::PublicTrades& newPublicTrades);
+    void tickerUpdated(const TickerInfo& newTicker);
+    void orderbookSnapshot(const OrderbookInfo& snapshot);
+    void orderbookDeltaUpdated(const OrderbookInfo& deltaOrderbook);
+    void klineUpdated(const KlineInfo& newKline);
+    void publicTradeUpdated(const PublicTrades& newPublicTrades);
 
 };
 

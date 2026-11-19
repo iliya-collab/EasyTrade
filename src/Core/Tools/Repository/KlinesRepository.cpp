@@ -34,10 +34,8 @@ const QString kUpsertKlineSql = QStringLiteral(R"(
         turnover = EXCLUDED.turnover;
 )").arg(kCandlesTable, kColumns);
 
-QVariantList klineBindings(const Core::Tools::Kline& k)
+QVariantList klineBindings(const KlineInfo& k)
 {
-    using Core::Tools::EnumHelpers;
-    using Core::Tools::EnumHelpers;
     return {
         EnumHelpers::marketTypeToApiString(k.m_category), k.m_symbol,
         EnumHelpers::intervalToString(k.m_interval),
@@ -56,10 +54,10 @@ namespace Core::Tools
     {
         while (query.next())
         {
-            Kline k;
-            k.m_category = Tools::EnumHelpers::apiStringToMarketType(query.value("category").toString());
+            KlineInfo k;
+            k.m_category = EnumHelpers::apiStringToMarketType(query.value("category").toString());
             k.m_symbol   = query.value("symbol").toString();
-            k.m_interval = Tools::EnumHelpers::stringToInterval(query.value("interval").toString());
+            k.m_interval = EnumHelpers::stringToInterval(query.value("interval").toString());
             k.m_start    = query.value("start").toLongLong();
             k.m_end      = query.value("end").toLongLong();
             k.m_open     = query.value("open").toString();
@@ -105,7 +103,7 @@ namespace Core::Tools
         return m_dbManager.executeQuery(m_dbPath, "DELETE FROM candles");
     }
 
-    bool KlinesRepository::insert(const QList<Kline>& newKlines)
+    bool KlinesRepository::insert(const Klines& newKlines)
     {
         if (newKlines.isEmpty())
             return true;
@@ -125,7 +123,7 @@ namespace Core::Tools
         return m_dbManager.commitTransaction(m_dbPath);
     }
 
-    bool KlinesRepository::insert(const Kline& newKline)
+    bool KlinesRepository::insert(const KlineInfo& newKline)
     {
         return m_dbManager.executePrepared(m_dbPath, kUpsertKlineSql, klineBindings(newKline));
     }

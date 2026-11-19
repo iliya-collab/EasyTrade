@@ -1,16 +1,33 @@
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Shapes 1.15
+import QtCore
 import Application.Core 1.0
 import Components.Configs 1.0
+import Theme 1.0
 
 Rectangle {
     id: root
     color: "transparent"
-    implicitWidth: TickerConfig.implicitWidth
-    implicitHeight: TickerConfig.implicitHeight
+    clip: true
 
-    readonly property Ticker tckr : AppCore.marketState.ticker
+    // === Скрытие ===
+    // В свёрнутом состоянии виджет сжимается до тонкой полоски (символ + цена),
+    // клик по ней или пункт контекстного меню возвращает шкалу.
+    readonly property int collapsedHeight: 24
+    property alias hidden: store.hidden
+
+    Settings {
+        id: store
+        category: "TickerWidget"
+        property bool hidden: false
+    }
+
+    implicitWidth: TickerConfig.implicitWidth
+    implicitHeight: hidden ? collapsedHeight : TickerConfig.implicitHeight
+
+    readonly property tTickerInfo tckr : AppCore.marketState.current.ticker
 
     // === Данные ===
     property string symbol:     tckr.symbol ? tckr.symbol : TickerConfig.fallbackSymbol
@@ -58,6 +75,7 @@ Rectangle {
         anchors.fill: parent
         anchors.margins: TickerConfig.margins
         spacing: TickerConfig.spacing
+        visible: !root.hidden
 
         // Заголовок
         Text {
@@ -299,6 +317,63 @@ Rectangle {
                     font.pixelSize: TickerConfig.axisFontSize
                 }
             }
+        }
+    }
+
+    // === Свёрнутая полоска ===
+    Item {
+        id: collapsedBar
+        anchors.fill: parent
+        visible: root.hidden
+
+        Row {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+            anchors.leftMargin: TickerConfig.margins
+            spacing: 10
+
+            Text {
+                text: "\u25B8"
+                color: root.axisColor
+                font.pixelSize: TickerConfig.labelFontSize
+            }
+            Text {
+                text: root.symbol
+                color: root.titleColor
+                font.pixelSize: TickerConfig.labelFontSize
+                font.bold: true
+            }
+            Text {
+                text: TickerConfig.formatPrice(root.current)
+                color: root.directionColor
+                font.pixelSize: TickerConfig.labelFontSize
+            }
+        }
+
+        TapHandler {
+            acceptedButtons: Qt.LeftButton
+            onTapped: root.hidden = false
+        }
+    }
+
+    // === Контекстное меню ===
+    TapHandler {
+        acceptedButtons: Qt.RightButton
+        onTapped: tickerMenu.popup(point.position.x, point.position.y)
+    }
+
+    Menu {
+        id: tickerMenu
+        background: Rectangle {
+            implicitWidth: 180
+            color: Theme.windowColor
+            border.width: Theme.borderWidth
+            border.color: Theme.borderColor
+        }
+
+        MenuItem {
+            text: root.hidden ? qsTr("Show") : qsTr("Hide")
+            onTriggered: root.hidden = !root.hidden
         }
     }
 }

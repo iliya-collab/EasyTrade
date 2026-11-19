@@ -17,7 +17,7 @@ Button {
     font.family: Theme.fontFamily
 
     background: Rectangle {
-        color: !root.enabled ? Theme.disabledButtonColor
+        color: !root.enabled ? Theme.disabledColor
              : root.pressed  ? Theme.pressColor
              : root.hovered  ? Theme.hoverColor
              : Theme.buttonColor

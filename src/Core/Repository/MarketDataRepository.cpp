@@ -12,25 +12,24 @@ void MarketDataRepository::init(bool testnet)
 {
     const QString baseDir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
 
-    Core::Tools::DatabasePathProvider pathToDB(baseDir);
-    auto path = pathToDB.pathFor({Tools::dbScope::Market, testnet, {}});
+    DatabasePathProvider pathToDB(baseDir);
+    auto path = pathToDB.pathFor({dbScope::Market, testnet, {}});
 
     if (!path.has_value())
         throw std::runtime_error(path.error().toStdString());
 
     const QString dbFile = path.value();
-    auto& manager = Tools::SqliteDatabaseManager::instance();
+    auto& manager = SqliteDatabaseManager::instance();
 
     if (!manager.open(dbFile))
         throw std::invalid_argument(manager.error().toStdString());
 
-    const auto& creator = Tools::RepositoryCreator::instance();
+    const auto& creator = RepositoryCreator::instance();
 
     try
     {
-        m_instrumentsRep    = std::move(creator.create<Tools::InstrumentsRepository>(dbFile, manager));
-        m_klinesRep         = std::move(creator.create<Tools::KlinesRepository>(dbFile, manager));
-        m_publicTradesRep   = std::move(creator.create<Tools::PublicTradesRepository>(dbFile, manager));
+        m_klinesRep         = std::move(creator.create<KlinesRepository>(dbFile, manager));
+        m_publicTradesRep   = std::move(creator.create<PublicTradesRepository>(dbFile, manager));
     }
     catch (const std::exception& e)
     {
@@ -39,20 +38,9 @@ void MarketDataRepository::init(bool testnet)
     }
 }
 
-Tools::Instruments MarketDataRepository::loadInstruments(Tools::EnumHelpers::MarketType type)
-{
-    QMutexLocker locker(&m_mutex);
-    if (!m_instrumentsRep->selectInstruments(type))
-    {
-        emit errorOccurred(m_instrumentsRep->error());
-        return {};
-    }
-    return m_instrumentsRep->getData();
-}
-
-QList<Tools::Kline> MarketDataRepository::loadKlines(Tools::EnumHelpers::MarketType type,
+Klines MarketDataRepository::loadKlines(EnumHelpers::MarketType type,
                                                      const QString &symbol,
-                                                     Tools::EnumHelpers::Interval interval,
+                                                     EnumHelpers::Interval interval,
                                                      std::optional<qint64> start,
                                                      std::optional<qint64> end)
 {
@@ -68,7 +56,7 @@ QList<Tools::Kline> MarketDataRepository::loadKlines(Tools::EnumHelpers::MarketT
     return m_klinesRep->getData();
 }
 
-Tools::PublicTrades MarketDataRepository::loadPublicTrades(Tools::EnumHelpers::MarketType type, const QString &symbol)
+PublicTrades MarketDataRepository::loadPublicTrades(EnumHelpers::MarketType type, const QString &symbol)
 {
     QMutexLocker locker(&m_mutex);
     if (!m_publicTradesRep->select(type, symbol))
@@ -77,16 +65,6 @@ Tools::PublicTrades MarketDataRepository::loadPublicTrades(Tools::EnumHelpers::M
         return {};
     }
     return m_publicTradesRep->getData();
-}
-
-void MarketDataRepository::clearInstruments()
-{
-    QMutexLocker locker(&m_mutex);
-    if (!m_instrumentsRep->clear())
-    {
-        emit errorOccurred(m_instrumentsRep->error());
-        return;
-    }
 }
 
 void MarketDataRepository::clearKlines()
@@ -109,31 +87,21 @@ void MarketDataRepository::clearPublicTrades()
     }
 }
 
-void MarketDataRepository::saveInstruments(const Tools::Instruments &newInstruments)
-{
-    QMutexLocker locker(&m_mutex);
-    if (!m_instrumentsRep->insertInstruments(newInstruments))
-    {
-        emit errorOccurred(m_instrumentsRep->error());
-        return;
-    }
-}
-
-void MarketDataRepository::saveKlines(const Tools::Kline& newKline)
+void MarketDataRepository::saveKlines(const KlineInfo& newKline)
 {
     QMutexLocker locker(&m_mutex);
     if (!m_klinesRep->insert(newKline))
         emit errorOccurred(m_klinesRep->error());
 }
 
-void MarketDataRepository::saveKlines(const QList<Tools::Kline>& newKlines)
+void MarketDataRepository::saveKlines(const Klines& newKlines)
 {
     QMutexLocker locker(&m_mutex);
     if (!m_klinesRep->insert(newKlines))
         emit errorOccurred(m_klinesRep->error());
 }
 
-void MarketDataRepository::savePublicTrades(const Tools::PublicTrades newTrades)
+void MarketDataRepository::savePublicTrades(const PublicTrades newTrades)
 {
     QMutexLocker locker(&m_mutex);
     if (!m_publicTradesRep->insert(newTrades))

@@ -16,23 +16,23 @@ void Core::Handlers::BybitPositionStreamHandler::handle(const QString& id, const
     {
         QJsonObject dataObj = iData.toObject();
 
-        Tools::PositionInfo position{};
+        PositionInfo position{};
 
-        position.m_category = Tools::EnumHelpers::apiStringToMarketType(dataObj["category"].toString());
+        position.m_category = EnumHelpers::apiStringToMarketType(dataObj["category"].toString());
         position.m_symbol = dataObj["symbol"].toString();
         QString strSide = dataObj["side"].toString();
         if (strSide == "Buy")
-            position.m_side = Tools::EnumHelpers::OrderSide::Buy;
+            position.m_side = EnumHelpers::OrderSide::Buy;
         else if (strSide == "Sell")
-            position.m_side = Tools::EnumHelpers::OrderSide::Sell;
+            position.m_side = EnumHelpers::OrderSide::Sell;
         else
         {
             if (position.m_positionIdx == 1)
-                position.m_side = Tools::EnumHelpers::OrderSide::Buy;
+                position.m_side = EnumHelpers::OrderSide::Buy;
             else if (position.m_positionIdx == 2)
-                position.m_side = Tools::EnumHelpers::OrderSide::Sell;
+                position.m_side = EnumHelpers::OrderSide::Sell;
             else
-                position.m_side = Tools::EnumHelpers::OrderSide::Unknown;
+                position.m_side = EnumHelpers::OrderSide::Unknown;
         }
         position.m_size = dataObj["size"].toString();
         position.m_positionIdx = dataObj["positionIdx"].toInt();

@@ -32,7 +32,6 @@ Item {
             textRole: "label"
             valueRole: "value"
 
-            currentIndex: indexOfValue(Theme.mode)
             onActivated: Theme.mode = currentValue
         }
 
@@ -67,6 +66,19 @@ Item {
         CustomButton {
             text: "Save"
             onClicked: ConfigurationManager.saveConfig()
+        }
+    }
+
+    Component.onCompleted: {
+        console.info("mode:", Theme.mode)
+        console.info("idx:", themeCombo.indexOfValue(Theme.mode))
+        console.info("count:", themeCombo.count)
+    }
+
+    Connections {
+        target: Theme
+        function onModeChanged() {
+            themeCombo.currentIndex = themeCombo.indexOfValue(Theme.mode)
         }
     }
 

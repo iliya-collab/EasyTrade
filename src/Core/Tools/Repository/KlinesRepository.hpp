@@ -19,16 +19,16 @@ namespace Core::Tools {
         bool init() override;
         bool clear() override;
 
-        bool insert(const QList<Kline>& newKlines);
-        bool insert(const Kline& newKline);
+        bool insert(const Klines& newKlines);
+        bool insert(const KlineInfo& newKline);
 
-        bool select(Tools::EnumHelpers::MarketType type,
+        bool select(EnumHelpers::MarketType type,
                           const QString& symbol,
-                          Tools::EnumHelpers::Interval interval);
+                          EnumHelpers::Interval interval);
 
-        bool select(Tools::EnumHelpers::MarketType type,
+        bool select(EnumHelpers::MarketType type,
                           const QString& symbol,
-                          Tools::EnumHelpers::Interval interval,
+                          EnumHelpers::Interval interval,
                           qint64 start, qint64 end);
 
     };

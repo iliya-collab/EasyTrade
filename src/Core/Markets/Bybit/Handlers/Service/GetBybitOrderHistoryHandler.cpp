@@ -5,7 +5,7 @@ QUrlQuery Core::Handlers::GetBybitOrderHistoryHandler::buildRequest(const Tools:
     QUrlQuery params;
 
     // Обязательный параметр
-    params.addQueryItem("category", Tools::EnumHelpers::marketTypeToApiString(req.m_category));
+    params.addQueryItem("category", EnumHelpers::marketTypeToApiString(req.m_category));
 
     // Фильтры по инструменту
     if (req.m_symbol.has_value() && !req.m_symbol->isEmpty())
@@ -29,7 +29,7 @@ QUrlQuery Core::Handlers::GetBybitOrderHistoryHandler::buildRequest(const Tools:
         params.addQueryItem("orderFilter", req.m_orderFilter.value());
 
     if (req.m_orderStatus.has_value())
-        params.addQueryItem("orderStatus", Tools::EnumHelpers::orderStatusToString(req.m_orderStatus.value()));
+        params.addQueryItem("orderStatus", EnumHelpers::orderStatusToString(req.m_orderStatus.value()));
 
     // Временной диапазон
     if (req.m_startTime.has_value())
@@ -58,27 +58,27 @@ void Core::Handlers::GetBybitOrderHistoryHandler::handle(const QJsonObject &data
 
     QJsonObject result = data["result"].toObject();
     QJsonArray list = result["list"].toArray();
-    Tools::EnumHelpers::MarketType category = Tools::EnumHelpers::apiStringToMarketType(result["category"].toString());
+    EnumHelpers::MarketType category = EnumHelpers::apiStringToMarketType(result["category"].toString());
     QString nextPageCursor = result["nextPageCursor"].toString();
 
-    QList<Tools::OrderInfo> orders{};
+    Orders orders{};
 
     for (const auto& item : std::as_const(list))
     {
         QJsonObject obj = item.toObject();
-        Tools::OrderInfo o{};
+        OrderInfo o{};
 
         o.m_category = category;
         o.m_symbol = obj["symbol"].toString();
         o.m_orderId = obj["orderId"].toString();
         o.m_orderLinkId = obj["orderLinkId"].toString();
-        o.m_side = Tools::EnumHelpers::stringToOrderSide(obj["side"].toString());
-        o.m_orderType = Tools::EnumHelpers::stringToOrderType(obj["orderType"].toString());
+        o.m_side = EnumHelpers::stringToOrderSide(obj["side"].toString());
+        o.m_orderType = EnumHelpers::stringToOrderType(obj["orderType"].toString());
 
         o.m_price = obj["price"].toString();
         o.m_qty = obj["qty"].toString();
 
-        o.m_status = Tools::EnumHelpers::stringToOrderStatus(obj["orderStatus"].toString());
+        o.m_status = EnumHelpers::stringToOrderStatus(obj["orderStatus"].toString());
         o.m_positionIdx = obj.value("positionIdx").toInt(0);
 
         o.m_leavesQty = obj["leavesQty"].toString();

@@ -1,5 +1,5 @@
 #pragma once
-#include "Tools/EnumHelpers.hpp"
+#include "Tools/Types/EnumHelpers.hpp"
 
 namespace Core::Streamer
 {
@@ -39,9 +39,9 @@ enum class PublicStreams
     PublicTrade
 };
 
-inline Core::Tools::EnumHelpers::Interval klineInterval(PublicStreams s)
+inline Core::Tools::Types::EnumHelpers::Interval klineInterval(PublicStreams s)
 {
-    using Core::Tools::EnumHelpers;
+    using Core::Tools::Types::EnumHelpers;
     switch (s)
     {
     case PublicStreams::Kline1m:  return EnumHelpers::Interval::Min1;
@@ -61,7 +61,7 @@ inline Core::Tools::EnumHelpers::Interval klineInterval(PublicStreams s)
     }
 }
 
-inline bool isKlineStream(PublicStreams s) { return klineInterval(s) != Core::Tools::EnumHelpers::Interval::Unknown; }
+inline bool isKlineStream(PublicStreams s) { return klineInterval(s) != Core::Tools::Types::EnumHelpers::Interval::Unknown; }
 
 inline int orderbookDepth(PublicStreams s)
 {

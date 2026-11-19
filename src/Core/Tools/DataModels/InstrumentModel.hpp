@@ -19,18 +19,25 @@ public:
         InstrumentRole
     };
 
-    explicit InstrumentModel(QObject* parent = nullptr) : QAbstractListModel(parent) {}
+    explicit InstrumentModel(QObject* parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    void updateInstruments(const Tools::Instruments& instruments);
-    auto size() { return m_instruments.size(); }
+    void resetInstruments(const Instruments& instruments);
+    void addBatchInstruments(const Instruments& instruments);
+    void upsertInstruments(const Instruments& instruments);
+    void addInstrument(const InstrumentInfo& inst);
+    void removeInstrument(const InstrumentInfo& inst);
+    size_t size();
 
 private:
 
-    Tools::Instruments m_instruments;
+    void rebuildIndex();
+
+    Instruments m_instruments;
+    QHash<QString, int> m_indexById;
 
 };
 
