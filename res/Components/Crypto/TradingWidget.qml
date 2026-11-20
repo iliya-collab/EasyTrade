@@ -15,14 +15,24 @@ Rectangle {
     // Высота узкой полоски в свёрнутом состоянии
     readonly property int collapsedHeight: 28
 
+    readonly property var views: [
+        { title: qsTr("Opened orders"),     component: openedOrdersComp },
+        { title: qsTr("Positons"),          component: positionsComp    },
+        { title: qsTr("Historical orders"), component: historyOrdersComp},
+        { title: qsTr("History of trade"),  component: tradeHistoryComp}
+    ]
+
     property alias hidden: store.hidden
+    property alias currentIndex: store.viewIndex
+    readonly property int safeIndex: Math.max(0, Math.min(currentIndex, views.length - 1))
 
     signal amendOrderRequested(string category, string symbol, string orderType,
                                string orderId, string orderLinkId)
 
     Settings {
         id: store
-        category: "TradingPanelWidget"
+        category: "TradingWidget"
+        property int  viewIndex: 0
         property bool hidden: false
     }
 
@@ -32,39 +42,12 @@ Rectangle {
         anchors.margins: Theme.margins
         visible: !root.hidden
 
-        RowLayout {
-            Layout.fillWidth: true
-
-            CustomTabBar {
-                modelTabs: [
-                    { text: "Opened orders" },
-                    { text: "Positons" },
-                    { text: "Historical orders" },
-                    { text: "History of trade" }
-                ]
-                onCurrentIndexChanged: loader.sourceComponent = loader.components[currentIndex]
-            }
-
-            Item { Layout.fillWidth: true }
-
-            ToolButton {
-                text: "\u25BE"
-                onClicked: root.hidden = true
-            }
-        }
-
         Loader {
             id: loader
             Layout.fillHeight: true
             Layout.fillWidth: true
             active: !root.hidden
-
-            property var components: [
-                openedOrdersComp,
-                positionsComp,
-                historyOrdersComp,
-                tradeHistoryComp
-            ]
+            sourceComponent: root.hidden ? null : root.views[root.safeIndex].component
         }
 
         Component {
@@ -103,31 +86,49 @@ Rectangle {
         Component { id: tradeHistoryComp; TradeHistoryWidget {} }
     }
 
-    // === Свёрнутая полоска: клик возвращает панель ===
+    // === Свёрнутая полоска ===
     ToolButton {
         anchors.fill: parent
         visible: root.hidden
-        text: "\u25B4  " + qsTr("Orders")
+        text: "\u25B4"
         onClicked: root.hidden = false
     }
 
     // === Контекстное меню ===
     TapHandler {
         acceptedButtons: Qt.RightButton
-        onTapped: panelMenu.popup(point.position.x, point.position.y)
+        onTapped: viewMenu.popup(point.position.x, point.position.y)
     }
 
-    Menu {
-        id: panelMenu
-        background: Rectangle {
-            implicitWidth: 180
-            color: Theme.windowColor
-            border.width: Theme.borderWidth
-            border.color: Theme.borderColor
+    CustomMenu {
+        id: viewMenu
+
+        Instantiator {
+            model: root.views
+            delegate: CustomMenuItem {
+                required property int index
+                required property var modelData
+
+                text: modelData.title
+                checkable: true
+                autoExclusive: true
+                checked: !root.hidden && root.safeIndex === index
+                onTriggered: {
+                    root.hidden = false
+                    root.currentIndex = index
+                }
+            }
+            onObjectAdded:   (index, object) => viewMenu.insertItem(index, object)
+            onObjectRemoved: (index, object) => viewMenu.removeItem(object)
         }
 
-        MenuItem {
-            text: root.hidden ? qsTr("Show") : qsTr("Hide")
+        MenuSeparator { }
+
+        CustomMenuItem {
+            text: qsTr("Hide")
+            checkable: true
+            autoExclusive: true
+            checked: root.hidden
             onTriggered: root.hidden = !root.hidden
         }
     }

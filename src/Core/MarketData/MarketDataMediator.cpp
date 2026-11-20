@@ -28,11 +28,11 @@ static QSet<Streamer::PublicStreams> defaultStreams()
 
 MarketDataMediator::MarketDataMediator(QObject* parent) : MultiMediator(parent)
 {
-    m_publicService = std::make_unique<BybitMarketDataService>();
-    m_marketDataRep = std::make_unique<Repository::MarketDataRepository>();
+    m_publicService = std::make_unique<BybitMarketDataService>(this);
+    m_marketDataRep = std::make_unique<Repository::MarketDataRepository>(this);
 
-    m_pool.addStream(std::make_unique<BybitMarketDataStreamer>(Eh::MarketType::Spot));
-    m_pool.addStream(std::make_unique<BybitMarketDataStreamer>(Eh::MarketType::Linear));
+    m_pool.addStream(std::make_unique<BybitMarketDataStreamer>(Eh::MarketType::Spot, this));
+    m_pool.addStream(std::make_unique<BybitMarketDataStreamer>(Eh::MarketType::Linear, this));
 
     connect(m_marketDataRep.get(), &Repository::MarketDataRepository::errorOccurred,
             this, &MarketDataMediator::errorOccurred);

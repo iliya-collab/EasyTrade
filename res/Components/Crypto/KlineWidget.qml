@@ -9,8 +9,8 @@ import Theme 1.0
 Item {
     id: root
 
-    property string currentCategory: "spot"
-    property string currentTrade: ""
+    property int currentCategory: AppCore.marketState.current.info.category
+    property string currentSymbol: AppCore.marketState.current.info.symbol
     property string currentInterval: "1"
     property int limit: 200
     property alias enableVolumeChart: chart.enableShowVolumes
@@ -36,12 +36,12 @@ Item {
     }
 
     onCurrentCategoryChanged: reloadFull()
-    onCurrentTradeChanged: reloadFull()
+    onCurrentSymbolChanged: reloadFull()
     onCurrentIntervalChanged: ensureHistoryLoaded(currentInterval)
 
     function reloadFull()
     {
-        if (currentTrade === "")
+        if (currentSymbol === "" || currentCategory === EnumHelpers.MarketType.Unknown)
             return
 
         store.clear()
@@ -50,15 +50,15 @@ Item {
 
     function ensureHistoryLoaded(interval)
     {
-        if (currentTrade === "")
+        if (currentSymbol === "" || currentCategory === EnumHelpers.MarketType.Unknown)
             return
 
         chart.resetChart()
 
         AppCore.marketService.loadKlines(
             {
-                "category": currentCategory,
-                "symbol": currentTrade,
+                "category": EnumHelpers.marketTypeToApiString(currentCategory),
+                "symbol": currentSymbol,
                 "interval": interval,
                 "limit": limit
             }
@@ -162,29 +162,22 @@ Item {
     } // ColumnLayout
 
     // Контекстное меню настроек графика
-    Menu {
+    CustomMenu {
         id: chartMenu
 
-        background: Rectangle {
-            implicitWidth: 220
-            color: chart.config.background
-            border.width: 1
-            border.color: chart.config.border
-        }
-
-        MenuItem {
+        CustomMenuItem {
             text: qsTr("Autoscroll")
             checkable: true
             checked: chart.enableAutoScroll
             onToggled: chart.enableAutoScroll = checked
         }
-        MenuItem {
+        CustomMenuItem {
             text: qsTr("Show volumes")
             checkable: true
             checked: chart.enableShowVolumes
             onToggled: chart.enableShowVolumes = checked
         }
-        MenuItem {
+        CustomMenuItem {
             text: qsTr("Display open price")
             checkable: true
             checked: chart.enableDisplayOpenPrice
@@ -193,25 +186,25 @@ Item {
 
         MenuSeparator {}
 
-        MenuItem {
+        CustomMenuItem {
             text: qsTr("Cursor info")
             checkable: true
             checked: chart.enableCursorInfo
             onToggled: chart.enableCursorInfo = checked
         }
-        MenuItem {
+        CustomMenuItem {
             text: qsTr("Cursor time")
             checkable: true
             checked: chart.enableCursorTime
             onToggled: chart.enableCursorTime = checked
         }
-        MenuItem {
+        CustomMenuItem {
             text: qsTr("Cursor price")
             checkable: true
             checked: chart.enableCursorPrice
             onToggled: chart.enableCursorPrice = checked
         }
-        MenuItem {
+        CustomMenuItem {
             text: qsTr("Cursor volume")
             checkable: true
             checked: chart.enableCursorVolume

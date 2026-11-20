@@ -55,6 +55,12 @@ protected:
         return true;
     }
 
+    template<class T, class F>
+    void postTo(T* obj, F&& f)
+    {
+        QMetaObject::invokeMethod(obj, std::forward<F>(f));
+    }
+
 signals:
 
     // Уведомляет об ошибке

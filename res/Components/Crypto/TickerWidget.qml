@@ -5,6 +5,7 @@ import QtQuick.Shapes 1.15
 import QtCore
 import Application.Core 1.0
 import Components.Configs 1.0
+import Components.Custom 1.0
 import Theme 1.0
 
 Rectangle {
@@ -362,16 +363,10 @@ Rectangle {
         onTapped: tickerMenu.popup(point.position.x, point.position.y)
     }
 
-    Menu {
+    CustomMenu {
         id: tickerMenu
-        background: Rectangle {
-            implicitWidth: 180
-            color: Theme.windowColor
-            border.width: Theme.borderWidth
-            border.color: Theme.borderColor
-        }
 
-        MenuItem {
+        CustomMenuItem {
             text: root.hidden ? qsTr("Show") : qsTr("Hide")
             onTriggered: root.hidden = !root.hidden
         }

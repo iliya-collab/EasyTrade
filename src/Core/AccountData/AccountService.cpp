@@ -70,40 +70,40 @@ void Core::AccountService::init(const Api &api, bool isTestnet)
 
 void Core::AccountService::run()
 {
-    m_mediator->runStreamer();
+    postTo(m_mediator.get(), [m = m_mediator.get()]() { m->runStreamer(); });
 }
 
 void Core::AccountService::restart()
 {
-    m_mediator->restartStreamer();
+    postTo(m_mediator.get(), [m = m_mediator.get()]() { m->restartStreamer(); });
 }
 
 void Core::AccountService::shutdown()
 {
-    m_mediator->stopStreamer();
-
     QEventLoop loop;
     QTimer::singleShot(5000, &loop, &QEventLoop::quit);
 
     connect(m_mediator.get(), &Core::AccountMediator::streamerStopped,
             &loop, &QEventLoop::quit, Qt::SingleShotConnection);
 
+    postTo(m_mediator.get(), [m = m_mediator.get()]() { m->stopStreamer(); });
+
     loop.exec();
 }
 
 void Core::AccountService::subscribe()
 {
-    m_mediator->subscribe();
+    postTo(m_mediator.get(), [m = m_mediator.get()]() { m->subscribe(); });
 }
 
 void Core::AccountService::requestWalletBalance()
 {
-    m_mediator->requestWalletBalance();
+    postTo(m_mediator.get(), [m = m_mediator.get()]() { m->requestWalletBalance(); });
 }
 
 void Core::AccountService::requestInfoAboutApi()
 {
-    m_mediator->requestInfoAboutApi();
+    postTo(m_mediator.get(), [m = m_mediator.get()]() { m->requestInfoAboutApi(); });
 }
 
 void Core::AccountService::onErrorOccurredWithId(const QString& id, const QString &error)
@@ -138,8 +138,9 @@ void Core::AccountService::createOrder(const QVariantMap& params)
         return;
     }
 
-    validateAndSend(params, Tools::buildOrderRequest,
-                    [this](const Tools::OrderRequest& req) { m_mediator->requestCreateOrder(req); });
+    validateAndSend(params, Tools::buildOrderRequest, [this](const Tools::OrderRequest& req) {
+        postTo(m_mediator.get(), [m = m_mediator.get(), req] { m->requestCreateOrder(req); });
+    });
 }
 
 void Core::AccountService::amendOrder(const QVariantMap& params)
@@ -150,8 +151,9 @@ void Core::AccountService::amendOrder(const QVariantMap& params)
         return;
     }
 
-    validateAndSend(params, Tools::buildOrderAmendRequest,
-                    [this](const Tools::OrderAmendRequest& req) { m_mediator->requestAmendOrder(req); });
+    validateAndSend(params, Tools::buildOrderAmendRequest, [this](const Tools::OrderAmendRequest& req) {
+        postTo(m_mediator.get(), [m = m_mediator.get(), req] { m->requestAmendOrder(req); });
+    });
 }
 
 void Core::AccountService::cancelOrder(const QVariantMap& params)
@@ -162,8 +164,9 @@ void Core::AccountService::cancelOrder(const QVariantMap& params)
         return;
     }
 
-    validateAndSend(params, Tools::buildOrderCancelRequest,
-                    [this](const Tools::OrderCancelRequest& req) { m_mediator->requestCancelOrder(req); });
+    validateAndSend(params, Tools::buildOrderCancelRequest, [this](const Tools::OrderCancelRequest& req) {
+        postTo(m_mediator.get(), [m = m_mediator.get(), req] { m->requestCancelOrder(req); });
+    });
 }
 
 void Core::AccountService::cancelAllOrders(const QVariantMap& params)
@@ -174,32 +177,37 @@ void Core::AccountService::cancelAllOrders(const QVariantMap& params)
         return;
     }
 
-    validateAndSend(params, Tools::buildOrderCancelAllRequest,
-                    [this](const Tools::OrderCancelAllRequest& req) { m_mediator->requestCancelAllOrders(req); });
+    validateAndSend(params, Tools::buildOrderCancelAllRequest, [this](const Tools::OrderCancelAllRequest& req) {
+        postTo(m_mediator.get(), [m = m_mediator.get(), req] { m->requestCancelAllOrders(req); });
+    });
 }
 
 void Core::AccountService::requestOpenOrders(const QVariantMap& params)
 {
-    validateAndSend(params, Tools::buildOpenOrdersRequest,
-                    [this](const Tools::OpenOrdersRequest& req) { m_mediator->requestOpenOrders(req); });
+    validateAndSend(params, Tools::buildOpenOrdersRequest, [this](const Tools::OpenOrdersRequest& req) {
+        postTo(m_mediator.get(), [m = m_mediator.get(), req] { m->requestOpenOrders(req); });
+    });
 }
 
 void Core::AccountService::requestOrderHistory(const QVariantMap& params)
 {
-    validateAndSend(params, Tools::buildOrderHistoryRequest,
-                    [this](const Tools::OrderHistoryRequest& req) { m_mediator->requestOrderHistory(req); });
+    validateAndSend(params, Tools::buildOrderHistoryRequest, [this](const Tools::OrderHistoryRequest& req) {
+        postTo(m_mediator.get(), [m = m_mediator.get(), req] { m->requestOrderHistory(req); });
+    });
 }
 
 void Core::AccountService::requestTradeHistory(const QVariantMap &params)
 {
-    validateAndSend(params, Tools::buildTradeHistoryRequest,
-                    [this](const Tools::TradeHistoryRequest& req) { m_mediator->requestTradeHistory(req); });
+    validateAndSend(params, Tools::buildTradeHistoryRequest, [this](const Tools::TradeHistoryRequest& req) {
+        postTo(m_mediator.get(), [m = m_mediator.get(), req] { m->requestTradeHistory(req); });
+    });
 }
 
 void Core::AccountService::requestFeeRates(const QVariantMap &params)
 {
-    validateAndSend(params, Tools::buildFeeRatesRequest,
-                    [this](const Tools::FeeRateRequest& req) { m_mediator->requestFeeRates(req); });
+    validateAndSend(params, Tools::buildFeeRatesRequest, [this](const Tools::FeeRateRequest& req) {
+        postTo(m_mediator.get(), [m = m_mediator.get(), req] { m->requestFeeRates(req); });
+    });
 }
 
 void Core::AccountService::exportOrders(const QString &path, Tools::Exporter::ExportFormat format, const QVariantMap &opts, const QVariantMap &params)
@@ -211,17 +219,23 @@ void Core::AccountService::exportOrders(const QString &path, Tools::Exporter::Ex
         return;
     }
 
-    auto orders = m_mediator->readOrdersFromRepository(req.value());
-    if (orders.isEmpty())
-    {
-        emit warningOccurred("[export] No orders in repository");
-        return;
-    }
-
     const QUrl url(path);
     const QString localPath = url.isLocalFile() ? url.toLocalFile() : path;
 
-    doExport(orders, format, localPath, [](const OrderInfo& o) { return Tools::Exporter::toField(o); }, opts);
+    postTo(m_mediator.get(), [=, this, self = QPointer(this), m = m_mediator.get()] {
+        auto orders = m_mediator->readOrdersFromRepository(req.value());
+
+        QMetaObject::invokeMethod(self, [=, this] {
+            if (orders.isEmpty())
+            {
+                emit warningOccurred("[export] no orders");
+                return;
+            }
+
+            doExport(orders, format, localPath, [](const OrderInfo& o) { return Tools::Exporter::toField(o); }, opts);
+        });
+    });
+
 }
 
 void Core::AccountService::exportExecs(const QString &path, Tools::Exporter::ExportFormat format, const QVariantMap &opts, const QVariantMap &params)
@@ -233,15 +247,21 @@ void Core::AccountService::exportExecs(const QString &path, Tools::Exporter::Exp
         return;
     }
 
-    auto execs = m_mediator->readExecsFromRepository(req.value());
-    if (execs.isEmpty())
-    {
-        emit warningOccurred("[export] No execs in repository");
-        return;
-    }
-
     const QUrl url(path);
     const QString localPath = url.isLocalFile() ? url.toLocalFile() : path;
 
-    doExport(execs, format, localPath, [](const ExecutionInfo& e) { return Tools::Exporter::toField(e); }, opts);
+    postTo(m_mediator.get(), [=, this, self = QPointer(this), m = m_mediator.get()] {
+        auto execs = m_mediator->readExecsFromRepository(req.value());
+
+        QMetaObject::invokeMethod(self, [=, this] {
+            if (execs.isEmpty())
+            {
+                emit warningOccurred("[export] No execs");
+                return;
+            }
+
+            doExport(execs, format, localPath, [](const ExecutionInfo& e) { return Tools::Exporter::toField(e); }, opts);
+        });
+    });
+
 }

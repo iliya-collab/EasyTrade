@@ -33,6 +33,10 @@ private:
 
     Core::ConfigurationParams m_config{};
 
+    QThread* m_marketThread = nullptr;
+    QThread* m_accountThread = nullptr;
+
+    void initCore();
     void runCore();
 
     void initLogging();
@@ -44,6 +48,31 @@ private:
     void runAccountService();
 
     void readConfiguration();
+
+    void shutdownThreads();
+
+    template<class T, class... Args>
+    std::shared_ptr<T> makeInThread(QThread* th, Args&&... args)
+    {
+        auto* ctx = new QObject;
+        ctx->moveToThread(th);
+
+        T* raw = nullptr;
+        QMetaObject::invokeMethod(ctx, [&] {
+            raw = new T(std::forward<Args>(args)...);
+        }, Qt::BlockingQueuedConnection);
+
+        ctx->deleteLater();
+
+        QObject::connect(th, &QThread::finished, raw, &QObject::deleteLater);
+        return std::shared_ptr<T>(raw, [](T*) {});
+    }
+
+    template<class T, class F>
+    void postTo(T* obj, F&& f)
+    {
+        QMetaObject::invokeMethod(obj, std::forward<F>(f));
+    }
 
     explicit AppCore(QObject* parent = nullptr);
     ~AppCore() = default;

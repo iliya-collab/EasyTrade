@@ -110,8 +110,9 @@ ApplicationWindow {
 
         onExportRequested: function(path, format, opts) {
             AppCore.marketService.exportKlines(path, format, opts, {
-                "category": EnumHelpers.marketTypeToApiString(AppCore.marketState.currentCategory),
-                "symbol":   AppCore.marketState.currentSymbol,
+                "category": EnumHelpers.marketTypeToApiString(
+                                AppCore.marketState.current.info.category),
+                "symbol":   AppCore.marketState.current.info.symbol,
                 "interval": kInterval.currentText,
                 "start":    Date.parse(kStart.text),
                 "end":      Date.parse(kEnd.text)
@@ -126,8 +127,9 @@ ApplicationWindow {
 
         onExportRequested: function(path, format, opts) {
             AppCore.marketService.exportTrades(path, format, opts, {
-                "category": EnumHelpers.marketTypeToApiString(AppCore.marketState.currentCategory),
-                "symbol":   AppCore.marketState.currentSymbol
+                "category": EnumHelpers.marketTypeToApiString(
+                               AppCore.marketState.current.info.category),
+                "symbol":   AppCore.marketState.current.info.symbol
             })
         }
     }
@@ -139,8 +141,9 @@ ApplicationWindow {
 
         onExportRequested: function(path, format, opts) {
             AppCore.accountService.exportOrders(path, format, opts, {
-                "category": EnumHelpers.marketTypeToApiString(AppCore.marketState.currentCategory),
-                "symbol":   AppCore.marketState.currentSymbol
+                "category": EnumHelpers.marketTypeToApiString(
+                                AppCore.marketState.current.info.category),
+                "symbol":   AppCore.marketState.current.info.symbol
             })
         }
     }
@@ -152,8 +155,9 @@ ApplicationWindow {
 
         onExportRequested: function(path, format, opts) {
             AppCore.accountService.exportExecs(path, format, opts, {
-                "category": EnumHelpers.marketTypeToApiString(AppCore.marketState.currentCategory),
-                "symbol":   AppCore.marketState.currentSymbol
+                "category": EnumHelpers.marketTypeToApiString(
+                   AppCore.marketState.current.info.category),
+                "symbol":   AppCore.marketState.current.info.symbol
             })
         }
     }
@@ -184,8 +188,20 @@ ApplicationWindow {
             {
                 text: qsTr("Application"),
                 items: [
-                    { text: qsTr("About") },
+                    {
+                        text: qsTr("Settings"),
+                        clicked: function() { settingsWindowLoader.active = true }
+                    },
+                    {
+                        text: qsTr("Logs"),
+                        clicked: function() {
+                            if (logWindowLoader.item)
+                                logWindowLoader.item.raise()
+                            else logWindowLoader.active = true
+                        }
+                    },
                     { text: "---" },
+                    { text: qsTr("About") },
                     {
                         text: qsTr("Exit"),
                         clicked: function() {
@@ -233,18 +249,6 @@ ApplicationWindow {
                     { text: qsTr("Executions"), clicked: function() { execsExportDialog.open() } },
                     { text: qsTr("Positions") }
                 ]
-            },
-            {
-                text: qsTr("Settings"),
-                clicked: function() { settingsWindowLoader.active = true }
-            },
-            {
-                text: qsTr("Logs"),
-                clicked: function() {
-                    if (logWindowLoader.item)
-                        logWindowLoader.item.raise()
-                    else logWindowLoader.active = true
-                }
             }
         ]
     }

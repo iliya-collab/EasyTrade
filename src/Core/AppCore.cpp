@@ -10,10 +10,7 @@ AppCore::AppCore(QObject* parent) : QObject(parent)
 {
     try
     {
-        initLogging();
-        initMarketService();
-        initAccountService();
-        readConfiguration();
+        initCore();
         runCore();
     }
     catch (const std::exception& e)
@@ -36,8 +33,19 @@ AppCore *AppCore::create(QQmlEngine *, QJSEngine *)
     return inst;
 }
 
+void AppCore::initCore()
+{
+    connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
+            this, &AppCore::shutdownThreads);
+
+    initLogging();
+    initMarketService();
+    initAccountService();
+}
+
 void AppCore::runCore()
-{   
+{
+    readConfiguration();
     runMarketService();
     runAccountService();
 }
@@ -53,9 +61,13 @@ void AppCore::initLogging()
 
 void AppCore::initMarketService()
 {
-    m_marketState = std::make_shared<Core::MarketDataState>();
-    m_marketMediator = std::make_shared<Core::MarketDataMediator>();
-    m_marketService = std::make_shared<Core::MarketDataService>(m_marketState, m_marketMediator);
+    m_marketThread = new QThread(this);
+    m_marketThread->setObjectName("market-worker");
+    m_marketThread->start();
+
+    m_marketMediator = makeInThread<Core::MarketDataMediator>(m_marketThread);
+    m_marketState = std::make_shared<Core::MarketDataState>(this);
+    m_marketService = std::make_shared<Core::MarketDataService>(m_marketState, m_marketMediator, this);
 
     connect(m_marketService.get(), &Core::MarketDataService::messageReceived,
             this, [](const QString& m) { marketInfo().noquote() << m; });
@@ -67,22 +79,24 @@ void AppCore::initMarketService()
 
 void AppCore::runMarketService()
 {
-    m_marketMediator->init(m_config.testnet);
-
-    m_marketMediator->loadInstruments(EnumHelpers::MarketType::Spot);
-    m_marketMediator->loadInstruments(EnumHelpers::MarketType::Linear);
-
-    if (m_config.autoConnection)
-    {
-        m_marketMediator->runAllStreams();
-    }
+    postTo(m_marketMediator.get(), [m = m_marketMediator.get(), cfg = m_config] {
+        m->init(cfg.testnet);
+        m->loadInstruments(EnumHelpers::MarketType::Spot);
+        m->loadInstruments(EnumHelpers::MarketType::Linear);
+        if (cfg.autoConnection)
+            m->runAllStreams();
+    });
 }
 
 void AppCore::initAccountService()
 {
-    m_accountMediator = std::make_shared<Core::AccountMediator>();
-    m_accountState = std::make_shared<Core::AccountState>();
-    m_accountService = std::make_shared<Core::AccountService>(m_accountState, m_accountMediator);
+    m_accountThread = new QThread(this);
+    m_accountThread->setObjectName("account-worker");
+    m_accountThread->start();
+
+    m_accountMediator = makeInThread<Core::AccountMediator>(m_accountThread);
+    m_accountState = std::make_shared<Core::AccountState>(this);
+    m_accountService = std::make_shared<Core::AccountService>(m_accountState, m_accountMediator, this);
 
     connect(m_accountService.get(), &Core::AccountService::messageReceived,
             this, [](const QString& m) { accountInfo().noquote() << m; });
@@ -96,14 +110,16 @@ void AppCore::runAccountService()
 {
     m_accountMediator->init(m_config.apis[m_config.activeApi], m_config.testnet);
 
-    m_accountService->setEnableTrades(m_config.enableTrades);
-    m_accountMediator->requestInfoAboutApi();
-    m_accountMediator->requestWalletBalance();
+    postTo(m_accountMediator.get(), [m = m_accountMediator.get(), cfg = m_config] {
+        if (!cfg.apis.contains(cfg.activeApi))
+            return;
 
-    if (m_config.autoConnection)
-    {
-        m_accountMediator->runStreamer();
-    }
+        m->init(cfg.apis[cfg.activeApi], cfg.testnet);
+        m->requestInfoAboutApi();
+        m->requestWalletBalance();
+        if (cfg.autoConnection)
+            m->runStreamer();
+    });
 }
 
 void AppCore::readConfiguration()
@@ -122,10 +138,7 @@ void AppCore::readConfiguration()
 
     m_config = res.value();
     if (!m_config.apis.contains(m_config.activeApi))
-    {
-        coreCrit() << "Active API not found:" << m_config.activeApi;
-        return;
-    }
+        coreWarn() << "Active API not found:" << m_config.activeApi;
 
     coreInfo() << "Network:" << (m_config.testnet ? "testnet" : "mainnet");
     coreInfo() << "Trading:" << (m_config.enableTrades ? "enable" : "disable");
@@ -134,4 +147,12 @@ void AppCore::readConfiguration()
         coreWarn().noquote() << "Trading was disabled";
 
     coreInfo() << "-------------------------------------------";
+}
+
+void AppCore::shutdownThreads()
+{
+    for (auto* th : {m_marketThread, m_accountThread}) {
+        th->quit();
+        th->wait();
+    }
 }

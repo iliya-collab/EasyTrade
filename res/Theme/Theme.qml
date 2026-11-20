@@ -35,6 +35,11 @@ QtObject {
     readonly property color redColor:               isDark ? "#ff4444" : "#d32f2f"
     readonly property color warningColor:           isDark ? "#ffb74d" : "#f57c00"
 
+    // Menu/MenuItem
+    property int menuIndicatorWidth: 16
+    property bool translucentMenus: true
+    property real menuOpacity: 0.92
+
     // Фон панели
     readonly property color panelColor:             isDark ? "#262626" : "#ffffff"
     readonly property color panelSelectedColor:     isDark ? "#2a2a2a" : "#e0e0e0"

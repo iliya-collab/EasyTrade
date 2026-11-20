@@ -60,22 +60,23 @@ MarketDataService::MarketDataService(std::shared_ptr<MarketDataState> state,
 
 void MarketDataService::run()
 {
-    m_mediator->runAllStreams();
+    postTo(m_mediator.get(), [m = m_mediator.get()]() { m->runAllStreams(); });
 }
 
 void MarketDataService::restart()
 {
-    m_mediator->restartAllStreams();
+    postTo(m_mediator.get(), [m = m_mediator.get()]() { m->restartAllStreams(); });
 }
 
 void MarketDataService::shutdown()
 {
-    m_mediator->stopAllStreams();
-
     QEventLoop loop;
     QTimer::singleShot(5000, &loop, &QEventLoop::quit);
 
-    connect(m_mediator.get(), &Core::MarketDataMediator::streamerStopped, &loop, &QEventLoop::quit, Qt::SingleShotConnection);
+    connect(m_mediator.get(), &Core::MarketDataMediator::streamerStopped,
+            &loop, &QEventLoop::quit, Qt::SingleShotConnection);
+
+    postTo(m_mediator.get(), [m = m_mediator.get()]() { m->stopAllStreams(); });
 
     loop.exec();
 
@@ -83,7 +84,7 @@ void MarketDataService::shutdown()
 
 void MarketDataService::init(bool isTestnet)
 {
-    m_mediator->init(isTestnet);
+    postTo(m_mediator.get(), [m = m_mediator.get(), isTestnet]() { m->init(isTestnet); });
 }
 
 void MarketDataService::openInstrument(const InstrumentInfo &inst)
@@ -95,7 +96,8 @@ void MarketDataService::openInstrument(const InstrumentInfo &inst)
     }
 
     m_state->openInstrument(inst);
-    m_mediator->subscribe(inst.m_category, inst.m_symbol);
+    postTo(m_mediator.get(), [m = m_mediator.get(), inst] {
+        m->subscribe(inst.m_category, inst.m_symbol); });
     emit messageReceived(QLatin1String("Instrument %1 was opened").arg(inst.id()));
 }
 
@@ -108,7 +110,8 @@ void MarketDataService::closeInstrument(const InstrumentInfo& inst)
     }
 
     m_state->closeInstrument(inst);
-    m_mediator->unsubscribe(inst.m_category, inst.m_symbol);
+    postTo(m_mediator.get(), [m = m_mediator.get(), inst] {
+        m->unsubscribe(inst.m_category, inst.m_symbol); });
     emit messageReceived(QLatin1String("Instrument %1 was closed").arg(inst.id()));
 }
 
@@ -122,14 +125,14 @@ void MarketDataService::selectCurrentInstrument(const InstrumentInfo &inst)
 
 void MarketDataService::loadInstruments(EnumHelpers::MarketType type)
 {
-    m_mediator->loadInstruments(type);
+    postTo(m_mediator.get(), [m = m_mediator.get(), type]() {
+        m->loadInstruments(type); });
 }
 
 void MarketDataService::loadKlines(const QVariantMap& params)
 {
-    validateAndSend(params, Tools::buildKlinesRequest, [this](const Tools::KlinesRequest& req)
-    {
-        m_mediator->loadKlines(req);
+    validateAndSend(params, Tools::buildKlinesRequest, [this](const Tools::KlinesRequest& req) {
+        postTo(m_mediator.get(), [m = m_mediator.get(), req] { m->loadKlines(req); });
     });
 }
 
@@ -152,19 +155,22 @@ void MarketDataService::exportKlines(const QString &path,
         return;
     }
 
-    /*coreWarn() << "From" << QDateTime::fromMSecsSinceEpoch(reqSpecial.value().m_start).toString("yyyy-MM-dd hh:mm")
-               << "To" << QDateTime::fromMSecsSinceEpoch(reqSpecial.value().m_end).toString("yyyy-MM-dd hh:mm");*/
-    auto klines = m_mediator->readKlinesFromRepository(reqStd.value(), reqSpecial.value());
-    if (klines.isEmpty())
-    {
-        emit warningOccurred("[export] no klines in repository for the requested range");
-        return;
-    }
-
     const QUrl url(path);
     const QString localPath = url.isLocalFile() ? url.toLocalFile() : path;
 
-    doExport(klines, format, localPath, [](const KlineInfo& k) { return Tools::Exporter::toField(k); }, opts);
+    postTo(m_mediator.get(), [=, this, self = QPointer(this), m = m_mediator.get()] {
+        auto klines = m->readKlinesFromRepository(*reqStd, *reqSpecial);
+
+        QMetaObject::invokeMethod(self, [=, this] {
+            if (klines.isEmpty())
+            {
+                emit warningOccurred("[export] no klines");
+                return;
+            }
+            doExport(klines, format, localPath,[](const KlineInfo& k) {
+                return Tools::Exporter::toField(k); }, opts);
+        });
+    });
 }
 
 void MarketDataService::exportTrades(const QString &path, Tools::Exporter::ExportFormat format, const QVariantMap &opts, const QVariantMap &params)
@@ -176,17 +182,22 @@ void MarketDataService::exportTrades(const QString &path, Tools::Exporter::Expor
         return;
     }
 
-    auto trades = m_mediator->readPublicTradesFromRepository(reqStd.value());
-    if (trades.isEmpty())
-    {
-        emit warningOccurred("[export] no trades in repository");
-        return;
-    }
-
     const QUrl url(path);
     const QString localPath = url.isLocalFile() ? url.toLocalFile() : path;
 
-    doExport(trades, format, localPath, [](const PublicTradeInfo& t) { return Tools::Exporter::toField(t); }, opts);
+    postTo(m_mediator.get(), [=, self = QPointer(this), m = m_mediator.get()] {
+        auto trades = m_mediator->readPublicTradesFromRepository(reqStd.value());
+
+        QMetaObject::invokeMethod(self, [=] {
+            if (trades.isEmpty())
+            {
+                emit warningOccurred("[export] no trades");
+                return;
+            }
+            doExport(trades, format, localPath, [](const PublicTradeInfo& t) {
+                return Tools::Exporter::toField(t); }, opts);
+        });
+    });
 }
 
 void MarketDataService::onErrorOccurredWithId(const QString& id, const QString &error)

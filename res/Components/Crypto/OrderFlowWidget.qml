@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQml
 import QtCore
 import Theme 1.0
+import Components.Custom 1.0
 import Components.Crypto 1.0
 
 Rectangle {
@@ -25,7 +26,7 @@ Rectangle {
 
     Settings {
         id: store
-        category: "MarketDataWidget"
+        category: "OrderFlowWidget"
         property int  viewIndex: 0
         property bool hidden:    false
     }
@@ -41,7 +42,7 @@ Rectangle {
     Component { id: orderbookComponent; OrderbookWidget {} }
     Component { id: tradesComponent;    PublicTradesWidget {} }
 
-    // Полоска в свёрнутом состоянии: клик возвращает виджет
+    // Полоска в свёрнутом состоянии
     ToolButton {
         anchors.fill: parent
         visible: root.hidden
@@ -54,18 +55,12 @@ Rectangle {
         onTapped: viewMenu.popup(point.position.x, point.position.y)
     }
 
-    Menu {
+    CustomMenu {
         id: viewMenu
-        background: Rectangle {
-            implicitWidth: 180
-            color: Theme.windowColor
-            border.width: Theme.borderWidth
-            border.color: Theme.borderColor
-        }
 
         Instantiator {
             model: root.views
-            delegate: MenuItem {
+            delegate: CustomMenuItem {
                 required property int index
                 required property var modelData
 
@@ -84,12 +79,12 @@ Rectangle {
 
         MenuSeparator {}
 
-        MenuItem {
+        CustomMenuItem {
             text: qsTr("Hide")
             checkable: true
             autoExclusive: true
             checked: root.hidden
-            onTriggered: root.hidden = true
+            onTriggered: root.hidden = !root.hidden
         }
     }
 }

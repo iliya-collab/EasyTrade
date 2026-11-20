@@ -10,7 +10,7 @@ Item {
     readonly property real turnoverField: TradesConfig.turnoverField
     readonly property real timeField: TradesConfig.timeField
     readonly property var recentTrades: ReversedProxyModel {
-        sourceModel: AppCore.marketState.trades
+        sourceModel: AppCore.marketState.current.trades
     }
 
     ListView {

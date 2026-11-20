@@ -15,4 +15,6 @@ qt_add_qml_module(CustomComponents
         CustomTabBar.qml
         CustomSwitch.qml
         CustomComboBox.qml
+        CustomMenu.qml
+        CustomMenuItem.qml
 )

@@ -93,14 +93,13 @@ Item {
                     KlineWidget {
                         id: candleChart
                         SplitView.fillHeight: true
-                        SplitView.fillWidth: marketData.hidden
+                        SplitView.fillWidth: orderFlowWidget.hidden
                         SplitView.preferredWidth: chartSplit.width * 0.90
                         SplitView.minimumWidth: chartSplit.width * 0.70
-                        currentTrade: AppCore.marketState.current.info.symbol
                     }
 
-                    MarketDataWidget {
-                        id: marketData
+                    OrderFlowWidget {
+                        id: orderFlowWidget
                         SplitView.fillHeight: true
                         SplitView.fillWidth: !hidden
                         SplitView.minimumWidth: hidden ? collapsedWidth : 350
@@ -109,7 +108,7 @@ Item {
                 } // chartSplit
             } // topContent
 
-            TradingPanelWidget {
+            TradingWidget {
                 id: bottomPanel
 
                 SplitView.fillHeight: !hidden
